@@ -1,0 +1,15 @@
+# C08e: evaluate a computed function callee before its argument, then invoke it once.
+sub mark($tag: Int, $value: Int): Int {
+    print($tag)
+    $value
+}
+
+sub maker($tag: Int): Func {
+    print($tag)
+    sub($value: Int): Int { $value }
+}
+
+sub main(): Int {
+    print(maker(801)(mark(802, 8)))
+    0
+}

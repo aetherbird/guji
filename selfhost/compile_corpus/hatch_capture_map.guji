@@ -1,0 +1,63 @@
+# P8e-4: hatch copy-on-capture for Map bindings (§17.1).
+# Mirrors native hatchCopyMap: keys (always ARR_STR) + vals detach through
+# KIND-tagged guji_copy_arr into the task env; the child unpacks into named
+# _keys/_vals/_len locals and releases them at task exit. Covers scalar and
+# Str values, one nesting level of List/Map values, an empty map, and a
+# parent-side rebind after spawn so the task must observe its detached copy.
+# Heap-built Str keys/values keep the sanitizer honest about deep copies.
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $sch: Chan[Str] = channel(0)
+
+    # Map[Str, Int]: iterate + index; parent mutates a source binding after spawn
+    mut $base = 10
+    %nums = {"a": $base, "b": 20, "c": 30}
+    hatch {
+        mut $sum = 0
+        for $k, $v in %nums {
+            $sum = $sum + $v
+        }
+        $ch.send($sum + %nums{"a"})
+    }
+    $base = 999
+    print($ch.recv().unwrap())
+
+    # Map[Str, Str]: every key and value must guji_str_copy into the task heap
+    mut $color = "red"
+    mut $name = "ada"
+    %labels = {"x": $color, "y": "green", "z": $name}
+    hatch {
+        $sch.send(%labels{"x"} ~ "/" ~ %labels{"y"} ~ "/" ~ %labels{"z"})
+    }
+    $color = "black"
+    $name = "grace"
+    print($sch.recv().unwrap())
+
+    # Map[Str, List[Int]]: nested list values detach via ARR_SLICE copy
+    %scores = {"evens": [2, 4], "odds": [1, 3]}
+    hatch {
+        $ch.send(%scores{"evens"}[0] + %scores{"evens"}[1] + %scores{"odds"}[1])
+    }
+    print($ch.recv().unwrap())
+
+    # Map[Str, Map[Str, Int]]: nested map values detach via ARR_MAP copy
+    %points = {"left": {"x": 10, "y": 20}, "right": {"x": 5}}
+    hatch {
+        $ch.send(%points{"left"}{"x"} + %points{"left"}{"y"} + %points{"right"}{"x"})
+    }
+    print($ch.recv().unwrap())
+
+    # empty map: len-0 header-backed arrays still go through guji_copy_arr;
+    # Map.count() is a native "undefined list" reject, so prove via a
+    # zero-iteration two-var for.
+    %none: Map[Str, Int] = {}
+    hatch {
+        mut $n = 0
+        for $k, $v in %none {
+            $n = $n + 1
+        }
+        $ch.send($n)
+    }
+    print($ch.recv().unwrap())
+    0
+}

@@ -1,0 +1,15 @@
+sub main(): Int {
+    @xs = [1, 2, 3]
+    @ri = @xs.reverse()
+    print("{ @ri[0] }")
+
+    @ws = ["a" ~ "x", "b"]
+    @rw = reverse(@ws)
+    print("{ @rw[0] }")
+
+    @rows = [[1], [2, 3]]
+    @rr = @rows.reverse()
+    print("{ @rr[0][0] }")
+
+    0
+}

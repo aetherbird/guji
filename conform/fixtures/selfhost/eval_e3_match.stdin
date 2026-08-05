@@ -1,0 +1,16 @@
+sub main(): Int {
+    print(kind(Some(20)))
+    print(kind(Some(2)))
+    print(kind(None))
+    grade(2)
+}
+sub kind($o: Option[Int]): Str {
+    match $o {
+        Some($x) if $x > 10 { "big" }
+        Some($x) { "small" }
+        None { "none" }
+    }
+}
+sub grade($n: Int): Int {
+    match $n { 1 { 10 } 2 { 20 } _ { 0 } }
+}

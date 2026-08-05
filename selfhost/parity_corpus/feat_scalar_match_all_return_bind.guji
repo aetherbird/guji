@@ -1,0 +1,17 @@
+# §11.2 Never — an ALL-return scalar-match bind (`$out = match … { every arm
+# returns }`) is Never-valued: no value arm remains to pin the result kind, so
+# the selfhost ret-aware scalar chain stays out and the bind declines rc 4.
+# Native accepts (the bind is unreachable). Measured GAP, P9-10b-2 remainder.
+sub bind_ret_probe($n: Int): Int {
+    $out = match $n {
+        7 { return $n * 2 }
+        $m { return $m + 3 }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(bind_ret_probe(7))
+    print(bind_ret_probe(5))
+    0
+}

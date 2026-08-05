@@ -1,0 +1,5 @@
+sub main(): Int {
+  $x: Int = 6
+  $y: Int = 7
+  $x * $y
+}

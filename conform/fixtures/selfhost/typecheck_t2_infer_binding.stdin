@@ -1,0 +1,5 @@
+# T2: unannotated local binding type is inferred from its RHS.
+sub main(): Int {
+    $x = "s"
+    $x + 1
+}

@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static guji_res_int_str gf_keep__Int_Str_Result_int_str(int64_t gp0, const char* gp1)"))
+            print(has_text($c, "static guji_res_int_str gf_fail__Int_Str_Result_int_str(int64_t gp0, const char* gp1)"))
+            print(has_text($c, "static int64_t gf_ok_or_default__Result_int_str_Int_Int(guji_res_int_str gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_ok_or_default__Result_str_str_Str_Str(guji_res_str_str gp0, const char* gp1)"))
+            print(has_text($c, "static double gf_ok_or_default__Result_float_str_Float_Float(guji_res_float_str gp0, double gp1)"))
+            print(has_text($c, "gf_keep("))
+            print(has_text($c, "gf_ok_or_default("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

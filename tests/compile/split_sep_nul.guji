@@ -1,0 +1,20 @@
+# Differential fixture for native split(s, sep) with a non-empty separator and
+# interior NUL bytes in the receiver. split_sep_nul.input holds exactly
+# "a\0b,c\0d" (61 00 62 2c 63 00 64). The interpreter uses Go strings.Split,
+# which is byte-counted and preserves both NULs. The native helper must do the
+# same instead of using strstr/strlen, which would stop at the first NUL and
+# return one truncated part.
+sub main(): Int {
+    match read_file("split_sep_nul.input") {
+        Ok($s) {
+            @parts = split($s, ",")
+            $n = count(@parts)
+            print("count=$n")
+            for $p in @parts {
+                print("P[" ~ $p ~ "]")
+            }
+        }
+        Err($e) { print("err: $e") }
+    }
+    0
+}

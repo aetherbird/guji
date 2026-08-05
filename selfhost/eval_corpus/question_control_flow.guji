@@ -1,0 +1,102 @@
+# §11.1 I6e: control-flow `?` propagation. Pins if-arm finals, guard-body
+# binds, mut reassignment, while-body binds, and match-value arms/guards.
+# Side-effecting `tick` proves each carrier is evaluated exactly once — a
+# failing `?` must not re-run the carrier or any later continuation.
+sub tick($n: Int): Result[Int, Str] {
+    print("tick $n")
+    if $n >= 0 { Ok($n) } else { Err("neg") }
+}
+
+sub maybe($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+# Final if-arm constructor operand contains `?`.
+sub if_arm($take: Bool, $n: Int): Result[Int, Str] {
+    if $take {
+        Ok(tick($n)? + 1)
+    } else {
+        Ok(99)
+    }
+}
+
+# Direct `?` bind inside a statement-if guard body.
+sub if_guard($n: Int): Result[Int, Str] {
+    mut $r = 0
+    if true {
+        $v = tick($n)?
+        $r = $v + 10
+    }
+    Ok($r)
+}
+
+# Mut reassignment whose RHS holds a hoistable `?`.
+sub reassign($n: Int): Result[Int, Str] {
+    mut $x = 0
+    $x = tick($n)? * 2
+    Ok($x)
+}
+
+# Option `?` inside a while body (None exits the whole sub).
+sub while_opt($n: Int): Option[Int] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < 1 {
+        $v = maybe($n)?
+        $acc = $acc + $v
+        $i = $i + 1
+    }
+    Some($acc)
+}
+
+# Result `?` reassignment inside while (Err exits; success accumulates once).
+sub while_res($s: Str): Result[Int, Str] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < 1 {
+        $acc = parse_int($s)? + $acc
+        $i = $i + 1
+    }
+    Ok($acc)
+}
+
+# Match-value arm whose final expression contains `?` (bind-RHS form C admits).
+sub match_arm($s: Str, $q: Str): Result[Int, Str] {
+    $x = match parse_int($s) {
+        Ok($v) { parse_int($q)? + $v }
+        Err($e) { 0 }
+    }
+    Ok($x + 1)
+}
+
+# Guarded match arm: guard fails → fallthrough without evaluating `?`;
+# guard succeeds → `?` runs once.
+sub match_guard($s: Str, $q: Str): Result[Int, Str] {
+    $x = match parse_int($s) {
+        Ok($v) if $v > 5 { parse_int($q)? + $v }
+        Ok($v) { $v + 1 }
+        Err($e) { 3 }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    print(if_arm(true, 3))
+    print(if_arm(true, -1))
+    print(if_arm(false, -1))
+    print(if_guard(4))
+    print(if_guard(-2))
+    print(reassign(5))
+    print(reassign(-3))
+    print(while_opt(7))
+    print(while_opt(0))
+    print(while_res("8"))
+    print(while_res("bad"))
+    print(match_arm("10", "2"))
+    print(match_arm("10", "x"))
+    print(match_arm("no", "2"))
+    print(match_guard("7", "4"))
+    print(match_guard("4", "9"))
+    print(match_guard("7", "y"))
+    0
+}

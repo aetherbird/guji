@@ -1,0 +1,37 @@
+# A-collapse-interpolate: string interpolation ("{ ... }" and bare @x/%x sigils)
+# renders any value shape through the SAME generic runtime-tag display recursion
+# that print uses (guji_list_str / guji_map_str over the ARR_* KIND tags, exactly
+# like guji_copy_arr). print and interpolation now share ONE display-expr builder
+# (listDisplayExpr / mapDisplayExpr), so there is NO per-shape codegen on either
+# path. The shapes below are DEEPER/BROADER than the previous deepest interpolation
+# fixture (interpolate_nested tops out at a depth-5 List and a depth-3 Map): here a
+# List[Map[Str, List[Map[Str, List[Int]]]]] and its Map mirror interpolate
+# byte-identically to the interpreter's displayString -> Value.String(), through
+# both the bare-sigil and brace forms and a multi-part concat chain. Int and Str
+# leaves at depth, plus an empty inner list, all flow through the one recursion.
+sub main(): Unit {
+    # Depth-6 List[Map[Str, List[Map[Str, List[Int]]]]] -- deeper than any prior
+    # interpolation fixture, displayed with no per-shape code.
+    @deep = [{"a": [{"x": [1, 2]}, {"y": [3]}], "b": [{"z": [4, 5, 6]}]}]
+    print("deep=@deep")
+    print("brace={ @deep } tail")
+
+    # Map mirror: Map[Str, List[Map[Str, List[Int]]]] with an empty inner leaf.
+    %mdeep = {"outer": [{"inner": [{"leaf": [7, 8]}, {"none": []}]}]}
+    print("mdeep=%mdeep")
+    print("mbrace={ %mdeep }!")
+
+    # Str leaves nested three deep through the same recursion.
+    @strs = [[["ada", "bob"], ["cy"]], [["dot"]]]
+    print("strs=@strs")
+    %mstr = {"who": [["ada"], ["bob", "cy"]]}
+    print("mstr={ %mstr }")
+
+    # Multi-part interpolation: two deep values + a brace list literal in one
+    # guji_concat chain.
+    print("L=@deep M=%mdeep inline={ [[1], [2, 3]] }")
+
+    # Single-part (alias-shaped) interpolation of a whole deep value.
+    print("{ @deep }")
+    print("{ %mdeep }")
+}

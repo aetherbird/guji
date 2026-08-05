@@ -1,0 +1,4 @@
+sub main(): Int {
+    $x = if true { 12 } else { 99 }
+    $x
+}

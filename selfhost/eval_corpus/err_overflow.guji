@@ -1,0 +1,7 @@
+# §11.2 integer overflow is a runtime panic; 3037000500^2 overflows Int64.
+sub main(): Int {
+    print(1)
+    $a = 3037000500
+    print($a * $a)
+    0
+}

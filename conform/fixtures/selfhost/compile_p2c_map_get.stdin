@@ -1,0 +1,9 @@
+sub main(): Int {
+    %m: Map[Str, Int] = {"a": 1, "b": 2}
+    mut $n = 0
+    match get(%m, "a") { Some($v) { $n = $v } None { $n = 0 } }
+    match %m.get("z") { Some($v) { $n = $n + $v } None { $n = $n - 1 } }
+    %s: Map[Str, Str] = {"x": "hi"}
+    match get(%s, "x") { Some($sv) { if $sv == "hi" { $n = $n + 1 } else { $n = $n + 0 } } None { $n = $n - 1 } }
+    $n
+}

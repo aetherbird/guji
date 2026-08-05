@@ -1,0 +1,36 @@
+# Section 17 hatch capture of List[List[scalar]] and List[List[Str]] bindings.
+#
+# Nested lists crossing a hatch boundary need recursive deep copies: the child
+# task owns a fresh outer ARR_SLICE, fresh row arrays, and copied Str slots where
+# applicable. Retaining row pointers would share parent-heap data across
+# non-atomic per-task heaps.
+#
+# Deterministic: each hatch sends exactly one value over an unbuffered channel,
+# and the parent receives in a fixed order.
+sub main(): Int {
+    @nums = [[1, 2, 3], [4, 5]]
+    @words = [["red", "green"], ["blue"]]
+    $sumCh: Chan[Int] = channel(0)
+    $wordCh: Chan[Str] = channel(0)
+
+    hatch {
+        mut $sum = 0
+        for @row in @nums {
+            for $n in @row {
+                $sum = $sum + $n
+            }
+        }
+        $sumCh.send($sum)
+    }
+
+    hatch {
+        @first = @words[0]
+        @second = @words[1]
+        $msg = @first[0] ~ "/" ~ @second[0]
+        $wordCh.send($msg)
+    }
+
+    print($sumCh.recv().unwrap())
+    print($wordCh.recv().unwrap())
+    0
+}

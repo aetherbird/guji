@@ -1,0 +1,21 @@
+# P9-11b: pin the native Chan[Unit] ABI: an int64_t message slot, a distinct
+# guji_opt_unit receive carrier, and ordinary channel send/recv operations.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "} guji_opt_unit;") == 1)
+            print(count_of($c, "guji_chan_new(1LL, sizeof(int64_t), NULL)") == 1)
+            print(count_of($c, ".tag = guji_chan_send(") == 1)
+            print(count_of($c, ".tag = guji_chan_recv(") == 1)
+            print(count_of($c, "guji_opt_unit gv") == 1)
+            0
+        }
+    }
+}

@@ -1,0 +1,33 @@
+# gujiconform - selfhost slice 5 E5d-8w compiler codegen fixture.
+# Pins an unannotated local binding whose RHS is a value-position `if` producing
+# a Result[user class, Str] carrier. This is the reduced shape of
+# `g6_lower_match`'s `$arms_out = if ... { g6_lower_option_arms(...) } else { ... }`.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_res_Box_str;"))
+            print(has_text($c, 'guji_res_Box_str gr0 = {0};'))
+            print(has_text($c, 'if (gp0) {'))
+            print(has_text($c, "gr2 = gf_make_box(gt1);"))
+            print(has_text($c, 'gr0 = (guji_res_Box_str){1LL, (Box){0}, gt3};'))
+            print(has_text($c, "gv4 = gr0;"))
+            print(has_text($c, 'if (gv4.tag == 0LL) { guji_retain_Box_fields(&gv4.ok); }'))
+            print(has_text($c, 'if (gv4.tag != 0LL) { guji_retain(gv4.err); }'))
+            print(has_text($c, "gr5 = gv4;"))
+            print(has_text($c, 'if (gv4.tag == 0LL) { guji_release_Box_fields(&gv4.ok); }'))
+            print(has_text($c, 'if (gv4.tag != 0LL) { guji_release(gv4.err); gv4.err = NULL; }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

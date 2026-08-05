@@ -1,0 +1,24 @@
+enum Stack[T] {
+    Push($top: T, $rest: Stack[T])
+    Nil
+}
+
+sub main(): Unit {
+    $deep = Push(1, Push(2, Push(3, Nil)))
+    match $deep {
+        Push($t, $ri) {
+            print($t)
+            match $ri {
+                Push($t2, $r2) { print($t2) }
+                Nil { print(0) }
+            }
+        }
+        Nil { print(0) }
+    }
+
+    $strs = Push("x" ~ "1", Push("y" ~ "2", Nil))
+    match $strs {
+        Push($sv, $rs) { print($sv) }
+        Nil { print("none") }
+    }
+}

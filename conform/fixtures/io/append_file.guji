@@ -1,0 +1,18 @@
+# gujiconform -- Platform slice 2 (write IO): append_file($path, $content) appends
+# content to the end of a file, creating it if absent (Section 15.4), returning
+# Result[Unit, Str]. The fixture truncates first with write_file so it stays
+# idempotent across engines (the harness runs native then interp in this same
+# directory), then appends bare and method-style ($path.append_file). It closes
+# with the fixed OS-reason-free error on a path under a missing directory. Both
+# engines agree on stdout. Derived from the spec, not captured from native.
+sub main() {
+    $path = "conform/fixtures/io/append_file.generated"
+    write_file($path, "a\n").unwrap()
+    append_file($path, "b\n").unwrap()
+    $path.append_file("c").unwrap()
+    print(read_file($path).unwrap())
+    match append_file("conform/fixtures/io/no_such_dir_7b2e/out", "x") {
+        Ok(_)   { print("unexpected-ok") }
+        Err($e) { print($e) }
+    }
+}

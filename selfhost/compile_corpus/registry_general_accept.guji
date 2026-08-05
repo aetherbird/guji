@@ -1,0 +1,44 @@
+# G6-gen-accept: a fresh user enum that has owned Str fields plus scalar
+# payloads, including a mixed Int/Float position. Construction and PVariant
+# matching must use the generic registry metadata bridge; no bespoke lowering is
+# needed for this enum.
+enum Parcel {
+    Text($name: Str, $score: Int, $ok: Bool)
+    Ratio($name: Str, $ratio: Float, $ok: Bool)
+    Empty
+}
+
+sub main(): Int {
+    $p: Parcel = Text("alpha", 8, true)
+    $q: Parcel = Ratio("beta", 2.5, false)
+    $r: Parcel = Empty
+
+    $a = match $p {
+        Text($name, $score, $ok) {
+            print($name)
+            if $ok { $score + 1 } else { $score }
+        }
+        Ratio($name, $ratio, $ok) {
+            print($name)
+            if $ratio > 2.0 { 20 } else { 10 }
+        }
+        Empty { 0 }
+    }
+
+    $b = match $q {
+        Text($name, $score, $ok) { $score }
+        Ratio($name, $ratio, $ok) {
+            print($name)
+            if $ok { 3 } else if $ratio > 2.0 { 4 } else { 5 }
+        }
+        Empty { 0 }
+    }
+
+    $c = match $r {
+        Text($name, $score, $ok) { $score }
+        Ratio($name, $ratio, $ok) { if $ratio > 0.0 { 1 } else { 2 } }
+        Empty { 6 }
+    }
+
+    $a + $b + $c
+}

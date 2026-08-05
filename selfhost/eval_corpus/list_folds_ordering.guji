@@ -1,0 +1,40 @@
+# I5f: §15.1 folds and ordering (non-callback). Pins free/method spellings for
+# sum/min/max/reverse/take/drop/sort, clamp edges on take/drop, stable sort on
+# duplicates, Float/Str receivers, and empty-list identity (sum→0, reverse/sort
+# →[], take(0)/oversized drop). Empty min/max panic is err_minmax_empty.
+# reduce (2-arg fold) is deferred to I5f2.
+sub main(): Int {
+    @xs = [3, 1, 4, 1, 5]
+    print(sum(@xs))
+    print(@xs.sum())
+    print(min(@xs))
+    print(max(@xs))
+    print(@xs.min())
+    print(@xs.max())
+
+    @fs = [12.5, -3.0, 7.25]
+    print(sum(@fs))
+    print(@fs.min())
+    print(max(@fs))
+
+    print(reverse(@xs))
+    print(@xs.reverse())
+    print(sort(@xs))
+    print(@xs.sort())
+
+    print(take(@xs, 2))
+    print(drop(@xs, 2))
+    print(@xs.take(-1))
+    print(@xs.drop(99))
+
+    @ws = ["cat", "ant", "bee"]
+    print(sort(@ws))
+    print(reverse(@ws))
+
+    @empty: List[Int] = []
+    print(sum(@empty))
+    print(@empty.reverse())
+    print(sort(@empty))
+    print(take(@xs, 0))
+    0
+}

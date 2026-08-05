@@ -1,0 +1,17 @@
+grammar Lazy {
+    rule TOP { <prefix> <suffix> }
+    token prefix { a+? }
+    token suffix { ab }
+}
+
+sub main(): Int {
+    match Lazy.parse("aab") {
+        Some($b) {
+            print($b.text)
+        }
+        None {
+            print("no match")
+        }
+    }
+    0
+}

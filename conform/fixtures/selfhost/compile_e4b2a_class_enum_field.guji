@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 5 E4b-2a compiler codegen fixture.
+# A user-enum class field is NATIVE-REJECTED ("codegen supports class field ... as
+# Int, Bool, Str, Float, or List[scalar] only"), so it is interp-oracle work: the
+# selfhost compiler must EMBED the enum BY VALUE in the class struct (positional
+# member f0) and recurse retain/release into the child enum's generated
+# guji_<op>_<Enum>_fields helper (reusing 4d's nested-enum carrier machinery).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct Rec"))
+            print(has_text($c, "Tag f0;"))
+            print(has_text($c, "guji_release_Rec_fields"))
+            print(has_text($c, "guji_release_Tag_fields(&p->f0);"))
+            print(has_text($c, "guji_retain_Tag_fields(&p->f0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

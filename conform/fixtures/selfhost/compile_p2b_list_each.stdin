@@ -1,0 +1,7 @@
+sub main(): Int {
+    @nums = [1, 2, 3]
+    @nums.each(sub($n: Int) { print("n { $n }") })
+    @words = ["go", "ju"]
+    each(@words, sub($w: Str) { print("w { $w }") })
+    0
+}

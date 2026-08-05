@@ -1,0 +1,5 @@
+sub main(): Int {
+  mut $x = 1
+  $x = $x + 41
+  $x
+}

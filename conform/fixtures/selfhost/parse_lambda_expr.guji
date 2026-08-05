@@ -1,0 +1,17 @@
+# gujiconform parser fixture for selfhost slice 6 P1a lambdas (§7.4, §20).
+# This pins both lambda spellings at the AST boundary while typecheck/codegen
+# remain deliberately out of subset for later P1 slices.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

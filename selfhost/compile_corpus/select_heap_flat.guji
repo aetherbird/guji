@@ -1,0 +1,176 @@
+# P8f-2a: `select` over FLAT heap element channels (§17.5) — Str/List/Map.
+# A ready recv arm adopts one detached rc==1 message per poll: a BOUND arm owns
+# its Option carrier (released at arm exit; an early `return` releases it with
+# the frame), an UNBOUND arm discards the ready message immediately. Send arms
+# build a fresh copy-on-send message every poll — guji_chan_try_send consumes
+# it in EVERY outcome, including would-block (the full-buffer + else leg).
+# Scalar arms keep the P8f-1 shape byte-for-byte.
+sub first_word($c: Chan[Str]): Str {
+    select {
+        $got = $c.recv() {
+            $w = match $got {
+                Some($s) { "w:" ~ $s }
+                None { "clo" ~ "sed" }
+            }
+            return $w
+        }
+    }
+    "unreached"
+}
+
+sub sum_or_neg($c: Chan[List[Int]]): Int {
+    select {
+        $got = $c.recv() {
+            $n = match $got {
+                Some(@xs) {
+                    mut $sum = 0
+                    for $x in @xs { $sum = $sum + $x }
+                    $sum
+                }
+                None { 0 - 1 }
+            }
+            return $n
+        }
+    }
+    0 - 99
+}
+
+sub main(): Int {
+    # Str: ready bound recv of a heap-built message, unbound discard, ready
+    # send with a bound Result, then a would-block send on a full buffer.
+    $c: Chan[Str] = channel(2)
+    $c.send("al" ~ "pha")
+    select {
+        $got = $c.recv() {
+            match $got {
+                Some($s) { print("got " ~ $s) }
+                None { print("closed") }
+            }
+        }
+        else { print("wrong str") }
+    }
+    $c.send("be" ~ "ta")
+    select {
+        $c.recv() { print("dropped") }
+    }
+    select {
+        $r = $c.send("gam" ~ "ma") {
+            match $r {
+                Ok($u) { print("sent") }
+                Err($e) { print("send closed") }
+            }
+        }
+        else { print("wrong send") }
+    }
+    print($c.recv().unwrap())
+    $c.send("fi" ~ "ll")
+    $c.send("fu" ~ "ll")
+    select {
+        $c.send("un" ~ "sent") { print("wrong full") }
+        else { print("full") }
+    }
+
+    # List[Int]: bound arm iterates the adopted slice; unbound discard.
+    $l: Chan[List[Int]] = channel(2)
+    $l.send([1, 2, 3])
+    select {
+        $got = $l.recv() {
+            match $got {
+                Some(@xs) {
+                    mut $sum = 0
+                    for $x in @xs { $sum = $sum + $x }
+                    print($sum)
+                }
+                None { print("l closed") }
+            }
+        }
+        else { print("wrong list") }
+    }
+    $l.send([9, 9])
+    select {
+        $l.recv() { print("l dropped") }
+    }
+
+    # List[Str]: select-send detaches heap string elements; ordinary recv
+    # match proves the receiver got an independent copy.
+    $ws: Chan[List[Str]] = channel(1)
+    select {
+        $rs = $ws.send(["he" ~ "llo", "world"]) {
+            match $rs {
+                Ok($u) { print("ws sent") }
+                Err($e) { print("ws closed") }
+            }
+        }
+    }
+    $wopt = $ws.recv()
+    match $wopt {
+        Some(@w) { print(@w[0] ~ " " ~ @w[1]) }
+        None { print("ws none") }
+    }
+
+    # Map[Str,Int] / Map[Str,Str]: bound key reads, unbound discard, send.
+    $m: Chan[Map[Str, Int]] = channel(2)
+    $m.send({"a": 1, "b": 2})
+    select {
+        $got = $m.recv() {
+            match $got {
+                Some(%kv) { print(%kv{"a"} + %kv{"b"}) }
+                None { print("m closed") }
+            }
+        }
+        else { print("wrong map") }
+    }
+    $m.send({"z": 9})
+    select {
+        $m.recv() { print("m dropped") }
+    }
+    $t: Chan[Map[Str, Str]] = channel(1)
+    select {
+        $rt = $t.send({"greet": "he" ~ "llo"}) {
+            match $rt {
+                Ok($u) { print("t sent") }
+                Err($e) { print("t closed") }
+            }
+        }
+    }
+    $topt = $t.recv()
+    match $topt {
+        Some(%g) { print(%g{"greet"}) }
+        None { print("t none") }
+    }
+
+    # Early return out of a bound heap arm releases the adopted message.
+    $ec: Chan[Str] = channel(1)
+    $ec.send("hi" ~ "ya")
+    print(first_word($ec))
+    $el: Chan[List[Int]] = channel(1)
+    $el.send([10, 20, 3])
+    print(sum_or_neg($el))
+    $el.close()
+    print(sum_or_neg($el))
+
+    # Closed-and-drained heap recv arm is ready and binds None.
+    $done: Chan[Str] = channel()
+    $done.close()
+    select {
+        $d = $done.recv() {
+            match $d {
+                Some($s) { print("wrong drained " ~ $s) }
+                None { print("drained") }
+            }
+        }
+    }
+
+    # No else: park on scheduler progress until the hatched sender delivers.
+    $sync: Chan[Str] = channel()
+    hatch { $sync.send("wa" ~ "ke") }
+    select {
+        $v = $sync.recv() {
+            match $v {
+                Some($s) { print("woke " ~ $s) }
+                None { print("sync closed") }
+            }
+        }
+    }
+    0
+}

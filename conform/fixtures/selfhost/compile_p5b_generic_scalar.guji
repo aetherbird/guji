@@ -1,0 +1,30 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # one spec per concrete scalar instantiation, native-shaped names
+            print(has_text($c, "static int64_t gf_id__Int_Int(int64_t gp0)"))
+            print(has_text($c, "static const char* gf_id__Str_Str(const char* gp0)"))
+            print(has_text($c, "static double gf_pick__Float_Float_Bool_Float(double gp0, double gp1, int64_t gp2)"))
+            print(has_text($c, "static const char* gf_show__Bool_Str(int64_t gp0)"))
+            # transitive: a generic body calling a generic sub routes to the spec
+            print(has_text($c, "return gf_id__Int_Int(gf_id__Int_Int(gp0));"))
+            # call sites dispatch to the monomorphized names
+            print(has_text($c, "gf_twice__Int_Int(9LL)"))
+            print(has_text($c, "gf_pick__Bool_Bool_Bool_Bool(1LL, 0LL, 1LL)"))
+            # the template itself is NOT emitted as a generic function
+            print(has_text($c, "gf_id("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

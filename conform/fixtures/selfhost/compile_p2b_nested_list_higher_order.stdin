@@ -1,0 +1,8 @@
+sub main(): Int {
+    @xs = [[1, 2], [3, 4, 5], [6]]
+    @big = @xs.filter(sub($row: List[Int]): Bool { count($row) > 1 })
+    @lens = @xs.map(sub($row: List[Int]): Int { count($row) })
+    @doubled = @lens.map(sub($n: Int): List[Int] { [$n, $n * 10] })
+    print("{ count(@big) }/{ @lens[0] }/{ @doubled[1][1] }")
+    0
+}

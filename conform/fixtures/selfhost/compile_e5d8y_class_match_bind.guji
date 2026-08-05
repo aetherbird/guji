@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 5 E5d-8y compiler codegen fixture.
+# Pins an unannotated local binding whose RHS is a value-position `match`
+# producing a class record. This is the reduced `g6_rct_sub` shape:
+# `$a1 = match ... { ... }` where every arm returns `RctAcc`.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static Box gf_choose(Pick gp0, Box gp1)"))
+            print(has_text($c, 'Box gv3 = {0};'))
+            print(has_text($c, 'if ((ge0.tag == 0LL)) {'))
+            print(has_text($c, "guji_retain_Box_fields(&gp1);"))
+            print(has_text($c, "gc1 = gp1;"))
+            print(has_text($c, 'gc1 = (Box){ge0.f0, gt2};'))
+            print(has_text($c, "gv3 = gc1;"))
+            print(has_text($c, "gt4 = guji_retain(gv3.f1);"))
+            print(has_text($c, "guji_release_Box_fields(&gv3);"))
+            print(has_text($c, 'return (Box){guji_add(gv3.f0, 3LL), gt4};'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

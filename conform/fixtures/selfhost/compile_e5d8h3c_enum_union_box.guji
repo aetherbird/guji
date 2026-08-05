@@ -1,0 +1,36 @@
+# gujiconform - selfhost slice 5 E5d-8h-3c enum-union codegen fixture.
+# Pins by-value user-enum payload boxing in a mixed enum union slot. The direct Expr
+# field shares position 0 with Bool and Option[Expr], so Expr is stored through `.p`
+# as a counted `Expr*` box, while the Option[Expr] carrier keeps its own
+# `GUJI_KIND_opt_Expr` box. Expr is recursive here, matching the real Stmt shape and
+# proving the kind order remains Expr box first, option-carrier box second, after
+# Expr's nominal array kind.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "#define GUJI_KIND_Expr 12"))
+            print(has_text($c, "#define GUJI_KIND_opt_Expr 13"))
+            print(has_text($c, 'union { int64_t i; double f; const char* s; guji_slice_t l; guji_map_t m; void* p; } f0;'))
+            print(has_text($c, "guji_alloc(GUJI_KIND_Expr, 0, sizeof(Expr))"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_opt_Expr, 0, sizeof(guji_opt_Expr))"))
+            print(has_text($c, '{.p = geb'))
+            print(has_text($c, '{.p = gcp'))
+            print(has_text($c, "guji_release((const void*)p->f0.p);"))
+            print(has_text($c, "guji_drop_Expr, /* GUJI_KIND_Expr */"))
+            print(has_text($c, "guji_drop_opt_Expr, /* GUJI_KIND_opt_Expr */"))
+            print(has_text($c, "(*((Expr*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

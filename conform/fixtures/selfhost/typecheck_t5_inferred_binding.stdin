@@ -1,0 +1,6 @@
+# T5: local binding inference makes later incompatible uses reject.
+sub main(): Int {
+    $x = "s"
+    $x + 1
+    0
+}

@@ -1,0 +1,7 @@
+sub sq($x: Int): Int {
+    print("sq")
+    $x * $x
+}
+sub main(): Int {
+    sq(sq(2))
+}

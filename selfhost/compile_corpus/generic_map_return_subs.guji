@@ -1,0 +1,47 @@
+#[ 
+  P5b-2b map-return parity: generic subs returning scalar-valued Map[Str, T],
+  including a transitive generic return whose final expression is the map
+  prelude's value-producing set call.
+]#
+
+sub single[T]($k: Str, $v: T): Map[Str, T] {
+    {$k: $v}
+}
+
+sub double[T]($k1: Str, $v1: T, $k2: Str, $v2: T): Map[Str, T] {
+    {$k1: $v1, $k2: $v2}
+}
+
+sub transitive[T]($k: Str, $v: T): Map[Str, T] {
+    %base = single($k, $v)
+    %base.set($k, $v)
+}
+
+sub map_count(%m: Map[Str, Int]): Int {
+    %m.keys().count()
+}
+
+sub main(): Int {
+    %m = single("x", 42)
+    print(%m{"x"})
+
+    %two = double("a", 1, "b", 2)
+    print(%two{"b"})
+
+    %t = transitive("k", 7)
+    print(%t{"k"})
+
+    %labels = single("name", "ada")
+    print(%labels{"name"})
+
+    %flags = single("ok", true)
+    print(%flags{"ok"})
+
+    %ratios = single("pi", 3.14)
+    print(%ratios{"pi"})
+
+    $count = map_count(double("x", 10, "y", 20))
+    print($count)
+
+    0
+}

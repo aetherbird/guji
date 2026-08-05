@@ -1,0 +1,6 @@
+Some(large 5)
+None
+Ok(14)
+Err(invalid integer: bad)
+Ok(9)
+Err(invalid integer: no)

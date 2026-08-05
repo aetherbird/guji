@@ -1,0 +1,5 @@
+sub main(): Int {
+    %m: Map[Str, Int] = {"a": 1}
+    @maps = [%m]
+    @maps.count()
+}

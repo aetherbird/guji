@@ -1,0 +1,24 @@
+# E5d-8r: the real-source frontier sub `drop_two` — a list-valued `drop` prelude
+# producer over a split-backed List[Str], folded back with `join("")`. Native
+# supports ordinary and method-style `drop` and clamps the count exactly like
+# `take`, so this is a normal three-way case (interp == native == selfhost).
+
+sub drop_two($s: Str): Str {
+    drop(split($s, ""), 2).join("")
+}
+
+sub main(): Int {
+    mut $score = 0
+    # ordinary drop: "abcd" -> "cd"
+    if drop_two("abcd") == "cd" { $score = $score + 1 } else { $score = $score + 0 }
+    # method-style drop on a split-backed local
+    @parts = split("hello", "")
+    if @parts.drop(2).join("") == "llo" { $score = $score + 2 } else { $score = $score + 0 }
+    # count clamps to length: dropping more than present yields the empty list
+    if drop(split("ab", ""), 5).join("") == "" { $score = $score + 4 } else { $score = $score + 0 }
+    # negative count clamps to 0: keep the whole list
+    if drop(split("xy", ""), 0 - 3).join("") == "xy" { $score = $score + 8 } else { $score = $score + 0 }
+    # drop on an inline split, count from another count()
+    if drop(split("guji", ""), split("ab", "").count()).join("") == "ji" { $score = $score + 16 } else { $score = $score + 0 }
+    $score
+}

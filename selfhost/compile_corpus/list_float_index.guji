@@ -1,0 +1,4 @@
+sub main(): Int {
+    @fs: List[Float] = [1.5, 2.25]
+    if @fs[1] > 2.0 { 8 } else { 4 }
+}

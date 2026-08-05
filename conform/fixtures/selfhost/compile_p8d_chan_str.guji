@@ -1,0 +1,23 @@
+# P8d-2b: pin Chan[Str] copy-on-send + elem_drop ABI beside scalar channels.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_new(2LL, sizeof(const char*), guji_chan_drop_str)") >= 2)
+            print(count_of($c, "guji_str_copy(") >= 4)
+            print(count_of($c, "guji_opt_str") >= 1)
+            print(count_of($c, "GUJI_EMPTY_STR") >= 1)
+            print(count_of($c, "guji_chan_send(") >= 2)
+            print(count_of($c, "guji_chan_recv(") >= 3)
+            print(count_of($c, "guji_chan_close(") >= 1)
+            print(count_of($c, "guji_chan_release(") >= 1)
+            0
+        }
+    }
+}

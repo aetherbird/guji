@@ -1,0 +1,13 @@
+# P6c: capture access yields a fresh Option[Str], so unwrap must retain the
+# payload before consuming that temporary carrier. Cover named, positional, and
+# data-first spellings; all captures participate, so the panic path is not taken.
+sub main(): Int {
+    match 'ada@example.com' ~~ /(?<user>\w+)@(?<host>\w+)/ {
+        Some($m) {
+            print($m<user>.unwrap())
+            print(unwrap($m[2]))
+        }
+        None { print("no match") }
+    }
+    0
+}

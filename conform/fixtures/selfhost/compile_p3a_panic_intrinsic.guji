@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 6 P3a compiler codegen fixture.
+# Pins §11.2 user-written `panic($msg)` lowering as the real built-in intrinsic:
+# a Str message is lowered once and fed to `guji_panic`, and the dead branch then
+# assigns a typed zero only because `guji_panic` never returns.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_panic(gt"))
+            print(has_text($c, " = 0LL;"))
+            print(has_text($c, " = GUJI_EMPTY_STR;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

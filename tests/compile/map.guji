@@ -1,0 +1,9 @@
+sub main(): Int {
+    %m = { "a": 1, "b": 2, "c": 3 }
+    mut $total = 0
+    for $k, $v in %m {
+        $total = $total + $v
+    }
+    print("total: $total")
+    0
+}

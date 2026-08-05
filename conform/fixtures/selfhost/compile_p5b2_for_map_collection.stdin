@@ -1,0 +1,14 @@
+sub rows(): Map[Str, List[Str]] {
+    {"words": ["a", "b"]}
+}
+
+sub main(): Int {
+    for $key, @row in rows() {
+        print("$key:{ @row.join('-') }")
+    }
+    %maps = {"outer": {"x": 7}}
+    for $name, %row in %maps {
+        print("$name:{ %row{'x'} }")
+    }
+    0
+}

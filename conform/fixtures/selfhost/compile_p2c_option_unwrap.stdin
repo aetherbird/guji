@@ -1,0 +1,8 @@
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    $s: Option[Str] = Some("a" ~ "b")
+    mut $c = 0
+    if unwrap($o) == 5 { $c = $c + 1 }
+    print($s.expect("boom"))
+    $c
+}

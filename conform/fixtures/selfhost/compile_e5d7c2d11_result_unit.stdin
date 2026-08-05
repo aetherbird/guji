@@ -1,0 +1,29 @@
+enum IntList {
+    INil
+    ICons($head: Int, $tail: IntList)
+}
+
+sub check_all($xs: IntList): Result[Unit, Str] {
+    match $xs {
+        INil { Ok(()) }
+        ICons($h, $t) {
+            if $h < 0 {
+                Err("negative")
+            } else {
+                check_all($t)
+            }
+        }
+    }
+}
+
+sub describe($xs: IntList): Str {
+    match check_all($xs) {
+        Ok(()) { "ok" }
+        Err($m) { "err: " ~ $m }
+    }
+}
+
+sub main(): Int {
+    print(describe(ICons(1, ICons(0 - 2, INil))))
+    0
+}

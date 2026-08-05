@@ -1,0 +1,29 @@
+# §17.5 native `select` recv arm over Chan[Result[Int, Str]]. The delivered Err
+# carries a FRESH (rc==1) Str at .val.err; the arm releases it once at exit via
+# the carrier-Str path. (The Ok arm carries a scalar with no ownership.)
+sub ok_int($n: Int): Result[Int, Str] { Ok($n) }
+sub err_str($s: Str): Result[Int, Str] { Err($s) }
+sub main(): Int {
+    $a: Chan[Result[Int, Str]] = channel(1)
+    $b: Chan[Result[Int, Str]] = channel(1)
+    $err = err_str("ba" ~ "d")
+    $a.send($err)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            print(match $inner {
+                Ok($n) { "{ $n }" }
+                Err($e) { "a " ~ $e }
+            })
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            print(match $inner {
+                Ok($n) { "{ $n }" }
+                Err($e) { "b " ~ $e }
+            })
+        }
+        else { print("idle") }
+    }
+    0
+}

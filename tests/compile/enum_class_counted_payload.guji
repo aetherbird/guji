@@ -1,0 +1,39 @@
+# Enum variants carrying class values whose fields own RC storage.
+# This matters because the enum's release/retain helper must recurse into the
+# embedded class helper, and enum construction must transfer fresh class temps
+# or retain alias class fields exactly once.
+
+class Tag {
+    has $.name: Str
+    has @.codes: List[Int]
+}
+
+enum Box {
+    Hold($tag: Tag)
+    Wrap($tag: Tag)
+    Bare
+}
+
+sub describe($b: Box): Str {
+    match $b {
+        Hold($t) { "hold {$t.name}:{$t.codes.sum()}" }
+        Wrap($t) { "wrap {$t.name}:{$t.codes.count()}" }
+        Bare { "bare" }
+    }
+}
+
+sub main(): Int {
+    $prefix = "al" ~ "pha"
+    $alias = Tag(name: $prefix, codes: [2, 3, 5])
+
+    print(describe(Hold($alias)))
+    print(describe(Hold(Tag(name: "be" ~ "ta", codes: [7, 11]))))
+    print(describe(Wrap(Tag(name: "ga" ~ "mma", codes: [19, 23]))))
+    print(describe(Bare))
+
+    @boxes = [Hold($alias), Hold(Tag(name: "de" ~ "lta", codes: [13, 17])), Wrap(Tag(name: "ep" ~ "silon", codes: [29]))]
+    for $b in @boxes {
+        print(describe($b))
+    }
+    0
+}

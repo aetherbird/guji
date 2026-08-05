@@ -1,0 +1,40 @@
+# §7.4/§17.1/I10g3c: a task captures direct immutable class values. Scalar
+# fields copy by value; heap Str and flat List fields must be detached so the
+# task can release its snapshot while the parent values remain valid.
+class ScalarFacts {
+    has $.count: Int
+    has $.ready: Bool
+    has $.ratio: Float
+}
+
+class Payload {
+    has $.name: Str
+    has @.nums: List[Int]
+    has @.labels: List[Str]
+}
+
+sub main(): Int {
+    $facts = ScalarFacts(count: 7, ready: true, ratio: 2.5)
+    $payload = Payload(
+        name: "task" ~ "-copy",
+        nums: [3, 4, 5],
+        labels: ["left" ~ "-heap", "right" ~ "-heap"]
+    )
+    $numbers: Chan[Int] = channel(0)
+    $text: Chan[Str] = channel(0)
+
+    hatch {
+        $n = if $facts.ready { $facts.count + $payload.nums[1] } else { 0 }
+        $numbers.send($n)
+        $label = $payload.labels[0]
+        $text.send($payload.name ~ "/" ~ $label ~ "/" ~ "{ $facts.ratio }")
+    }
+
+    print($numbers.recv().unwrap())
+    print($text.recv().unwrap())
+    # The parent still owns and reads its original heap graph after the task's
+    # detached class copies have been released.
+    print($payload.name)
+    print($payload.labels[1])
+    0
+}

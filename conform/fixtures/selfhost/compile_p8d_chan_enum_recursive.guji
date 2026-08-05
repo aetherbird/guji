@@ -1,0 +1,31 @@
+# P8d-2c-3c-14: pin recursive self-box enum channel ABI — make-site drop
+# hooks, generated guji_clone_<E>_value/_box deep-clone helpers, send-site
+# clone calls, Leaf Str detach inside the cloner, Chain List/Map detach,
+# bound-unwrap retain, and held carrier scope-exit release.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "sizeof(Tree), guji_chan_drop_Tree") == 2)
+            print(count_of($c, "static void guji_chan_drop_Tree") == 1)
+            print(count_of($c, "static Tree guji_clone_Tree_value") == 2)
+            print(count_of($c, "static Tree* guji_clone_Tree_box") == 2)
+            print(count_of($c, "guji_clone_Tree_value(&") == 5)
+            print(count_of($c, "guji_clone_Tree_box((const Tree*)") == 2)
+            print(count_of($c, "sizeof(Chain), guji_chan_drop_Chain") == 1)
+            print(count_of($c, "guji_clone_Chain_value(&") == 2)
+            print(count_of($c, "guji_str_copy(out.f0.s)") == 1)
+            print(count_of($c, "out.f0.data = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "out.f1.keys = (const char**)guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "guji_retain_Tree_fields(&") == 2)
+            print(count_of($c, ".tag != 0LL) \{ guji_release_Tree_fields(&") == 1)
+            0
+        }
+    }
+}

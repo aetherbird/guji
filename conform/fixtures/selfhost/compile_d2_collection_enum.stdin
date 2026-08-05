@@ -1,0 +1,30 @@
+enum Box {
+    Many(@xs: List[Int])
+    One($n: Int)
+}
+
+enum Env {
+    Dict(%m: Map[Str, Int])
+    Code($n: Int)
+}
+
+sub list_score($b: Box): Int {
+    match $b {
+        Many(@xs) { @xs[1] }
+        One($n) { $n }
+    }
+}
+
+sub map_score($e: Env): Int {
+    match $e {
+        Dict(%m) {
+            print(%m)
+            0
+        }
+        Code($n) { $n }
+    }
+}
+
+sub main(): Int {
+    list_score(Many([10, 20, 30])) + map_score(Dict({"k": 5}))
+}

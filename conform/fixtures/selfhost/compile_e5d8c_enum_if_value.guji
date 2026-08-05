@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 5 E5d-8c compiler codegen fixture.
+# Pins enum-valued expression-position `if` lowering, the first real-source
+# blocker after list-literal `.contains`: `kind_for_word` returns TokKind from an
+# if/elif/else chain.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "\tWordKind ge"))
+            print(has_text($c, "\tif (gb"))
+            print(has_text($c, " = (WordKind)\{0LL};"))
+            print(has_text($c, " = (WordKind)\{3LL};"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

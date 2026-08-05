@@ -1,0 +1,37 @@
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub parse_price($s: Str): Result[Int, Str] {
+    parse_int($s)
+}
+
+sub guarded_int($s: Str, $q: Str): Result[Int, Str] {
+    $x = match parse_price($s) {
+        Ok($v) if $v > 5 { parse_int($q)? + $v }
+        Ok($v) { $v + 1 }
+        Err($e) { 3 }
+    }
+    Ok($x + 1)
+}
+
+sub guarded_str($s: Str, $q: Str, $take: Bool): Result[Str, Str] {
+    $x: Str = match tag($s) {
+        Ok($t) if $take { tag($q)? ~ $t }
+        Ok($t) { $t ~ ":plain" }
+        Err($e) { "none" }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    match guarded_int("7", "8") {
+        Ok($n) { print("i1 { $n }") }
+        Err($e) { print("bad-int") }
+    }
+    match guarded_str("go", "q", true) {
+        Ok($s) { print("s1 { $s }") }
+        Err($e) { print("bad-str") }
+    }
+    0
+}

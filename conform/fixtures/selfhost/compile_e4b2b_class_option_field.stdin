@@ -1,0 +1,14 @@
+class Rec {
+    has $.maybe: Option[Str]
+}
+
+sub main(): Int {
+    $r = Rec(maybe: Some("hi"))
+    match $r.maybe {
+        Some($s) {
+            print($s)
+            0
+        }
+        None { 1 }
+    }
+}

@@ -1,0 +1,11 @@
+sub main(): Int {
+    %m = {"k" ~ "ey": 7, "pre" ~ "fix": 3}
+    print(%m{"key"})
+    print(%m.has_key("prefix"))
+    @ks = %m.keys()
+    print(@ks.join(","))
+    %n = %m.set("ex" ~ "tra", %m{"key"} + 1)
+    print(%n{"extra"})
+    print(%m)
+    0
+}

@@ -1,0 +1,46 @@
+# §8/§9/§15.4 (I5g4): class fields containing user-value collections.
+# Pins declaration-aware Class/Enum leaves through flat and nested List/Map
+# carriers, including canonical display and structural equality.
+
+enum Color {
+    Red
+    Named($name: Str)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+class Catalog {
+    has @.people: List[Person]
+    has %.colors: Map[Str, Color]
+    has @.groups: List[Map[Str, Person]]
+    has %.palettes: Map[Str, List[Color]]
+}
+
+sub main(): Int {
+    $a = Catalog(
+        people: [Person(name: "Ada", age: 36), Person(name: "Bob", age: 28)],
+        colors: {"b": Named("blue"), "a": Red},
+        groups: [{"lead": Person(name: "Ada", age: 36)}],
+        palettes: {"main": [Red, Named("green")]}
+    )
+    $b = Catalog(
+        people: [Person(name: "Ada", age: 36), Person(name: "Bob", age: 28)],
+        colors: {"a": Red, "b": Named("blue")},
+        groups: [{"lead": Person(name: "Ada", age: 36)}],
+        palettes: {"main": [Red, Named("green")]}
+    )
+    $c = Catalog(
+        people: [Person(name: "Ada", age: 36), Person(name: "Bob", age: 29)],
+        colors: {"a": Red, "b": Named("blue")},
+        groups: [{"lead": Person(name: "Ada", age: 36)}],
+        palettes: {"main": [Red, Named("green")]}
+    )
+    print($a)
+    print($a == $b)
+    print($a != $c)
+    print("catalog={ $a }")
+    0
+}

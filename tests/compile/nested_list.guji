@@ -1,0 +1,56 @@
+# Nested list storage (List[List[T]]): literals, indexing, iteration, and
+# shape-preserving transforms must match the interpreter. This fixture pins
+# the guji_slice_t lowering for inner lists of Int, Str, and Float elements.
+sub main(): Unit {
+    @m = [[1, 2, 3], [4, 5], [6]]
+    print(@m.count())
+    print(@m.is_empty())
+    print(@m[0][1])
+    print(@m[1].sum())
+    print(@m[2].count())
+
+    # iterate the outer list; each loop variable is itself a list
+    mut $total = 0
+    for @row in @m {
+        $total = $total + @row.sum()
+    }
+    print($total)
+
+    # bind an inner list out of the outer one, then use list prelude on it
+    @first = @m[0]
+    print(@first.count())
+    print(@first.contains(2))
+    print(@first.max())
+
+    # Str inner elements
+    @names = [["ann", "bo"], ["cy"]]
+    print(@names[0][0])
+    print(@names[0].join(","))
+    print(@names[1].is_empty())
+
+    # Float inner elements + indexing a transformed receiver
+    @g = [[1.5, 2.5], [0.5]]
+    print(@g[0].sum())
+    print(@g[1].min())
+
+    # shape-preserving transforms keep the nesting
+    @r = @m.reverse()
+    print(@r[0][0])
+    @rows = @m.take(2)
+    print(@rows.count())
+    print(@rows[1][0])
+    @d = @m.drop(2)
+    print(@d[0].sum())
+
+    # constructing a nested literal repeatedly (fresh slices per evaluation)
+    mut $n = 0
+    while $n < 2 {
+        @inner = [[$n, $n + 1]]
+        print(@inner[0][1])
+        $n = $n + 1
+    }
+
+    # sorting an inner list (the inner receiver routes through listFromIndex)
+    @u = [[3, 1, 2]]
+    print(@u[0].sort()[0])
+}

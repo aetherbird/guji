@@ -1,0 +1,8 @@
+# §4 mutable binding: `mut` allows reassignment; the final value is observed.
+sub main(): Int {
+    mut $total = 0
+    $total = $total + 5
+    $total = $total + 10
+    print($total)
+    0
+}

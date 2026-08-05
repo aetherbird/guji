@@ -1,0 +1,12 @@
+# §15 higher-order list filter, P2b-2 slice: inline Bool-predicate lambda over an
+# Int list. Result keeps the source element kind; the length is dynamic (an upper
+# bound of the source length is allocated, then conditionally appended). Covers
+# both method-style `.filter` and ordinary data-first `filter`, and chains them.
+sub main(): Int {
+    @xs = [1, 2, 3, 4, 5, 6]
+    @ev = @xs.filter(sub($n: Int): Bool { $n % 2 == 0 })
+    @big = filter(@ev, sub($n: Int): Bool { $n > 2 })
+    print("{ @ev[0] },{ @ev[1] },{ @ev[2] }")
+    print("{ @big[0] },{ @big[1] }")
+    @big[1]
+}

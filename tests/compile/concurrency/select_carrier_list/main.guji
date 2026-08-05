@@ -1,0 +1,28 @@
+# §17.5 native `select` recv arm over Chan[Option[List[Int]]]. The adopted Some
+# owns one counted list-storage pointer at .val.val.data; the arm releases it once
+# at exit (the ARR_* drop cascades into the rows). Deterministic single ready arm.
+sub main(): Int {
+    $a: Chan[Option[List[Int]]] = channel(1)
+    $b: Chan[Option[List[Int]]] = channel(1)
+    @nums = [2, 4, 6]
+    $some: Option[List[Int]] = Some(@nums)
+    $a.send($some)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            print(match $inner {
+                Some(@xs) { @xs[0] + @xs[2] }
+                None { 0 }
+            })
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            print(match $inner {
+                Some(@ys) { @ys[0] }
+                None { 99 }
+            })
+        }
+        else { print(99) }
+    }
+    0
+}

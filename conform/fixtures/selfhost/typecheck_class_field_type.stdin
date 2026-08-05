@@ -1,0 +1,9 @@
+# E3: a construction field value must be assignable to the field type.
+class Token {
+    has $.kind: Str
+}
+
+sub main(): Int {
+    $t = Token(kind: 5)
+    0
+}

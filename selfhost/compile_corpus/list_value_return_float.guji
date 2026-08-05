@@ -1,0 +1,7 @@
+sub vals(): List[Float] {
+    [1.5, 2.25]
+}
+
+sub main(): Int {
+    if vals()[1] > 2.0 { 5 } else { 1 }
+}

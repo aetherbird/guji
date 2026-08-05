@@ -1,0 +1,22 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, 'static int64_t gf_apply(guji_fn_t gp0, int64_t gp1)'))
+            print(has_text($c, '((int64_t (*) (void*, int64_t))gp0.fn)(gp0.env, gp1)'))
+            print(has_text($c, 'gv2 = (guji_fn_t){ .fn = (void*)gf_lambda_'))
+            print(has_text($c, 'guji_release(gv2.env);'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,6 @@
+Items([Text(owned-text), Empty])
+Node([Leaf(3), Leaf(4), Node([Leaf(5)])])
+true
+true
+2
+3

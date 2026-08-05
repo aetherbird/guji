@@ -1,0 +1,3 @@
+pub sub base(): Int {
+    41
+}

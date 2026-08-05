@@ -1,0 +1,12 @@
+numeric:hidden
+nested:hidden
+wire:hidden
+replace:X-X
+negated:hidden
+leading-right:hidden
+reserved:true
+shadow:user-sub
+verbose-direct:hidden
+verbose-value:abb:!:hidden
+verbose-scoped:hidden
+forgery-before

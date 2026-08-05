@@ -1,0 +1,24 @@
+# P9-6b-15: set/remove directly on a borrowed List[Map] index.
+# The indexed row is a shallow borrowed guji_map_t view; each operation copies
+# its key/value slots into an independently owned result without releasing the
+# source row. Heap Str values make a missed retain visible under LSan/ASan.
+
+sub main(): Int {
+    @rows = [{"a": "one", "b": "two"}, {"x": "ten"}]
+
+    %added = @rows[0].set("c", "three")
+    print(%added{"a"})
+    print(%added{"c"})
+
+    %removed = @rows[0].remove("a")
+    print(%removed.has_key("a"))
+    print(%removed{"b"})
+
+    %chained = @rows[1].set("y", "twenty").remove("x")
+    print(%chained.has_key("x"))
+    print(%chained{"y"})
+
+    # Every copy must leave the borrowed source row intact.
+    print(@rows[0]{"a"})
+    0
+}

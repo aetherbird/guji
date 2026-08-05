@@ -1,0 +1,15 @@
+scalar_eq: true
+scalar_field: false
+scalar_tag: false
+list_int: true
+list_str: false
+map_int: true
+map_str: false
+nested_list: true
+nested_map: true
+class_eq: true
+class_diff: false
+enum_eq: true
+enum_diff: false
+recursive_eq: true
+recursive_diff: true

@@ -1,0 +1,20 @@
+# P8e-1: pin hatch env/spawn/wrapper shape for scalar + Chan captures.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_task_spawn(&") == 1)
+            print(count_of($c, "guji_chan_retain(") >= 1)
+            print(count_of($c, "malloc(sizeof(struct ghatch_") == 1)
+            print(count_of($c, "free(arg);") == 1)
+            print(count_of($c, "guji_chan_release(") >= 2)
+            0
+        }
+    }
+}

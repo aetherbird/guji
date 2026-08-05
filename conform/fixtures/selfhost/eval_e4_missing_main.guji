@@ -1,0 +1,16 @@
+# gujiconform — E4 driver error path: a parsed program without main rejects.
+import lexer
+
+sub main(): Int {
+    match lexer::eval_main(stdin.slurp()) {
+        Ok($r) {
+            print(lexer::eval_env_delimiter())
+            print($r.dump)
+            $r.exit_code
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

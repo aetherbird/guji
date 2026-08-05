@@ -1,0 +1,18 @@
+# P9-6b-10: List[Map] index as a borrowed map method receiver.
+# `@maps[i].values()` / `.keys()` / `.has_key` / `.get` must shallow-assign a
+# guji_map_t temp from the row (no retain/release) and project through it —
+# native's exact shape. Binding first (`%row = @maps[i]; %row.values()`) already
+# worked; the chained form is what flipped gate fixture `list_map`.
+
+sub main(): Int {
+    @maps = [{"b": 2, "a": 1}, {"a": 4, "c": 6}]
+    @vals = @maps[1].values()
+    print(@vals.sum())
+    print(@maps[1].has_key("c"))
+    print(@maps[0].keys().join(""))
+    match @maps[0].get("b") {
+        Some($v) { print($v) }
+        None { print(0) }
+    }
+    0
+}

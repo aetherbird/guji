@@ -1,0 +1,9 @@
+literal=[a, b]
+equal=true
+direct=b
+missing
+branch=[a, b]
+source=[a, b]
+nested=[[owned], [value, shape]]
+nested-equal=true
+nested-source=[[owned], [value, shape]]

@@ -1,0 +1,44 @@
+# DECLINE-AUDIT (P8f-2b): select over CARRIER + USER-ENUM element channels.
+# Bound Option[Str] recv (owned nested Str), unbound Option[Str] discard, and
+# bound enum recv with early return — native-accepted since H4d/H4e,
+# selfhost-lowered since P8f-2b. A regression back to the flat-heap-only
+# select predicate surfaces here as a GAP.
+enum Msg {
+    Text($s: Str)
+    Done
+}
+
+sub main(): Int {
+    $a: Chan[Option[Str]] = channel(1)
+    $a_msg: Option[Str] = Some("x" ~ "y")
+    $a.send($a_msg)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            match $inner {
+                Some($s) { print($s) }
+                None { print("none") }
+            }
+        }
+    }
+    $b: Chan[Option[Str]] = channel(1)
+    $b_msg: Option[Str] = Some("z" ~ "z")
+    $b.send($b_msg)
+    select {
+        $b.recv() { print("dropped") }
+    }
+    $c: Chan[Msg] = channel(1)
+    $c.send(Text("ok" ~ "!"))
+    select {
+        $v = $c.recv() {
+            if $v.is_some() {
+                print(match $v.unwrap() {
+                    Text($s) { $s }
+                    Done { "done" }
+                })
+            }
+            return 0
+        }
+    }
+    1
+}

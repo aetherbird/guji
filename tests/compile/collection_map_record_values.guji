@@ -1,0 +1,81 @@
+# A-collection-elements-rest (Map[Str, class/enum value] slice): a Map literal
+# whose VALUES are counted-field class or counted-payload enum structs now lowers
+# to a heap map whose vals array is the value's generated array-drop kind
+# (GUJI_KIND_<Class|Enum>_ARR), so the map's drop cascades into each value's
+# fields — the Map mirror of a flat List of class/enum elements. Proves
+# construction (fresh constructor temps AND a non-fresh alias value), key-count,
+# `$m{"k"}` value reads (enum `match`, class field access), and a
+# List[Map[Str, Enum]] carrier whose outer ARR_MAP drop cascades into each row
+# map's value array. Every Str payload/field is HEAP-built at runtime (`~`
+# concat), NOT an immortal literal, so the per-value retain/release must balance
+# exactly — an immortal literal would hide leaks and double-frees from the
+# sanitizer.
+
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    # Map[Str, Enum] with a fresh constructor value (heap-built Str payload).
+    %m = {"k": Named("a" ~ "b"), "n": Anon(7)}
+    print(%m.keys().count())
+    $vk = %m{"k"}
+    $hk = match $vk {
+        Named($s) { $s }
+        Anon($n) { "no" }
+    }
+    print($hk)
+    $vn = %m{"n"}
+    $hn = match $vn {
+        Named($s) { 0 }
+        Anon($n) { $n }
+    }
+    print($hn)
+
+    # Non-fresh (alias) enum value reused inside a map literal: the vals array
+    # copies the struct by value, so it must retain its OWN +1 on the Str payload;
+    # the array drop and $g's own end-of-scope release balance it.
+    $g = Named("G" ~ "amma")
+    %a = {"x": $g, "y": Anon(3)}
+    print(%a.keys().count())
+    $vx = %a{"x"}
+    $hx = match $vx {
+        Named($s) { $s }
+        Anon($n) { "z" }
+    }
+    print($hx)
+    $last = match $g {
+        Named($s) { $s }
+        Anon($n) { "q" }
+    }
+    print($last)
+
+    # Map[Str, Class] with a fresh value and an alias value (heap-built name).
+    %p = {"lead": Person(name: "A" ~ "da", age: 36)}
+    print(%p.keys().count())
+    $pl = %p{"lead"}
+    print($pl.name)
+    print($pl.age)
+
+    $bob = Person(name: "B" ~ "ob", age: 28)
+    %q = {"a": $bob, "b": Person(name: "C" ~ "y", age: 5)}
+    print(%q.keys().count())
+    $qa = %q{"a"}
+    print($qa.name)
+    $qb = %q{"b"}
+    print($qb.name)
+    print($bob.name)
+
+    # List[Map[Str, Enum]] carrier — the outer ARR_MAP drop cascades into each
+    # row map's enum-value array. Ownership/drop proof via the key count of each
+    # row reached through iteration.
+    @xs = [{"p": Named("c" ~ "d")}, {"q": Anon(5)}]
+    print(@xs.count())
+    0
+}

@@ -1,0 +1,12 @@
+map={"a": 1, "b": 2, "c": 3}
+keys=[a, b, c]
+values=[1, 2, 3]
+has=true/false
+get=2
+true
+updated={"a": 1, "b": 20, "c": 3, "d": 4}
+removed={"b": 20, "c": 3, "d": 4}
+source={"a": 1, "b": 2, "c": 3}
+nested={"left": [a], "right": [b, c]}
+equal=true
+source-still={"left": [a], "right": [b, c]}

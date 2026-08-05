@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 5 E5d-5: indexing an unmodeled UFCS method result
+# is permissive. List.sort() has type List[T], while this conservative checker
+# still sees TUnknown for most prelude method calls.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

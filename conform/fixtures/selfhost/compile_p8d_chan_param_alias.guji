@@ -1,0 +1,23 @@
+# P8d-2c-1: pin channel param/alias ownership — callee-owned `guji_chan_t*`
+# params (released at callee exit), +1 retain at every call site, and
+# retain-on-alias binds.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_t* gp0") >= 3)
+            print(count_of($c, "guji_chan_release(gp0)") >= 3)
+            print(count_of($c, "(guji_chan_retain(") >= 4)
+            print(count_of($c, "= guji_chan_retain(") >= 1)
+            print(count_of($c, "guji_chan_new(2LL, sizeof(int64_t), NULL)") >= 1)
+            print(count_of($c, "guji_chan_new(1LL, sizeof(const char*), guji_chan_drop_str)") >= 1)
+            0
+        }
+    }
+}

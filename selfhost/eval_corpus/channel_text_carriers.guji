@@ -1,0 +1,240 @@
+# I10g4: Regex/Match/Bush Option and Result channel payloads plus immutable
+# hatch capture. C already deep-copies Match/Bush/Regex on send; D wires them
+# through WireEnum so recv reconstitutes VMatch/VBush/VRegex. Hatch detaches
+# Match/Bush graphs into the task env (Regex rides counted Str). Bind recv
+# carriers before unwrap; leave one undelivered counted Match for LSan.
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub classify_match($s: Str): Result[Match, Str] {
+    match ($s ~~ /(?<a>\w+)-(?<b>\w+)/) {
+        Some($m) { Ok($m) }
+        None { Err("no-match") }
+    }
+}
+
+sub classify_regex($s: Str): Result[Regex, Str] {
+    if $s == "bad" {
+        Err("no-regex")
+    } else {
+        Ok(Regex.literal($s))
+    }
+}
+
+sub classify_bush($s: Str): Result[Bush, Str] {
+    match Pair.parse($s) {
+        Some($b) { Ok($b) }
+        None { Err("no-bush") }
+    }
+}
+
+sub match_error($error: Match): Result[Int, Match] {
+    Err($error)
+}
+
+sub bush_error($error: Bush): Result[Int, Bush] {
+    Err($error)
+}
+
+sub send_match_error($out: Chan[Result[Int, Match]]): Unit {
+    $source = ('er-ror' ~~ /(?<left>\w+)-(?<right>\w+)/).unwrap()
+    $result = match_error($source)
+    $out.send($result)
+    ()
+}
+
+sub send_bush_error($out: Chan[Result[Int, Bush]]): Unit {
+    $source = Pair.parse("bu-sh").unwrap()
+    $result = bush_error($source)
+    $out.send($result)
+    ()
+}
+
+sub main(): Int {
+    # Option[Match] send/recv + named capture after transfer.
+    $mch: Chan[Option[Match]] = channel(4)
+    $m1 = 'aa-bb' ~~ /(?<a>\w+)-(?<b>\w+)/
+    $m2 = 'zz' ~~ /q-x/
+    $m3 = 'cc-dd' ~~ /(?<x>\w+)-(?<y>\w+)/
+    $m4 = 'ee-ff' ~~ /(?<a>\w+)-(?<b>\w+)/
+    $mch.send($m1)
+    $mch.send($m2)
+    $mch.send($m3)
+    $mch.send($m4)
+    $first = $mch.recv().unwrap()
+    print(match $first {
+        Some($m) { $m.text }
+        None { "none" }
+    })
+    # Named capture after transfer (bind Match first).
+    $m_ok = $m1.unwrap()
+    print($m_ok<a>.unwrap())
+    $second = $mch.recv().unwrap()
+    print(match $second {
+        Some($m) { $m.text }
+        None { "none" }
+    })
+    $third = $mch.recv().unwrap()
+    print(match $third {
+        Some($m) { $m.text }
+        None { "none" }
+    })
+    # $m4 stays buffered for LSan channel teardown.
+
+    # Option[Regex] and Option[Bush].
+    $rch: Chan[Option[Regex]] = channel(2)
+    $r1 = Regex.literal("a.b")
+    $o1: Option[Regex] = Some($r1)
+    $o2: Option[Regex] = None
+    $rch.send($o1)
+    $rch.send($o2)
+    $rf = $rch.recv().unwrap()
+    match $rf {
+        Some($r) { print($r) }
+        None { print("none") }
+    }
+    $rs = $rch.recv().unwrap()
+    match $rs {
+        Some($r) { print($r) }
+        None { print("none") }
+    }
+    print($r1)
+
+    $bch: Chan[Option[Bush]] = channel(2)
+    $b1 = Pair.parse("ll-rr")
+    $b2 = Pair.parse("bad!")
+    $bch.send($b1)
+    $bch.send($b2)
+    $bf = $bch.recv().unwrap()
+    print(match $bf {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+    # Named Bush child after bind (avoid deep call chains C declines).
+    $b_ok = $b1.unwrap()
+    $left = $b_ok<left>.unwrap()
+    print($left.text)
+    $bs = $bch.recv().unwrap()
+    print(match $bs {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+
+    # Result[Match|Regex|Bush, Str] Ok/Err arms.
+    $rm: Chan[Result[Match, Str]] = channel(2)
+    $rm.send(classify_match("xx-yy"))
+    $rm.send(classify_match("zzz"))
+    $rm1 = $rm.recv().unwrap()
+    print(match $rm1 {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+    $rm2 = $rm.recv().unwrap()
+    print(match $rm2 {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+
+    $rr: Chan[Result[Regex, Str]] = channel(2)
+    $rr.send(classify_regex("c+d"))
+    $rr.send(classify_regex("bad"))
+    $rr1 = $rr.recv().unwrap()
+    match $rr1 {
+        Ok($r) { print($r) }
+        Err($e) { print($e) }
+    }
+    $rr2 = $rr.recv().unwrap()
+    match $rr2 {
+        Ok($r) { print($r) }
+        Err($e) { print($e) }
+    }
+
+    $rb: Chan[Result[Bush, Str]] = channel(2)
+    $rb.send(classify_bush("pp-qq"))
+    $rb.send(classify_bush("nope"))
+    $rb1 = $rb.recv().unwrap()
+    print(match $rb1 {
+        Ok($b) { $b.text }
+        Err($e) { $e }
+    })
+    $rb2 = $rb.recv().unwrap()
+    print(match $rb2 {
+        Ok($b) { $b.text }
+        Err($e) { $e }
+    })
+
+    # An Err Match is independently owned by the Result constructor. The done
+    # signal is sent only after send_match_error returns and releases both the
+    # source Match and its local Result carrier.
+    $match_errors: Chan[Result[Int, Match]] = channel(1)
+    $match_error_done: Chan[Unit] = channel()
+    hatch {
+        send_match_error($match_errors)
+        $match_error_done.send(())
+    }
+    $match_error_done.recv()
+    $match_error_received = $match_errors.recv().unwrap()
+    print(match $match_error_received {
+        Ok($n) { "wrong-match-ok" }
+        Err($m) { $m.text }
+    })
+
+    $bush_errors: Chan[Result[Int, Bush]] = channel(1)
+    $bush_error_done: Chan[Unit] = channel()
+    hatch {
+        send_bush_error($bush_errors)
+        $bush_error_done.send(())
+    }
+    $bush_error_done.recv()
+    $bush_error_received = $bush_errors.recv().unwrap()
+    print(match $bush_error_received {
+        Ok($n) { "wrong-bush-ok" }
+        Err($b) { $b.text }
+    })
+
+    # Keep one detached Err Bush buffered so the generated Result drop helper
+    # owns channel teardown, independent of the receive-adoption case above.
+    $drop_bush_errors: Chan[Result[Int, Bush]] = channel(1)
+    $drop_bush_source = Pair.parse("dr-op").unwrap()
+    $drop_bush_result = bush_error($drop_bush_source)
+    $drop_bush_errors.send($drop_bush_result)
+
+    # Select over Option[Match].
+    $ready: Chan[Option[Match]] = channel(1)
+    $idle: Chan[Option[Match]] = channel()
+    $wake = 'go-now' ~~ /(?<w>\w+)-(?<t>\w+)/
+    $ready.send($wake)
+    select {
+        $got = $ready.recv() {
+            $inner = $got.unwrap()
+            print(match $inner {
+                Some($m) { $m.text }
+                None { "none" }
+            })
+        }
+        $got = $idle.recv() { print("wrong idle") }
+        else { print("wrong else") }
+    }
+
+    # Immutable hatch capture of Match, Bush, Option[Match], and Regex.
+    $done: Chan[Str] = channel()
+    $hm = ('aa-bb' ~~ /(?<a>\w+)-(?<b>\w+)/).unwrap()
+    $hb = Pair.parse("hh-ii").unwrap()
+    $ho = 'zz-ww' ~~ /(?<a>\w+)-(?<b>\w+)/
+    $hr = Regex.literal("hatch+")
+    hatch {
+        $os = match $ho {
+            Some($m) { $m.text }
+            None { "none" }
+        }
+        $done.send($hm.text ~ "|" ~ $hb.text ~ "|" ~ $os ~ "|" ~ "{ $hr }")
+    }
+    print($done.recv().unwrap())
+    print($hm.text)
+    print($hb.text)
+    print($hr)
+    0
+}

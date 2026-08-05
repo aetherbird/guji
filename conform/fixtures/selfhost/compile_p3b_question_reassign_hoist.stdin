@@ -1,0 +1,23 @@
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok("tag:" ~ $s) }
+}
+
+sub reassign_expr($s: Str): Result[Int, Str] {
+    mut $x = 0
+    $x = parse_int($s)? + 1
+    Ok($x)
+}
+
+sub reassign_direct($s: Str): Result[Int, Str] {
+    mut $x = 100
+    $x = parse_int($s)?
+    Ok($x)
+}
+
+sub reassign_str($s: Str): Result[Str, Str] {
+    mut $x = "start"
+    $x = tag($s)? ~ "!"
+    Ok($x)
+}
+
+sub main(): Int { 0 }

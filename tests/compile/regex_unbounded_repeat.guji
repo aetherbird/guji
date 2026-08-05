@@ -1,0 +1,37 @@
+# C2 differential fixture: the interpreter regex VM must match open-ended
+# quantifiers (`+` / `*` / `(..)+`) over long single-character lines in
+# (near-)linear time, exactly like the native engine. It previously did
+# catastrophic/quadratic backtracking and HUNG on such input (~14.8k-char
+# threshold; `^a+$` over a 20000-'a' line timed out with rc 124), while the
+# native C engine matched in linear time. The shared-visited-state fix makes both
+# maintained engines agree and finish quickly; the accepted-surface sweep's
+# per-fixture timeout turns any future
+# regex hang into a RED gate instead of an indefinite stall.
+#
+# regex_unbounded_repeat.input holds a 20000-'a' line then a 15000-'b' line, so:
+#   - `^a+$`     (open-ended +)  matches the a-line, not the b-line
+#   - `a*`       (open-ended *)  matches at the start of every line (Some)
+#   - `(b)+`     (open-ended grouped +) matches the b-line, not the a-line
+#   - `b{15000}` (fixed-count CONTROL) matches the b-line, not the a-line; a
+#                fixed-count quantifier is bounded and must stay fast either way.
+sub main(): Int {
+    match read_file("regex_unbounded_repeat.input") {
+        Ok($text) {
+            mut $idx = 0
+            for $line in $text.lines() {
+                $len = split($line, "").count()
+                $anchored = match $line ~~ /^a+$/    { Some($m) { "Y" } None { "N" } }
+                $star     = match $line ~~ /a*/      { Some($m) { "Y" } None { "N" } }
+                $grouped  = match $line ~~ /(b)+/    { Some($m) { "Y" } None { "N" } }
+                $fixed    = match $line ~~ /b{15000}/ { Some($m) { "Y" } None { "N" } }
+                print("line $idx len=$len anchored=$anchored star=$star grouped=$grouped fixed=$fixed")
+                $idx = $idx + 1
+            }
+            0
+        }
+        Err($e) {
+            note("regex_unbounded_repeat read err: $e")
+            1
+        }
+    }
+}

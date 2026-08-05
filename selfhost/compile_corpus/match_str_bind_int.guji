@@ -1,0 +1,8 @@
+sub main(): Unit {
+    $s = "abc"
+    print(match $s {
+        "x" { "was x" }
+        "y" { "was y" }
+        $other { "got " ~ $other }
+    })
+}

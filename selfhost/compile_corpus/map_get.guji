@@ -1,0 +1,30 @@
+# §15.2 map `get`, P2c slice: `get(%m, k)` and `%m.get(k)` yield an Option[V]
+# carrier — Some(value) on a key hit, None on a miss — mirroring the older list
+# `get(@xs, i)` Option path but scanning the map's `.keys` with `strcmp`. Covers
+# both the ordinary data-first and method-style spellings, all four value kinds
+# (a Str value exercises the Some-payload retain + borrowed-key release), hit vs
+# miss, and a computed key. Map parameters are a pre-existing selfhost subset
+# boundary, so — like the set/remove slice — everything stays a top-level binding.
+
+sub main(): Int {
+    %m: Map[Str, Int] = {"ab": 10, "cd": 20}
+    mut $code = 0
+    match get(%m, "ab") { Some($v) { $code = $code + $v } None { $code = $code - 1 } }
+    match %m.get("cd") { Some($v) { $code = $code + $v } None { $code = $code - 1 } }
+    match get(%m, "zz") { Some($v) { $code = $code + $v } None { $code = $code - 1 } }
+    match get(%m, "a" ~ "b") { Some($v) { $code = $code + $v } None { $code = $code - 1 } }
+
+    %s: Map[Str, Str] = {"a": "hi", "b": "yo"}
+    match %s.get("a") { Some($sv) { if $sv == "hi" { $code = $code + 2 } else { $code = $code + 0 } } None { $code = $code - 1 } }
+    match get(%s, "z") { Some($sv) { if $sv == "" { $code = $code + 0 } else { $code = $code + 0 } } None { $code = $code + 16 } }
+
+    %f: Map[Str, Float] = {"pi": 3.5}
+    match get(%f, "pi") { Some($d) { if $d == 3.5 { $code = $code + 4 } else { $code = $code + 0 } } None { $code = $code - 1 } }
+    match %f.get("e") { Some($d) { $code = $code + 100 } None { $code = $code + 8 } }
+
+    %b: Map[Str, Bool] = {"on": true}
+    match %b.get("on") { Some($t) { if $t { $code = $code + 32 } else { $code = $code + 0 } } None { $code = $code - 1 } }
+    match get(%b, "off") { Some($t) { $code = $code + 100 } None { $code = $code + 64 } }
+
+    if $code == 165 { 0 } else { 1 }
+}

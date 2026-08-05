@@ -1,0 +1,34 @@
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+
+    sub swapped($self): Pair {
+        Pair(first: $self.second, second: $self.first)
+    }
+    sub same($self): Pair {
+        Pair(first: $self.first, second: $self.second)
+    }
+    sub rekey($self, $k: A): Pair {
+        Pair(first: $k, second: $self.second)
+    }
+    sub show($self): Str {
+        "({ $self.first }, { $self.second })"
+    }
+}
+
+sub main(): Unit {
+    $p = Pair(first: 1, second: "one")
+    print($p.show())
+
+    $q = $p.swapped()
+    print($q.show())
+
+    $r = $q.swapped()
+    print($r.show())
+
+    $s = $p.same()
+    print($s.show())
+
+    $t = $p.rekey(99)
+    print($t.show())
+}

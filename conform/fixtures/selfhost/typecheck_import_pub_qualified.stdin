@@ -1,0 +1,5 @@
+import guji_typecheck_import_pub_lib
+
+sub main(): Int {
+    guji_typecheck_import_pub_lib::inc(1)
+}

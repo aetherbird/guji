@@ -1,0 +1,27 @@
+# C2: a single enum field position can mix an owned Str variant with a scalar
+# variant. The Str case must use the union .s member for construction, binding,
+# and retain/release; the Int case must keep using .i.
+enum Animal {
+  Dog($name: Str)
+  Cat($age: Int)
+  Fish
+}
+
+sub score($a: Animal): Int {
+  match $a {
+    Dog($n) {
+      print($n)
+      7
+    }
+    Cat($age) {
+      $age
+    }
+    Fish {
+      0
+    }
+  }
+}
+
+sub main(): Int {
+  score(Dog("bo" ~ "op"))
+}

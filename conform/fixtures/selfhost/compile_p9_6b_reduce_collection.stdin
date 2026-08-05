@@ -1,0 +1,12 @@
+sub main(): Unit {
+    @nums = [1, 2]
+    @list = reduce(@nums, [0], sub(@acc, $n) {
+        @acc.map(sub($x) { $x + $n })
+    })
+    print(@list)
+
+    %map = @nums.reduce({"seed": [0]}, sub(%acc, $n) {
+        %acc.set("k{ $n }", [$n])
+    })
+    print(%map)
+}

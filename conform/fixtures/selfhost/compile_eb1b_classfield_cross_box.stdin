@@ -1,0 +1,35 @@
+# EB-1b cross-cycle corpus: a CLASS-field box. The class TypeRef is declared FIRST and
+# its `args: TypeList` field closes a by-value cycle (TypeList's TypeCons embeds TypeRef
+# by value), so TypeRef boxes that edge as `struct TypeList*` while the later enum keeps
+# its TypeRef payload by value. Reading $tr.args dereferences the box. Native REJECTS a
+# class field of enum type, so the oracle is the interpreter (+ sanitizers).
+class TypeRef {
+    has $.name: Str
+    has $.args: TypeList
+}
+
+enum TypeList {
+    TypeNil
+    TypeCons($head: TypeRef, $tail: TypeList)
+}
+
+sub args_len($ts: TypeList): Int {
+    match $ts {
+        TypeNil { 0 }
+        TypeCons($head, $tail) { 1 + args_len($tail) }
+    }
+}
+
+sub score($tr: TypeRef): Int {
+    if $tr.name == "a" {
+        10 + args_len($tr.args)
+    } else {
+        1 + args_len($tr.args)
+    }
+}
+
+sub main(): Int {
+    $leaf = TypeRef(name: "b", args: TypeNil)
+    $root = TypeRef(name: "a", args: TypeCons($leaf, TypeNil))
+    score($root)
+}

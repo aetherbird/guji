@@ -1,0 +1,18 @@
+sub main(): Int {
+    $literal = /([a-z]+)\d+/
+    match "xxabc123yy" ~~ $literal {
+        Some($m) { print($m.text) }
+        None { print("none") }
+    }
+    $lit = Regex.literal("a.b")
+    $compiled = Regex.compile("([0-9]+)-x").unwrap()
+    match "42-x" ~~ $compiled {
+        Some($m) { print($m[1].unwrap_or("-")) }
+        None { print("none") }
+    }
+    match "a.b" ~~ $lit {
+        Some($m) { print($m.text) }
+        None { print("none") }
+    }
+    0
+}

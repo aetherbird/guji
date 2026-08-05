@@ -1,0 +1,35 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub count_text($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # The sub head is an ordinary Int sub.
+            print(has_text($c, "static int64_t gf_bind_ret_probe(int64_t gp0)"))
+            # The PLit arm condition.
+            print(has_text($c, ") == (7LL))"))
+            # Both arms return through the ret-aware chain.
+            print(has_text($c, "return guji_mul(gp0, 2LL)"))
+            print(has_text($c, " else if (1) \{"))
+            print(has_text($c, "return guji_add(gv"))
+            # Never-valued match: the scrutinee temp and the dead match-result
+            # temp are both int64_t (native's default), as are the catch-all
+            # binder and the dead $out binder.
+            print(count_text($c, "\tint64_t gi") == 2)
+            print(count_text($c, "\tint64_t gv") == 2)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

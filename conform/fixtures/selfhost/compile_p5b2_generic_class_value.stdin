@@ -1,0 +1,39 @@
+# P5b-2b(c-class-value): generic CLASS value inference/monomorphization. An
+# unannotated bind whose value is a generic-class constructor with scalar-LITERAL
+# named args creates AND selects the concrete monomorphized spec:
+# Box(value: 42) -> Box__Int, Box(value: "hello") -> Box__Str,
+# Box(value: 3.5) -> Box__Float, Box(value: true) -> Box__Bool. When several
+# specs share the base name (Box__*), the constructor's field KINDS pick which
+# one (mirrors native's arg-kind disambiguation). A two-parameter class Pair[A,B]
+# binds both params from its named args. Field reads project the concrete struct
+# member at each scalar type. This is the CLASS twin of generic_enum_value_infer.
+
+class Box[T] {
+    has $.value: T
+}
+
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+}
+
+sub main(): Int {
+    $bi = Box(value: 42)
+    $bs = Box(value: "hello")
+    $bf = Box(value: 3.5)
+    $bb = Box(value: true)
+    print("{ $bi.value }")
+    print($bs.value)
+    print("{ $bf.value }")
+    print("{ $bb.value }")
+
+    $p = Pair(first: 1, second: "one")
+    print("{ $p.first }")
+    print($p.second)
+
+    $q = Pair(first: 2.5, second: false)
+    print("{ $q.first }")
+    print("{ $q.second }")
+
+    0
+}

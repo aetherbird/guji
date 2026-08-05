@@ -1,0 +1,38 @@
+# G6-gen-1: a single program whose registry holds the Option + Result built-ins
+# AND a user enum at once, so cg_registry_check exercises every consistency
+# invariant (sequential tags, built-in shapes, user-enum-vs-collect_enums) in one
+# pass. Codegen output is unchanged by the self-check; the three-way differential
+# (selfhost == guji build == interpreter) is what proves it gate-neutral.
+enum Shape {
+    Circle($radius: Int)
+    Rect($width: Int, $height: Int)
+    Dot
+}
+
+sub area($s: Shape): Int {
+    match $s {
+        Circle($r) { $r * $r * 3 }
+        Rect($w, $h) { $w * $h }
+        Dot { 0 }
+    }
+}
+
+# A sub return type pins Result's type params (Ok alone leaves E free), so this
+# stays well-typed in both oracles while still exercising Ok construction.
+sub checked($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+
+sub main(): Int {
+    $o: Option[Int] = Some(7)
+    $r: Result[Int, Str] = checked(5)
+    $base = match $o {
+        Some($v) { $v }
+        None { 0 }
+    }
+    $extra = match $r {
+        Ok($n) { $n }
+        Err($e) { 0 }
+    }
+    area(Rect(2, 3)) + $base + $extra
+}

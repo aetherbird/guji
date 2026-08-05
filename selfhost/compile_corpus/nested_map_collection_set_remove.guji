@@ -1,0 +1,32 @@
+# P5b-2b(nested-map-collection-set-remove): §15.2 set/remove on maps whose
+# VALUES are collections (List or Map). Fresh-copy semantics; source unchanged.
+# Covers replace + append + remove-hit + remove-miss, method and data-first
+# spellings, annotated and unannotated result binds, Map[Str, List[Int]] and
+# Map[Str, Map[Str, Int]]. Exit = has_key score.
+
+sub main(): Int {
+    %m: Map[Str, List[Int]] = {"a": [1, 2], "b": [3]}
+    %r: Map[Str, List[Int]] = %m.set("a", [9])
+    %a: Map[Str, List[Int]] = set(%m, "c", [4, 5])
+    %d = %m.remove("a")
+    %n: Map[Str, List[Int]] = remove(%m, "z")
+
+    mut $score = 0
+    if %m.has_key("a") { $score = $score + 1 } else { $score = $score + 0 }
+    if %r.has_key("a") { $score = $score + 2 } else { $score = $score + 0 }
+    if %a.has_key("c") { $score = $score + 4 } else { $score = $score + 0 }
+    if %d.has_key("a") { $score = $score + 0 } else { $score = $score + 8 }
+    if %d.has_key("b") { $score = $score + 16 } else { $score = $score + 0 }
+    if %n.has_key("a") { $score = $score + 32 } else { $score = $score + 0 }
+    if %a.has_key("a") { $score = $score + 64 } else { $score = $score + 0 }
+    if %r.has_key("b") { $score = $score + 128 } else { $score = $score + 0 }
+
+    %mm: Map[Str, Map[Str, Int]] = {"outer": {"x": 1}}
+    %mm2: Map[Str, Map[Str, Int]] = %mm.set("outer", {"x": 7, "y": 8})
+    %mm3 = %mm.remove("missing")
+    if %mm2.has_key("outer") { $score = $score + 256 } else { $score = $score + 0 }
+    if %mm3.has_key("outer") { $score = $score + 512 } else { $score = $score + 0 }
+
+    print("{ $score }")
+    $score
+}

@@ -1,0 +1,6 @@
+sub main(): Int {
+    @xs = [1, 2, 3, 4]
+    @ys = @xs.map(sub($n: Int): Int { $n * $n })
+    print("{ @ys[2] }")
+    @ys[3]
+}

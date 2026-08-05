@@ -1,0 +1,1 @@
+type error: sub main body returns Str, expected Int

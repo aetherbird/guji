@@ -1,0 +1,30 @@
+# Slice 6 P3b-2b-2c: final carrier constructors with a RIGHT-operand `?`
+# where the left side is pure, so hoisting the carrier guard before it preserves
+# native's observable evaluation order.
+sub parse_right($s: Str): Result[Int, Str] {
+    Ok(100 - parse_int($s)?)
+}
+
+sub maybe_right($base: Int, $o: Option[Int]): Option[Int] {
+    Some($base + $o?)
+}
+
+sub main(): Int {
+    match parse_right("58") {
+        Ok($v) { print("parse right ok { $v }") }
+        Err($e) { print("parse right err { $e }") }
+    }
+    match parse_right("bad") {
+        Ok($v) { print("parse right ok { $v }") }
+        Err($e) { print("parse right err { $e }") }
+    }
+    match maybe_right(10, Some(7)) {
+        Some($v) { print("maybe right some { $v }") }
+        None { print("maybe right none") }
+    }
+    match maybe_right(10, None) {
+        Some($v) { print("maybe right some { $v }") }
+        None { print("maybe right none") }
+    }
+    44
+}

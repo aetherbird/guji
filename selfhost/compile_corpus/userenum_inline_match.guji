@@ -1,0 +1,12 @@
+# F2b: a match scrutinee that is an INLINE construction (`match A(7)`) lowers
+# through the generic enum value path — the constructor is resolved via the
+# registry metadata, the value is materialised into a fresh owned temp, then
+# dispatched by tag with the field bound. Observed via the exit code.
+enum N { A($v: Int), B }
+
+sub main(): Int {
+    match A(7) {
+        A($v) { $v }
+        B { 0 }
+    }
+}

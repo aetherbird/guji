@@ -1,0 +1,4 @@
+# Spec 18: Unit main falls off its end with success.
+sub main(): Unit {
+    print("unit-main")
+}

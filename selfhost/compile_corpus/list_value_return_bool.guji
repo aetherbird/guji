@@ -1,0 +1,7 @@
+sub flags(): List[Bool] {
+    [false, true]
+}
+
+sub main(): Int {
+    if flags()[1] { 8 } else { 2 }
+}

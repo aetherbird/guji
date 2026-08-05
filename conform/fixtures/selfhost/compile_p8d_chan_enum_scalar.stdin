@@ -1,0 +1,20 @@
+enum Signal {
+    Stop
+    Go
+    Wait($secs: Int)
+}
+
+sub main(): Int {
+    $ch: Chan[Signal] = channel(2)
+    $ch.send(Go)
+    $ch.send(Wait(7))
+    $ch.close()
+    for $sig in $ch {
+        print(match $sig {
+            Stop { 0 }
+            Go { 1 }
+            Wait($secs) { $secs }
+        })
+    }
+    0
+}

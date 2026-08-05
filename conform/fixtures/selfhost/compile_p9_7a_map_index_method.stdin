@@ -1,0 +1,6 @@
+sub main(): Int {
+    %outer = {"row": {"b": "two", "a": "one"}}
+    @keys = %outer{"row"}.keys()
+    print(@keys.join(","))
+    0
+}

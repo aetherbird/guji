@@ -1,0 +1,20 @@
+# E5d-8q: value-position match over the Result[Int,Str] returned by the
+# parse_int prelude, in both ordinary and method-call forms.
+
+sub to_int($c: Str): Int {
+    match parse_int($c) {
+        Ok($n) { $n }
+        Err($e) { 0 }
+    }
+}
+
+sub to_int_method($c: Str): Int {
+    match $c.parse_int() {
+        Ok($n) { $n }
+        Err($e) { 1 }
+    }
+}
+
+sub main(): Int {
+    to_int("42") + to_int("  7  ") + to_int("bad") + to_int_method("nope")
+}

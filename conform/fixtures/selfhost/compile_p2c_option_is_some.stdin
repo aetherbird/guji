@@ -1,0 +1,9 @@
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    $n: Option[Str] = None
+    mut $c = 0
+    if $o.is_some() { $c = $c + 1 }
+    if is_none($n) { $c = $c + 2 }
+    if is_some($o) { $c = $c + 4 } else { $c = $c + 0 }
+    $c
+}

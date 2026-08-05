@@ -1,0 +1,91 @@
+# A-collection-elements-rest (plain enum-typed payload slice): a flat List of
+# enum values whose payloads include a plain (non-boxed) enum-typed payload now
+# works. The outer enum lowers to a counted heap array (GUJI_KIND_<Enum>_ARR);
+# its guji_release_<Enum>_fields cascade already recurses into a by-value enum
+# payload (guji_release_<Inner>_fields, emitted only when the inner enum is
+# counted), and construction transfers/retains the inner payload exactly like the
+# Str/List/Map slices. Match binds the inner enum payload as a borrowed by-value
+# view whose own counted sub-storage is never registered owned, so the read does
+# not suppress the array release.
+#
+# Two outer enums prove BOTH branches of the new tyEnum case:
+#   - Cell: a COUNTED inner enum (Inner carries a Str payload), so the array drop
+#     cascades guji_release_Cell_fields -> guji_release_Inner_fields -> free Str.
+#   - Box:  an UNCOUNTED inner enum (Color has no payloads), which rides along by
+#     value with no storage at all.
+# Each outer enum keeps slot 0 occupied only by its single enum type (plus a
+# no-param variant), respecting the pre-existing enum slot-union layout limit.
+#
+# The Str payloads are HEAP-allocated at runtime (`~` concat), NOT immortal
+# literals, so the per-element retain/release must balance exactly — an immortal
+# literal would hide leaks/double-frees under LeakSanitizer.
+
+enum Inner {
+    Word($w: Str)
+    Num($n: Int)
+}
+
+enum Color { Red, Green, Blue }
+
+enum Cell {
+    Tagged($inner: Inner)
+    Empty
+}
+
+enum Box {
+    Hold($c: Color)
+    Nothing
+}
+
+sub describe($cell: Cell): Str {
+    match $cell {
+        Tagged($inner) {
+            match $inner {
+                Word($w) { $w }
+                Num($n) { "num" }
+            }
+        }
+        Empty { "empty" }
+    }
+}
+
+sub paint($box: Box): Str {
+    match $box {
+        Hold($c) {
+            match $c {
+                Red { "red" }
+                Green { "green" }
+                Blue { "blue" }
+            }
+        }
+        Nothing { "none" }
+    }
+}
+
+sub main(): Int {
+    # COUNTED inner enum, fresh constructor elements.
+    @cells = [Tagged(Word("al" ~ "pha")), Tagged(Num(7)), Empty]
+    print(@cells.count())
+    for $c in @cells {
+        print(describe($c))
+    }
+
+    # Non-fresh (alias) element: the array copies the struct by value, so it must
+    # retain its OWN +1 on the inner enum's heap-built Str payload. $g's own
+    # end-of-scope release and the array drop must balance exactly.
+    $g = Tagged(Word("gam" ~ "ma"))
+    @more = [$g, Tagged(Num(3)), Empty]
+    print(@more.count())
+    for $m in @more {
+        print(describe($m))
+    }
+    print(describe($g))
+
+    # UNCOUNTED inner enum: rides along by value, no storage.
+    @boxes = [Hold(Red), Hold(Blue), Nothing, Hold(Green)]
+    print(@boxes.count())
+    for $b in @boxes {
+        print(paint($b))
+    }
+    0
+}

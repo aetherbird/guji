@@ -1,0 +1,182 @@
+# Slice 6 P3b-2b-2c-4e: `?` binds/reassignments INSIDE guard and arm bodies.
+# The statement-level `?` machinery (direct bind, hoisted-expression bind, and
+# existing-name reassignment) now also dispatches inside statement-position
+# `if`/`else if`/`else` branch bodies and inside statement-match arms whose
+# scrutinee needs no extra cleanup. The emitted `?` guard's early `return`
+# releases the FULL env in scope (branch locals + arm binders + outer bindings),
+# matching the guard-body `return` path; a successful bind joins the branch env
+# and is released at branch exit like any other block-local binding. Covers
+# Result/Option carriers, Int and Str payloads (ownership across both the
+# early-return and fall-through paths), nested guards, else-if/else bodies,
+# reassignment of an outer mut binding, and an enum-scrutinee match arm.
+
+sub tag_s($s: Str): Result[Str, Str] {
+    if $s == "" {
+        Err("empty")
+    } else {
+        Ok("t:" ~ $s)
+    }
+}
+
+# Direct `?` bind in a guard body, branch ends in `return` (early exit path).
+sub parse_pos($s: Str): Result[Int, Str] {
+    if $s != "" {
+        $n = parse_int($s)?
+        return Ok($n + 1)
+    }
+    Err("empty")
+}
+
+# Direct `?` bind in a guard body, branch FALLS THROUGH to trailing statements.
+sub tally($s: Str): Result[Int, Str] {
+    mut $t = 5
+    if $s != "" {
+        $n = parse_int($s)?
+        $t = $n * 2
+    }
+    Ok($t + 1)
+}
+
+# Option `?` bind inside the then-branch of an if/else guard.
+sub pick($o: Option[Int], $b: Bool): Option[Int] {
+    mut $r = 0
+    if $b {
+        $v = $o?
+        $r = $v + 10
+    } else {
+        $r = 3
+    }
+    Some($r)
+}
+
+# Owned Str payload bound via `?` in a guard body, consumed by a return concat:
+# the Err early-return releases nothing extra (payload not yet bound); the Ok
+# path's payload local transfers into the returned carrier.
+sub label($s: Str, $b: Bool): Result[Str, Str] {
+    if $b {
+        $t = tag_s($s)?
+        return Ok($t ~ "!")
+    }
+    Ok("plain")
+}
+
+# Owned Str payload bound via `?` in a guard body that FALLS OFF the end: the
+# payload local must be released at branch exit (block-local cleanup), and the
+# Err early-return inside the branch must release outer owned bindings.
+sub falls($s: Str, $b: Bool): Result[Int, Str] {
+    mut $n = 0
+    if $b {
+        $t = tag_s($s)?
+        print("got { $t }")
+        $n = 1
+    }
+    Ok($n)
+}
+
+# Hoisted-expression `?` bind (`$x = f()? + 1`) inside a guard body.
+sub hoisted($s: Str, $b: Bool): Result[Int, Str] {
+    mut $t = 0
+    if $b {
+        $x = parse_int($s)? + 1
+        $t = $x * 3
+    }
+    Ok($t)
+}
+
+# Existing-name reassignment with a `?` RHS inside a guard body (outer mut Int).
+sub reassigned($s: Str, $b: Bool): Result[Int, Str] {
+    mut $t = 7
+    if $b {
+        $t = parse_int($s)? + 2
+    }
+    Ok($t)
+}
+
+# Str reassignment of an outer mut binding from a `?`-bearing concat inside a
+# guard: the Err early-return must release the OLD Str value; the success path
+# releases old then stores the rebuilt concat.
+sub strreassign($s: Str, $b: Bool): Result[Str, Str] {
+    mut $t = "base"
+    if $b {
+        $t = tag_s($s)? ~ "#"
+    }
+    Ok($t ~ ".")
+}
+
+# `?` bind inside a NESTED guard body (two levels down).
+sub nested($s: Str, $a: Bool, $b: Bool): Result[Int, Str] {
+    mut $r = 1
+    if $a {
+        if $b {
+            $x = parse_int($s)?
+            $r = $x + 100
+        }
+        $r = $r + 10
+    }
+    Ok($r)
+}
+
+# `?` binds inside `else if` and `else` branch bodies (direct + hoisted forms).
+sub elifbody($s: Str, $k: Int): Result[Int, Str] {
+    mut $r = 0
+    if $k == 1 {
+        $r = 111
+    } else if $k == 2 {
+        $x = parse_int($s)?
+        $r = $x + 200
+    } else {
+        $y = parse_int($s)? + 3
+        $r = $y
+    }
+    Ok($r)
+}
+
+enum Mode { Fast, Slow }
+
+# `?` bind inside a statement-match ARM over an enum scrutinee (no scrutinee
+# cleanup), arm ends in `return`.
+sub armv($m: Mode, $s: Str): Result[Int, Str] {
+    mut $r = 0
+    match $m {
+        Fast {
+            $x = parse_int($s)?
+            return Ok($x + 1000)
+        }
+        Slow { $r = 5 }
+    }
+    Ok($r)
+}
+
+sub main(): Int {
+    match parse_pos("41") { Ok($a) { print("pp ok { $a }") } Err($e) { print("pp err { $e }") } }
+    match parse_pos("x") { Ok($a2) { print("ppx ok { $a2 }") } Err($e2) { print("ppx err { $e2 }") } }
+    match tally("4") { Ok($b) { print("ta ok { $b }") } Err($e3) { print("ta err { $e3 }") } }
+    match tally("y") { Ok($b2) { print("tay ok { $b2 }") } Err($e4) { print("tay err { $e4 }") } }
+    match pick(Some(5), true) { Some($c) { print("pk some { $c }") } None { print("pk none") } }
+    match pick(None, true) { Some($c2) { print("pkn some { $c2 }") } None { print("pkn none") } }
+    match pick(None, false) { Some($c3) { print("pkf some { $c3 }") } None { print("pkf none") } }
+    match label("ab", true) { Ok($d) { print("lb ok { $d }") } Err($e5) { print("lb err { $e5 }") } }
+    match label("", true) { Ok($d2) { print("lbe ok { $d2 }") } Err($e6) { print("lbe err { $e6 }") } }
+    match label("zz", false) { Ok($d3) { print("lbf ok { $d3 }") } Err($e7) { print("lbf err { $e7 }") } }
+    match falls("ab", true) { Ok($f1) { print("fa ok { $f1 }") } Err($e8) { print("fa err { $e8 }") } }
+    match falls("", true) { Ok($f2) { print("fae ok { $f2 }") } Err($e9) { print("fae err { $e9 }") } }
+    match falls("", false) { Ok($f3) { print("faf ok { $f3 }") } Err($ea) { print("faf err { $ea }") } }
+    match hoisted("6", true) { Ok($g) { print("ho ok { $g }") } Err($eb) { print("ho err { $eb }") } }
+    match hoisted("q", true) { Ok($g2) { print("hoq ok { $g2 }") } Err($ec) { print("hoq err { $ec }") } }
+    match reassigned("8", true) { Ok($h) { print("ra ok { $h }") } Err($ed) { print("ra err { $ed }") } }
+    match reassigned("8", false) { Ok($h2) { print("raf ok { $h2 }") } Err($ee) { print("raf err { $ee }") } }
+    match strreassign("ab", true) { Ok($i1) { print("sr ok { $i1 }") } Err($ef) { print("sr err { $ef }") } }
+    match strreassign("", true) { Ok($i2) { print("sre ok { $i2 }") } Err($eg) { print("sre err { $eg }") } }
+    match strreassign("", false) { Ok($i3) { print("srf ok { $i3 }") } Err($eh) { print("srf err { $eh }") } }
+    match nested("7", true, true) { Ok($j1) { print("ne ok { $j1 }") } Err($ei) { print("ne err { $ei }") } }
+    match nested("x", true, true) { Ok($j2) { print("nex ok { $j2 }") } Err($ej) { print("nex err { $ej }") } }
+    match nested("x", true, false) { Ok($j3) { print("nef ok { $j3 }") } Err($ek) { print("nef err { $ek }") } }
+    match elifbody("4", 2) { Ok($k1) { print("el ok { $k1 }") } Err($el) { print("el err { $el }") } }
+    match elifbody("z", 2) { Ok($k2) { print("elz ok { $k2 }") } Err($em) { print("elz err { $em }") } }
+    match elifbody("9", 3) { Ok($k3) { print("ele ok { $k3 }") } Err($en) { print("ele err { $en }") } }
+    match elifbody("z", 1) { Ok($k4) { print("el1 ok { $k4 }") } Err($eo) { print("el1 err { $eo }") } }
+    match armv(Fast, "6") { Ok($l1) { print("av ok { $l1 }") } Err($ep) { print("av err { $ep }") } }
+    match armv(Fast, "w") { Ok($l2) { print("avw ok { $l2 }") } Err($eq) { print("avw err { $eq }") } }
+    match armv(Slow, "w") { Ok($l3) { print("avs ok { $l3 }") } Err($er) { print("avs err { $er }") } }
+    53
+}

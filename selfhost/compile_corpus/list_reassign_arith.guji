@@ -1,0 +1,6 @@
+sub main(): Int {
+    $base = 5
+    mut @xs: List[Int] = [1, 1]
+    @xs = [$base + 1, $base * 2]
+    @xs[0] + @xs[1]
+}

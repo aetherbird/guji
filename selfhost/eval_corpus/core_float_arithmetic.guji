@@ -1,0 +1,36 @@
+# I2f: §5.1 Float arithmetic uses IEEE-754 for every operator. Zero divisors
+# deliberately produce Inf/NaN, while calls prove Float operands and results
+# retain their native value across function boundaries.
+sub midpoint($a: Float, $b: Float): Float {
+    ($a + $b) / 2.0
+}
+
+sub scale_then_shift($x: Float): Float {
+    $x * 4.0 - 1.0
+}
+
+sub main(): Unit {
+    print(2.5 + 1.5)
+    print(5.5 - 2.0)
+    print(2.5 * 4.0)
+    print(7.0 / 2.0)
+    print(7.5 % 2.0)
+    print(2.0 ** 10.0)
+
+    print(1.0 / 0.0)
+    print(-1.0 / 0.0)
+    print(0.0 / 0.0)
+    print(1.0 % 0.0)
+    print((0.0 - 1.0) ** 0.5)
+
+    $nan = 0.0 / 0.0
+    print($nan == $nan)
+    print($nan != $nan)
+    print($nan < 0.0)
+    print($nan <= 0.0)
+    print($nan > 0.0)
+    print($nan >= 0.0)
+
+    print(midpoint(1.5, 4.5))
+    print(scale_then_shift(midpoint(1.0, 2.0)))
+}

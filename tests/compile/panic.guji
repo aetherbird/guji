@@ -1,0 +1,22 @@
+# Deliberate panic intrinsic (spec 11.2): the native binary must abort with the
+# same non-zero exit code as the interpreter, and the stdout printed before the
+# panic must match (the panic message itself goes to stderr, which the gate
+# ignores). Also exercises `panic` inside an else branch as a Never value: the
+# if-expression type is fixed by the other branch, so classify type-checks as Int.
+sub classify($n: Int): Int {
+    if $n >= 0 {
+        $n
+    } else {
+        panic("negative input")
+    }
+}
+
+sub main(): Int {
+    print("classify 7")
+    $ok = classify(7)
+    print("got: $ok")
+    print("classify -1")
+    $bad = classify(-1)
+    print("unreachable: $bad")
+    0
+}

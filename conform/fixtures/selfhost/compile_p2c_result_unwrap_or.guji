@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 `unwrap_or($r, $d)` / `$r.unwrap_or($d)` lowering over a bound
+# `Result[T,E]` local. A scalar Ok payload lowers to native's pure borrow
+# ternary with tag 0 and the `.ok` slot. A Str result follows the selfhost
+# owned-tmp convention: default first, retain selected pointer, then release the
+# default tmp unconditionally.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "ok : 9LL"))
+            print(has_text($c, ".tag == 0 ?"))
+            print(has_text($c, ".ok : gt"))
+            print(has_text($c, "guji_release(gt"))
+            print(has_text($c, ".tag == 0LL) \{ guji_release"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

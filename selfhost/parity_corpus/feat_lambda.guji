@@ -1,0 +1,8 @@
+# §7.4 lambdas/closures — a capturing closure passed by value and applied.
+sub apply($f, $x: Int): Int { $f($x) }
+sub main(): Int {
+    $base = 10
+    $f = sub($n: Int): Int { $n + $base }
+    print("{ apply($f, 5) }")
+    0
+}

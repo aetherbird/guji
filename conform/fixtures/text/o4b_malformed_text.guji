@@ -1,0 +1,39 @@
+# O4b: every malformed external byte becomes one U+FFFD before text use.
+# The binary stdin sidecar is shared with word_invalid_utf8: 0xFF 0xFE,
+# "word9", and UTF-8 "eclair" with an acute-accented first letter.
+
+sub describe($line: Str): Str {
+    $word = match $line ~~ /\w/ { Some($m) { "w:Y" } None { "w:N" } }
+    $digit = match $line ~~ /\d/ { Some($m) { "d:Y" } None { "d:N" } }
+    $ascii = match $line ~~ /[a-z]/ { Some($m) { "a:Y" } None { "a:N" } }
+    $word ~ " " ~ $digit ~ " " ~ $ascii
+}
+
+sub main(): Int {
+    @lines = stdin.slurp().lines()
+    print(@lines.count())
+    print(@lines[0])
+    print(@lines[0] == "��")
+    print(split(@lines[0], "").count())
+    print(@lines[1] == "word9")
+    print(@lines[2] == "éclair")
+    for $line in @lines {
+        print(describe($line))
+    }
+    # Invalid lead/continuation, overlong, surrogate, out-of-range, truncated,
+    # then one valid encoded U+FFFD. Every malformed byte becomes one scalar.
+    match run("printf", ["\\377\\376\\300\\257\\355\\240\\200\\364\\220\\200\\200\\342\\202\\357\\277\\275"]) {
+        Ok($p) {
+            print(split($p.stdout, "").count())
+            print(match $p.stdout ~~ /^(?:�){14}$/ {
+                Some($m) { true }
+                None { false }
+            })
+        }
+        Err($e) {
+            print(-1)
+            print(false)
+        }
+    }
+    0
+}

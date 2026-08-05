@@ -1,0 +1,25 @@
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    %tags = {"k": Named("a" ~ "b"), "n": Anon(7)}
+    print(%tags.keys().count())
+    $tag = %tags{"k"}
+    match $tag {
+        Named($label) { print($label) }
+        Anon($code) { print($code) }
+    }
+
+    %people = {"lead": Person(name: "A" ~ "da", age: 36)}
+    $person = %people{"lead"}
+    print($person.name)
+    print($person.age)
+    0
+}

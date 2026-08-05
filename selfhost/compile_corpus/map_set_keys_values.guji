@@ -1,0 +1,25 @@
+# P9-6b-14: keys()/values() on set/remove (and literal) map receivers.
+# Materializes an owned guji_map_t temp, projects a retained list snapshot,
+# then releases the temp — same ownership shape as native mapKeys/mapValues
+# over mapExpr(set/remove).
+
+sub direct_keys(%base: Map[Str, Str]): List[Str] {
+    %base.set("c", "3").keys()
+}
+
+sub main(): Int {
+    %base = {"b": "2", "a": "1"}
+    @ks = direct_keys(%base)
+    print(@ks.join(","))
+
+    @vs = %base.set("a", "A").values().reverse()
+    print(@vs.join(":"))
+
+    @rk = %base.remove("b").keys()
+    print(@rk.join("|"))
+
+    @lk = {"z": 9, "m": 1}.keys()
+    print(@lk.join("-"))
+
+    @ks.count() + @vs.count() + @rk.count() + @lk.count()
+}

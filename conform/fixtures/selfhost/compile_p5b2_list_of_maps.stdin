@@ -1,0 +1,9 @@
+sub main(): Int {
+    @mi: List[Map[Str, Int]] = [{"a": 1}, {"b": 2}]
+    @ms: List[Map[Str, Str]] = [{"k": "v"}]
+    @u = [{"p": 10}]
+    print("{ @mi.count() }")
+    print("{ @ms.count() }")
+    print("{ @u.count() }")
+    @mi.count() + @ms.count() + @u.count()
+}

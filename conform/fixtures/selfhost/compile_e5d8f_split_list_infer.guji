@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 5 E5d-8f compiler codegen fixture.
+# Pins inference of an UNANNOTATED list binding's element kind from a `split(...)`
+# RHS -- the real-source `number_kind($text)` shape, whose first statement is
+# `@nc = split($text, "")`. Before E5d-8f the selfhost codegen inferred only
+# `args()`/user-call list bindings, so the split binding fell through to scalar
+# codegen and declined. Checks the generated C carries: the inferred List[Str]
+# slice local (`guji_slice_t gl2 = {0};`), the `guji_split` prelude call filling
+# that slice's data+len, and Str indexing through the slice payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_slice_t gl2 = \{0};"))
+            print(has_text($c, "gl2.data = (void*)guji_split(gt0, gt1, &gl2.len);"))
+            print(has_text($c, "((const char**)gl2.data)[gi3]"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

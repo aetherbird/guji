@@ -1,0 +1,13 @@
+sub lookup(%m: Map[Str, Int], $k: Str): Int {
+    if %m.has_key($k) { %m{$k} } else { -1 }
+}
+
+sub main(): Int {
+    %scores = {"ada": 10, "grace": 20}
+    print(%scores{"ada"})
+    print(%scores{"ada"} + %scores{"grace"})
+    print(lookup(%scores, "grace"))
+    %names = {"first": "ada"}
+    print(%names{"first"})
+    %scores{"grace"}
+}

@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4n compiler codegen fixture.
+# Pins existing mutable scalar/Str locals reassigned from match-values whose
+# arms contain final `?` hoists: arm-local guard emission, shared match temp
+# assignment into the existing local, and old Str local release before assignment.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gr8 = gr6;\n\tif (gr8.tag != 0LL) \{"))
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr8.err};"))
+            print(has_text($c, "gv9 = gr8.ok;"))
+            print(has_text($c, "gv0 = gi4;"))
+            print(has_text($c, "guji_release(gv3);\n\tgv3 = gt7;"))
+            print(has_text($c, "gv0 = gd4;"))
+            print(has_text($c, "gv0 = gb4;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,16 @@
+# A user Unit sub whose final statement is a side-effecting match must lower the
+# match as a statement and return Unit, not decline before the match guard.
+enum Flag { On, Off }
+
+sub show_flag($f: Flag): Unit {
+  match $f {
+    On { print("on") }
+    Off { print("off") }
+  }
+}
+
+sub main(): Int {
+  show_flag(On)
+  show_flag(Off)
+  0
+}

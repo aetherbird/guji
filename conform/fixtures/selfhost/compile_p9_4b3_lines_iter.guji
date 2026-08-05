@@ -1,0 +1,21 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P9-4b-3: a fresh `for $line in stdin.lines()` iterator materializes the
+# lines channel through g11_chan_owned_value's Handle-lines dispatch —
+# guji_reader_lines feeds the drain loop and the owned temp is
+# guji_chan_release'd after it (native materializeForChanIter's shape).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_reader_lines(") == 1)
+            print(count_of($c, "guji_chan_recv(") >= 1)
+            print(count_of($c, "guji_chan_release(") >= 1)
+            0
+        }
+    }
+}

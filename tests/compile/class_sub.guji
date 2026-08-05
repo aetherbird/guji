@@ -1,0 +1,30 @@
+# Class instances crossing user sub boundaries (spec 7.2, 8):
+# class-typed params, class returns, chained field access on a call
+# result, and the data-first uniform-call fallback for instance receivers.
+class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub norm2($self): Int {
+        $self.x * $self.x + $self.y * $self.y
+    }
+}
+
+sub shift($p: Point, $dx: Int): Point {
+    Point(x: $p.x + $dx, y: $p.y)
+}
+
+sub describe($p: Point): Str {
+    "({ $p.x }, { $p.y })"
+}
+
+sub main(): Unit {
+    $p = Point(x: 3, y: 4)
+    $q = shift($p, 7)
+    print($q.x)
+    print($q.y)
+    print(describe($q))
+    print($q.describe())
+    print(shift($q, -10).x)
+    print($q.norm2())
+}

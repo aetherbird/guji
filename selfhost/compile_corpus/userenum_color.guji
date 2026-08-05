@@ -1,0 +1,14 @@
+enum Color {
+    Red
+    Green
+    Blue
+}
+
+sub main(): Int {
+    $c: Color = Green
+    match $c {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}

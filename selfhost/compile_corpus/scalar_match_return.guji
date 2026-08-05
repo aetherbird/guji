@@ -1,0 +1,50 @@
+# P9-10b-2: value-position scalar-match arms may explicit-return (§11.2 Never).
+# A return-ending arm releases the owned scrutinee temp before the C `return`;
+# value arms keep the plain arm-chain shape. Covers Str and Int scrutinees,
+# literal/wildcard/binder return arms, and a guarded value arm mixed with a
+# return arm. (An ALL-return scalar match bind stays declined: no value arm
+# remains to pin the result kind.)
+sub str_probe($path: Str): Str {
+    $out = match read_file($path).unwrap_or("fallback") {
+        "hit" { return "early" }
+        $s { $s }
+    }
+    $out
+}
+
+sub int_probe($n: Int): Int {
+    $out = match $n {
+        0 { return 99 }
+        _ { $n + 1 }
+    }
+    $out
+}
+
+sub wild_ret_probe($n: Int): Int {
+    $out = match $n {
+        1 { $n * 10 }
+        _ { return 42 }
+    }
+    $out
+}
+
+sub guard_mix_probe($n: Int): Int {
+    $out = match $n {
+        2 if $n > 1 { $n * 100 }
+        3 { return 33 }
+        $m { $m }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(str_probe("scalar_match_return.absent"))
+    print(int_probe(0))
+    print(int_probe(4))
+    print(wild_ret_probe(1))
+    print(wild_ret_probe(5))
+    print(guard_mix_probe(2))
+    print(guard_mix_probe(3))
+    print(guard_mix_probe(9))
+    0
+}

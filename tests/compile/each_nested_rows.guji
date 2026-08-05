@@ -1,0 +1,31 @@
+# A-callback-prelude (first slice): the `each` callback over List[List]/List[Map]
+# receivers, where every row passed to the lambda is itself a collection. Before
+# this slice codegen rejected such receivers ("each is not yet supported for
+# List[List]/List[Map] receivers in codegen"); now the binder is a borrowed view
+# into the parent's storage, exactly like a nested for-loop variable, so the body
+# uses the row through the ordinary generic list/map lowerings (print recurses over
+# the runtime KIND tags — A-print). Depth is unbounded with no per-shape code.
+sub main(): Int {
+    # List[List[Int]] rows, including an empty row.
+    @rows = [[1, 2], [3, 4, 5], []]
+    @rows.each(sub(@r) { print(@r) })
+    # the row is a real list — count() works on it.
+    @rows.each(sub(@r) { print(count(@r)) })
+
+    # Depth-3: List[List[List[Int]]] rows are List[List[Int]] views; print them.
+    @cube = [[[1, 2], [3]], [[4, 5, 6]]]
+    @cube.each(sub(@plane) { print(@plane) })
+
+    # List[Map[Str, Int]] rows: the binder is a borrowed Map view.
+    @maps = [{"a": 1, "b": 2}, {"z": 9}]
+    @maps.each(sub(%m) { print(%m) })
+
+    # Deeper map value: List[Map[Str, List[Int]]] rows, deeper than any previously
+    # implemented each shape, working with no new per-shape code.
+    @recs = [{"x": [1, 2], "y": [3]}, {"z": []}]
+    @recs.each(sub(%rec) { print(%rec) })
+
+    # Data-first call form + topic-style single-parameter lambda over nested rows.
+    each(@rows, sub(@r) { print(count(@r)) })
+    0
+}

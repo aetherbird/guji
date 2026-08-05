@@ -1,0 +1,3 @@
+sub main(): Int {
+    if true != false { 17 } else { 19 }
+}

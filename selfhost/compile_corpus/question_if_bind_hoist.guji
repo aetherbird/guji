@@ -1,0 +1,54 @@
+# Slice 6 P3b-2b-2c-4j: non-final annotated scalar/Str binds whose RHS is an
+# if-value with branch-final `?` hoists. The if branch emits the same early
+# return guard as final if-value lowering, then assigns the shared if temp into
+# the user's local for later use.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub if_bind_int($take: Bool, $s: Str): Result[Int, Str] {
+    $x: Int = if $take {
+        parse_int($s)? + 5
+    } else {
+        70
+    }
+    Ok($x)
+}
+
+sub if_bind_str($take: Bool, $s: Str): Result[Str, Str] {
+    $x: Str = if $take {
+        tag($s)? ~ "!"
+    } else {
+        "idle"
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    match if_bind_int(true, "4") {
+        Ok($a) { print("int ok { $a }") }
+        Err($e1) { print("int err { $e1 }") }
+    }
+    match if_bind_int(true, "bad") {
+        Ok($b) { print("int bad { $b }") }
+        Err($e2) { print("int err { $e2 }") }
+    }
+    match if_bind_int(false, "bad") {
+        Ok($c) { print("int else { $c }") }
+        Err($e3) { print("int else err { $e3 }") }
+    }
+    match if_bind_str(true, "go") {
+        Ok($d) { print("str ok { $d }") }
+        Err($e4) { print("str err { $e4 }") }
+    }
+    match if_bind_str(true, "bad") {
+        Ok($f) { print("str bad { $f }") }
+        Err($e5) { print("str err { $e5 }") }
+    }
+    match if_bind_str(false, "bad") {
+        Ok($g) { print("str else { $g }") }
+        Err($e6) { print("str else err { $e6 }") }
+    }
+    65
+}

@@ -1,0 +1,33 @@
+# gujiconform - selfhost slice 5 E5d-8x compiler codegen fixture.
+# Pins a FLATTENED nested carrier match `Ok(Some($n))`/`Ok(None)`/`Err($m)` over a
+# `Result[Option[Int], Str]` scrutinee, lowered in a SINGLE match. This is the
+# reduced shape the compiler's own source uses in
+#   match g5_unit_call_code(..) { Ok(Some($next)).. Ok(None).. Err($m).. }
+# (lexer.guji g5_lower_unit_stmt). The Ok(Some)/Ok(None) arms MUST emit DISTINCT
+# inner-tag conditions (`(gr1.ok).tag == 1LL` vs `== 0LL`) — the slice 5 E5d-8x fix
+# wiring g6_variant_cond/g6_variant_env into the existing nested-pattern machinery.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gr1 = gr0;"))
+            print(has_text($c, 'if ((gr1.tag == 1LL)) {'))
+            print(has_text($c, 'else if ((gr1.tag == 0LL && (gr1.ok).tag == 1LL)) {'))
+            print(has_text($c, "gi2 = gr1.ok.val;"))
+            print(has_text($c, 'else if ((gr1.tag == 0LL && (gr1.ok).tag == 0LL)) {'))
+            print(has_text($c, "gi2 = 7LL;"))
+            print(has_text($c, 'if (gr1.tag != 0LL) { guji_release(gr1.err); gr1.err = NULL; }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

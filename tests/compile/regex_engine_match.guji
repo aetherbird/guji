@@ -1,0 +1,27 @@
+# Covers the X6d native `~~` switchover from POSIX regex to guji's C engine:
+# backrefs, lookaround, Unicode-aware \w, \X, and named captures must all match
+# the interpreter.
+sub main(): Int {
+    $back = match "level level" ~~ /(?<word>\w+) \k<word>/ {
+        Some($m) { $m<word>.unwrap_or("missing") }
+        None { "none" }
+    }
+    $ahead = match "abc" ~~ /a(?=b)/ {
+        Some($m) { $m[0].unwrap_or("missing") }
+        None { "none" }
+    }
+    $behind = match "abc" ~~ /(?<=a)b/ {
+        Some($m) { $m[0].unwrap_or("missing") }
+        None { "none" }
+    }
+    $unicode = match "é!" ~~ /^\w/ {
+        Some($m) { $m[0].unwrap_or("missing") }
+        None { "none" }
+    }
+    $grapheme = match "👍🏽!" ~~ /^\X!/ {
+        Some($m) { $m[0].unwrap_or("missing") }
+        None { "none" }
+    }
+    print("$back|$ahead|$behind|$unicode|$grapheme")
+    0
+}

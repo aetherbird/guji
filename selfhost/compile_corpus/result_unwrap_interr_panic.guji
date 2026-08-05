@@ -1,0 +1,14 @@
+# §15.5 / §11.2 `unwrap` of a non-Str `Err` computes the display via the kind's
+# renderer — an Int err panics as `unwrap on Err(-7)` through guji_int_str. Uses
+# the FUNCTION spelling so both spellings have a triggering fixture.
+
+sub errn($n: Int): Result[Str, Int] {
+    Err($n)
+}
+
+sub main(): Int {
+    $bad: Result[Str, Int] = errn(-7)
+    print("before")
+    print(unwrap($bad))
+    0
+}

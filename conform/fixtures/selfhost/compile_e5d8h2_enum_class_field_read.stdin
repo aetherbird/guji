@@ -1,0 +1,31 @@
+enum TokKind {
+    KIdent($text: Str)
+    KEnd
+}
+
+class Token {
+    has $.kind: TokKind
+}
+
+enum Step {
+    Emit($tok: Token)
+    Done
+}
+
+sub score($k: TokKind): Int {
+    match $k {
+        KIdent($s) { print($s) 10 }
+        KEnd { 1 }
+    }
+}
+
+sub main(): Int {
+    $step = Emit(Token(kind: KIdent("id")))
+    match $step {
+        Emit($tok) {
+            $k = $tok.kind
+            score($k) + score($tok.kind)
+        }
+        Done { 0 }
+    }
+}

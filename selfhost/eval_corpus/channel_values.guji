@@ -1,0 +1,38 @@
+# I10a2: §17.2 scalar channel() values. Context-typed builders for Unit/Int/
+# Bool/Float/Str; opaque `<chan>` display; equality is handle identity (alias
+# via return equals, separately-created channels do not). send/recv/close are
+# I10b — this row only pins construction, display, and identity.
+enum ScalarChannels {
+    Empty
+    Active($unit: Chan[Unit], $int: Chan[Int], $bool: Chan[Bool], $float: Chan[Float], $str: Chan[Str])
+}
+
+sub alias_int($ch: Chan[Int]): Chan[Int] {
+    $ch
+}
+
+sub make_bool(): Chan[Bool] {
+    channel(2)
+}
+
+sub main(): Int {
+    $unit: Chan[Unit] = channel()
+    $int: Chan[Int] = channel(1)
+    $bool = make_bool()
+    $float: Chan[Float] = channel(3)
+    $str: Chan[Str] = channel(4)
+
+    $alias = alias_int($int)
+    $other: Chan[Int] = channel(1)
+    print($int)
+    print($bool)
+    print($int == $alias)
+    print($int == $other)
+    print($int != $other)
+
+    $one = Active($unit, $int, $bool, $float, $str)
+    $two = Active($unit, $int, $bool, $float, $str)
+    print($one)
+    print($one == $two)
+    0
+}

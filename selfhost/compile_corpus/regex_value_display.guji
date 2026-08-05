@@ -1,0 +1,77 @@
+# §13 Regex VALUE display + Regex param marking (P6g-b-1, 2026-07-12).
+# Display position (print/note args, interpolation parts) renders a Regex as
+# `/<pattern>/` in BOTH oracles; before this slice the selfhost binary printed
+# the bare pattern (no slashes) — a silent wrong-output divergence the corpus
+# never caught because no fixture displayed a Regex VALUE itself. A `$p: Regex`
+# parameter also lost its Regex marking (CgStr without the listlen sentinel),
+# so a `/<{ $p }>/` splice ESCAPED the already-escaped pattern and silently
+# failed to match (interp "a.b", selfhost "none"). Every shape here was
+# runtime-verified three-way: bind display (interpolated and direct), mut
+# rebind, fresh per-iteration loop binds, borrowed param display/relay/splice,
+# if-expression picks, `(): Regex` user-sub returns, and Regex.compile unwrap.
+sub show($re: Regex): Str {
+    "$re"
+}
+
+sub relay($rx: Regex): Str {
+    show($rx)
+}
+
+sub swap($s: Str, $re: Regex): Str {
+    $s.replace(/<{ $re }>/, "X")
+}
+
+sub describe($re: Regex): Str {
+    match "a.b.c" ~~ /<{ $re }>/ {
+        Some($m) { $m.text }
+        None { "none" }
+    }
+}
+
+sub pick(): Regex {
+    Regex.literal("z.q")
+}
+
+sub main(): Int {
+    # Bind + interpolated display, then mut rebind (old pattern released).
+    mut $r = Regex.literal("a.b")
+    print("$r")
+    $r = Regex.literal("x+y")
+    print("$r")
+
+    # Direct (non-interpolated) print of a Regex value.
+    $d = Regex.literal("d|e")
+    print($d)
+
+    # Fresh per-iteration binding: each loop turn displays its own pattern.
+    mut $i = 0
+    while $i < 2 {
+        $lit = Regex.literal("n$i")
+        print("$lit")
+        $i = $i + 1
+    }
+
+    # Borrowed Regex params: displayed in the callee, relayed through a second
+    # call level, used as a raw splice in .replace, and as a match splice.
+    $needle = Regex.literal("a.b")
+    print(show($needle))
+    print(relay($needle))
+    print(swap("za.bz", $needle))
+    print("{ describe($needle) }")
+
+    # If-expression Regex result keeps the marking on the bound pick.
+    $p1 = if true { $needle } else { Regex.literal("fallback") }
+    print("$p1")
+    $p2 = if false { $needle } else { Regex.literal("fallback") }
+    print("$p2")
+
+    # A user sub declared `(): Regex` keeps the marking across the call.
+    $u = pick()
+    print("$u")
+
+    # Regex.compile(...).unwrap() display, and a Regex embedded mid-string.
+    $c = Regex.compile("a+b").unwrap()
+    print("$c")
+    print("[$c]")
+    0
+}

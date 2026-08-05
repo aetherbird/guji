@@ -1,0 +1,1 @@
+Program(decls=[Enum(public=true,name="Color",tparams=[],variants=[Variant(name="Red",fields=[]),Variant(name="Green",fields=[]),Variant(name="Blue",fields=[])],subs=[])])

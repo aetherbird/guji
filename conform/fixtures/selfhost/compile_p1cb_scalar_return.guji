@@ -1,0 +1,23 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_lambda_"))
+            print(has_text($c, "static double gf_lambda_"))
+            print(has_text($c, "static const char* gf_lambda_"))
+            print(has_text($c, "(double (*) (void*, double))"))
+            print(has_text($c, "(const char* (*) (void*, const char*))"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

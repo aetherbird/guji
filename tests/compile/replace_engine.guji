@@ -1,0 +1,20 @@
+sub main(): Int {
+    # Lazy quantifier: match the SHORTEST run between angle brackets. POSIX ERE
+    # has no lazy quantifiers, so this only works on the restored C engine.
+    $r1 = '<a><bb>'.replace(/<.+?>/, '[$0]')
+    print($r1)
+
+    # Backreference: collapse an immediately doubled word into one copy.
+    $r2 = 'hello hello world world'.replace(/(\w+) \1/, '$1')
+    print($r2)
+
+    # Lookahead: prefix digit runs that are followed by "px" with '#'.
+    $r3 = '10px 20em 30px'.replace(/\d+(?=px)/, '#$0')
+    print($r3)
+
+    # Named capture swap, lazy inner group, plus a literal $$ in the template.
+    $r4 = 'key=val;'.replace(/(?<k>\w+)=(?<v>\w+?);/, '$<v>:$<k> $$')
+    print($r4)
+
+    0
+}

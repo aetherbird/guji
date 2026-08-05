@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 6 P9-3 standard Handle bindings (accept).
+# The stdin source is classified by the guji-written checker, pinning the
+# preinstalled stdin/stdout/stderr values before P9-4 adds their C lowering.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

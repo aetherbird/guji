@@ -1,0 +1,32 @@
+# P8e-7: pin hatch capture of enums with by-value class payloads —
+# scalar class struct-copy, Str/List class-member detach, task release.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_task_spawn(&") == 3)
+            print(count_of($c, "Box cap_b;") == 1)
+            print(count_of($c, "Labeled cap_lab;") == 1)
+            print(count_of($c, "Packed cap_pack;") == 1)
+            # Scalar-only Payload class: plain enum struct assignment (no switch).
+            print(count_of($c, "->cap_b = gv") == 1)
+            print(count_of($c, "->cap_b.f0") == 0)
+            # Named Str field detaches inside the class payload (f0.f0).
+            print(count_of($c, "->cap_lab = gv") == 1)
+            print(count_of($c, "->cap_lab.f0.f0 = guji_str_copy(") == 1)
+            # Bag List field detaches via guji_copy_arr on class member data.
+            print(count_of($c, "->cap_pack = gv") == 1)
+            print(count_of($c, "->cap_pack.f0.f0.data = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "= env->cap_lab;") == 1)
+            print(count_of($c, "guji_release_Labeled_fields(&gv") > 0)
+            print(count_of($c, "guji_release_Packed_fields(&gv") > 0)
+            0
+        }
+    }
+}

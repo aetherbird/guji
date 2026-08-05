@@ -1,0 +1,54 @@
+# P9-7a: nested Map-index method receivers must own the indexed row while
+# preserving Option[Map[Str,Map]] construct/return/rebind/match ownership.
+sub wrap(%m: Map[Str, Map[Str, Int]]): Option[Map[Str, Map[Str, Int]]] {
+    Some(%m)
+}
+
+sub empty(): Option[Map[Str, Map[Str, Int]]] {
+    None
+}
+
+sub wrap_words(%m: Map[Str, Map[Str, Str]]): Option[Map[Str, Map[Str, Str]]] {
+    Some(%m)
+}
+
+sub count_words(%m: Map[Str, Map[Str, Str]]): Int {
+    %m{"a"}.keys().count()
+}
+
+sub main(): Int {
+    %grid = {"a": {"x": 1}}
+    $wrapped: Option[Map[Str, Map[Str, Int]]] = Some(%grid)
+    print(match $wrapped {
+        Some(%m) { %m{"a"}{"x"} }
+        None { 0 }
+    })
+
+    %words = {"a": {"x": "alpha", "y": "beta"}}
+    $word_opt = wrap_words(%words)
+    print(match $word_opt {
+        Some(%m) { count_words(%m) }
+        None { 0 }
+    })
+    print(match $word_opt {
+        Some(%m) { %m{"a"}{"x"} }
+        None { "?" }
+    })
+
+    $returned = wrap(%grid)
+    print(match $returned {
+        Some(%m) { %m{"a"}{"x"} }
+        None { 0 }
+    })
+
+    wrap(%grid)
+
+    mut $current = wrap(%grid)
+    $current = empty()
+    $current = wrap(%grid)
+    print(match $current {
+        Some(%m) { %m{"a"}{"x"} }
+        None { 0 }
+    })
+    0
+}

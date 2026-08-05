@@ -1,0 +1,37 @@
+# Spec 13.3, 13.5, and 13.6: pinned Unicode classes/properties, grapheme
+# matching, malformed-input conversion, and named/nonparticipating captures.
+sub hit($value: Option[Match]): Bool { $value.is_some() }
+
+sub show($capture: Option[Str]): Str {
+    match $capture { Some($text) { $text } None { "none" } }
+}
+
+sub main(): Int {
+    $unicode_word = hit("é" ~~ /^\w$/)
+    $ascii_word = hit("é" ~~ /(?a)^\w$/)
+    $greek = hit("αβ" ~~ /^\p{Script=Greek}+$/)
+    $alphabetic = hit("λ" ~~ /^\p{Alphabetic}$/)
+    $emoji = hit("😀" ~~ /^\p{Emoji}$/)
+    $cluster = hit("👨‍👩‍👧‍👦" ~~ /^\X$/)
+    $scalar_dot = hit("👨‍👩‍👧‍👦" ~~ /^.$/)
+    print("unicode-word=$unicode_word")
+    print("ascii-word=$ascii_word")
+    print("greek=$greek")
+    print("alphabetic=$alphabetic")
+    print("emoji=$emoji")
+    print("cluster=$cluster")
+    print("scalar-dot=$scalar_dot")
+
+    @input = stdin.slurp().lines()
+    $invalid_word = hit(@input[0] ~~ /\w/)
+    print("invalid-word=$invalid_word")
+
+    match "é" ~~ /^(?<letter>\p{L})(?<digit>\d)?$/ {
+        Some($m) {
+            print("named=" ~ show($m<letter>))
+            print("nonparticipating=" ~ show($m<digit>))
+        }
+        None { print("capture-miss") }
+    }
+    0
+}

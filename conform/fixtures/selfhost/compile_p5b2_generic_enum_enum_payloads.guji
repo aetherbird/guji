@@ -1,0 +1,37 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # generic enum monomorphized AT a user enum type: T binds to Color
+            # from the constructor value Wrap(Red(9)), so the payload slot is a
+            # concrete Color (native-shaped spec name Box__Color).
+            print(has_text($c, "guji_release_Box__Color_fields"))
+            print(has_text($c, "Color f0;"))
+            # the same template's scalar instantiations coexist.
+            print(has_text($c, "guji_release_Box__Int_fields"))
+            print(has_text($c, "guji_release_Box__Str_fields"))
+            # a FIXED enum payload beside a type param is preserved at both the
+            # Int and Str instantiations (Color f1 next to the type-param slot).
+            print(has_text($c, "guji_release_Pair__Int_fields"))
+            print(has_text($c, "guji_release_Pair__Str_fields"))
+            print(has_text($c, "Color f1;"))
+            # the fixed-payload consumer keeps its concrete Color signature.
+            print(has_text($c, "static const char* gf_color_text(Color gp0);"))
+            # the bare template names / raw type-param tags never leak into C.
+            print(has_text($c, "guji_release_Box_fields"))
+            print(has_text($c, "guji_release_Pair_fields"))
+            print(has_text($c, "Box__T"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,10 @@
+# §3.3: a return-position-only template call leaves T unbound; binding the
+# still-generic T to Str must reject like the Go checker.
+sub conv[T]($v: Int): T {
+  $v
+}
+
+sub main() {
+  $x: Str = conv(1)
+  print($x)
+}

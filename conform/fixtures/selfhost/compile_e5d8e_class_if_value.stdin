@@ -1,0 +1,25 @@
+class Run {
+    has $.text: Str
+    has $.next: Int
+}
+
+sub mk($text: Str, $next: Int): Run {
+    Run(text: $text, next: $next)
+}
+
+sub choose($flag: Bool, $seed: Int): Run {
+    if $flag {
+        mk("hex", $seed + 2)
+    } else if $seed == 0 {
+        mk("zero", 1)
+    } else {
+        $r = mk("dec", $seed)
+        mk($r.text ~ "!", $r.next + 1)
+    }
+}
+
+sub main(): Int {
+    $a = choose(false, 3)
+    print($a.text)
+    $a.next
+}

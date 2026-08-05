@@ -1,0 +1,9 @@
+# A Str receiver is prepended as the first owned argument and released after return.
+sub suffix($s: Str, $tail: Str): Str {
+    $s ~ $tail
+}
+
+sub main(): Int {
+    print("gu".suffix("ji"))
+    0
+}

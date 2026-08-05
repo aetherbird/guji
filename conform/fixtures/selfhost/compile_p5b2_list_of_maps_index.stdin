@@ -1,0 +1,11 @@
+sub main(): Int {
+    @m = [{"a": 1}, {"b": 2}]
+    %x = @m[0]
+    print(%x{"a"})
+    print(@m[1])
+    %c = %x
+    print(%c{"a"})
+    @empty = [{}]
+    print(@empty.count())
+    0
+}

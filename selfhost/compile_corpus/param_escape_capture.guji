@@ -1,0 +1,24 @@
+# P9-10b-3b-2b (§7.4): bare-`Func` param escape beyond the gate fixture — a
+# CAPTURING lambda's env must survive the identity return (+1 retained on the
+# way out, LSan-proven), one sub may carry two different concrete fn shapes at
+# two call sites (the guji_fn_t ABI is shape-agnostic), and a bound fn local is
+# a valid fn argument (its kind substitutes the same way a lambda literal's
+# does). The alias chain pins the shared-env retain/release balance.
+sub id_func($f: Func): Func { $f }
+
+sub main(): Unit {
+    $base = 40
+    $h = id_func(sub($n: Int): Int { $n + $base })
+    print("{ $h(1) } { $h(2) }")
+    $g = $h
+    print("{ $g(3) }")
+
+    $d = id_func(sub($n: Int): Int { $n * 2 })
+    print("{ $d(21) }")
+    $s = id_func(sub($x: Str): Str { $x ~ "!" })
+    print($s("go"))
+
+    $inc = sub($n: Int): Int { $n + 1 }
+    $via = id_func($inc)
+    print("{ $via(9) } { $inc(9) }")
+}

@@ -1,0 +1,12 @@
+# W1 misuse: $h.slurp on a WRITE handle is a runtime error, identical in both
+# engines. `stdout` is a write-only Handle (a writer, no reader). The native
+# backend previously returned an empty Str for a handle whose reader was absent;
+# W1 changed guji_slurp so a write handle ERRORS instead, matching the
+# interpreter. "before" is flushed to stdout first, then both engines exit
+# non-zero. No .stderr sidecar (engine error text differs).
+sub main(): Int {
+    print("before")
+    $s = stdout.slurp()
+    print($s)
+    0
+}

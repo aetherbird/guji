@@ -1,0 +1,10 @@
+sub apply($f, $x: Int): Int {
+    $f($x)
+}
+
+sub main(): Int {
+    $base = 100
+    $add = sub($n: Int): Int { $base + $n }
+    print(apply($add, 5))
+    0
+}

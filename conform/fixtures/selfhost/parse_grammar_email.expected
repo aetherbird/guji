@@ -1,0 +1,1 @@
+Program(decls=[Grammar(public=false,name="Email",productions=[Production(kind="rule",name="TOP",body="<user> '@' <domain>"),Production(kind="token",name="user",body="\\w+"),Production(kind="token",name="domain",body="\\w+ '.' \\w+")])])

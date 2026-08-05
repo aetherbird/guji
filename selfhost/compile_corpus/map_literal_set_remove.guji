@@ -1,0 +1,18 @@
+# P9-5d: fresh map-literal receivers for set/remove (method + ordinary + chain).
+# Bound `%m.set` was already COVERED; this pins the literal materialize path that
+# also unblocks tests/compile/import_ownership (vals.scores).
+sub main(): Int {
+    %m = { "a": 1, "b": 2 }.set("c", 3)
+    %n = { "a": 1, "b": 2, "c": 3 }.remove("b")
+    %o = { "a": 1 }.set("b", 2).remove("a")
+    %p = set({ "x": 9 }, "y", 8)
+    $ma = %m{"a"}
+    $mc = %m{"c"}
+    $na = %n{"a"}
+    $nc = %n{"c"}
+    $ob = %o{"b"}
+    $px = %p{"x"}
+    $py = %p{"y"}
+    print("{ $ma }{ $mc }|{ $na }{ $nc }|{ $ob }|{ $px }{ $py }")
+    0
+}

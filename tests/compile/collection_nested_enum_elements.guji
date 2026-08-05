@@ -1,0 +1,40 @@
+# A-collection-elements-rest (nested carrier enum leaf slice): List[List[Enum]]
+# rows are stored as guji_slice_t handles inside an outer ARR_SLICE. The row
+# slice carries type-erased storage, so codegen must preserve the concrete enum
+# metadata for row indexing, row iteration, and match on leaf values.
+
+enum Color {
+    Red
+    Green
+    Blue
+}
+
+sub color_score($c: Color): Int {
+    match $c {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}
+
+sub main(): Int {
+    @grid = [[Red, Green], [Blue], [Green, Red, Blue]]
+    print(@grid.count())
+    print(@grid[0].count())
+    @third = @grid[2]
+    $pick = @third[1]
+    print(color_score($pick))
+
+    mut $sum = 0
+    for @row in @grid {
+        for $c in @row {
+            $sum = $sum + color_score($c)
+        }
+    }
+    print($sum)
+
+    @first = @grid[0]
+    $second = @first[1]
+    print(color_score($second))
+    0
+}

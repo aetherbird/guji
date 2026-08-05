@@ -1,0 +1,17 @@
+# gujiconform parser fixture for selfhost slice 6 P5a generic subs (§3.3, §7.1).
+# Type params belong on SubDecl so later typecheck/codegen slices can specialize
+# generic calls instead of treating `sub first[T]` as a syntax error.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

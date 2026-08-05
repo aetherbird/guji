@@ -1,0 +1,22 @@
+# gujiconform - slice 6 interpolation-scan fix (2026-07-05).
+# BARE sigil interpolation (`"got $x"`, no braces) mirrors native scanSigilName:
+# scalar, list, and map bindings display their values. Escaped sigils stay
+# literal text, proving the lexer keeps `\$`/`\@`/`\%` marked until lowering.
+import lexer
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(split($c, "guji_int_str(").count() > 1)
+            print(split($c, "guji_list_str(").count() > 1)
+            print(split($c, "guji_map_str(").count() > 1)
+            print(split($c, 'escaped $x @xs %m lone $ @ %').count() > 1)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,14 @@
+# Unbound Str temporaries: print-time scalar display, multi-part interpolation,
+# nested concat, and fresh user-sub arguments/results should match the interpreter
+# while codegen releases the generated heap strings under RC1.1b.
+sub pass($s: Str): Str {
+    $s
+}
+
+sub main(): Int {
+    print("count { 40 + 2 }")
+    print("{ 'a'.upper() }-{ 'B'.lower() }")
+    print(("x".upper() ~ "Y".lower()) ~ pass("z".upper()))
+    print(pass(" q ".upper()).trim())
+    0
+}

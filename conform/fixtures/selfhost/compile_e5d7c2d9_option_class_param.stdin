@@ -1,0 +1,35 @@
+class TypeRef {
+    has $.name: Str
+}
+
+class Slot {
+    has $.node: Option[TypeRef]
+}
+
+sub suffix($t: Option[TypeRef]): Str {
+    match $t {
+        None { "" }
+        Some($ty) { ":" ~ $ty.name }
+    }
+}
+
+sub forward($t: Option[TypeRef]): Str {
+    suffix($t)
+}
+
+sub maybe($on: Bool): Option[TypeRef] {
+    if $on {
+        Some(TypeRef(name: "Int"))
+    } else {
+        None
+    }
+}
+
+sub main(): Int {
+    $s = Slot(node: Some(TypeRef(name: "Str")))
+    print(suffix($s.node))
+    print(forward($s.node))
+    print(suffix(None))
+    print(suffix(maybe(true)))
+    return 0
+}

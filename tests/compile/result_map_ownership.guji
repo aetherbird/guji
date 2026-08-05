@@ -1,0 +1,60 @@
+# Result[Map[Str, scalar|Str], Str] value construct + match-binding + RC
+# ownership (H4c-rest). The Ok map owns two counted arrays (`.ok.keys` and
+# `.ok.vals`) plus a possible Err(Str): Ok(%m) deep-copies the source into a
+# fresh owned map, a binding/sub-return transfers that +1, a match BORROWS the
+# map, and a discarded or rebound carrier releases both Ok arrays and Err Str.
+
+sub counts($ok: Bool): Result[Map[Str, Int], Str] {
+    if $ok { Ok({"a": 10, "b": 20}) } else { Err("no-counts") }
+}
+
+sub words($ok: Bool): Result[Map[Str, Str], Str] {
+    if $ok { Ok({"first": "alpha", "second": "beta"}) } else { Err("no-words") }
+}
+
+sub wrap(%m: Map[Str, Int]): Result[Map[Str, Int], Str] {
+    Ok(%m)
+}
+
+sub main(): Unit {
+    %local = {"x": 3, "y": 4}
+
+    print(match wrap(%local) {
+        Ok(%m) { %m{"x"} + %m{"y"} }
+        Err($e) { 0 }
+    })
+
+    print(match counts(true) {
+        Ok(%m) { %m{"a"} + %m{"b"} }
+        Err($e) { -1 }
+    })
+
+    match counts(false) {
+        Ok(%m) { print(%m{"a"}) }
+        Err($e) { print($e) }
+    }
+
+    print(match words(true) {
+        Ok(%m) { %m{"first"} ~ "-" ~ %m{"second"} }
+        Err($e) { "none" }
+    })
+
+    match words(false) {
+        Ok(%m) { print(%m{"first"}) }
+        Err($e) { print($e) }
+    }
+
+    # Discarded carrier results must release their fresh Ok map arrays / Err Str.
+    wrap(%local)
+    counts(false)
+    words(true)
+
+    # mut rebind releases the old active payload before storing the replacement.
+    mut $cur = counts(true)
+    $cur = counts(false)
+    $cur = wrap(%local)
+    print(match $cur {
+        Ok(%m) { %m{"x"} + %m{"y"} }
+        Err($e) { -2 }
+    })
+}

@@ -1,0 +1,8 @@
+sub main(): Int {
+    $x = 0
+    $b = match $x {
+        0 { true }
+        _ { false }
+    }
+    if $b { 1 } else { 2 }
+}

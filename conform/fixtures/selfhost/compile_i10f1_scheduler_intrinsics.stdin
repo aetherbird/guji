@@ -1,0 +1,9 @@
+sub main(): Int {
+    $ch: Chan[Int] = channel(1)
+    $ch.send(7)
+    $seen = __guji_progress_snapshot()
+    $got = $ch.recv()
+    __guji_select_wait($seen)
+    print($got.unwrap())
+    0
+}

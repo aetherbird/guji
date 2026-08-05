@@ -1,0 +1,40 @@
+# RC1.6g-ii-b: single-part interpolation "{ expr }" of a NON-Str scalar whose
+# inner is a re-parsed call/field/match/builtin chain. The checker side-table
+# has no entry for the re-parsed body, so the display-temp freshness predictor
+# (strLiteralYieldsAlias) once misclassified the fresh guji_int_str temp as a
+# borrowed alias and never released it. Each line below leaked one display temp
+# before the fix; the loop-body rebind leaked one per iteration.
+class Box[T] {
+    has $.value: T
+    sub get($self): T { $self.value }
+}
+
+sub twice($n: Int): Int { $n + $n }
+
+sub main(): Int {
+    $b = Box(value: 10)
+    print("{ $b.get() }")        # generic method call -> Int
+    print("{ $b.value }")        # generic field access -> Int
+
+    @xs = [3, 4, 5]
+    print("{ @xs.count() }")     # list builtin -> Int
+    print("{ @xs.sum() }")       # list builtin -> Int
+    print("{ @xs[1] }")          # list index -> Int
+
+    print("{ twice(6) }")        # sub call -> Int
+
+    $o: Option[Int] = Some(7)
+    print("{ $o.unwrap() }")     # carrier unwrap -> Int
+
+    $e: Option[Int] = Some(4)
+    print("{ match $e { Some($v) { $v } None { 0 } } }")  # match expr -> Int
+
+    %m = {"a": [1, 2], "b": [3, 4, 5]}
+    mut $out = ""
+    for $k, @row in %m {
+        $out = $out ~ $k ~ "{ @row.sum() }"   # loop-body rebind, single-part interp
+    }
+    print($out)
+
+    0
+}

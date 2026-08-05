@@ -1,0 +1,69 @@
+# Generic class/enum instances as generic-sub params and returns.
+# Type params bound from scalar arguments; class/enum params/returns flattened.
+
+class Box[T] {
+  has $.value: T
+}
+
+enum EBox[T] {
+  Wrap($v: T)
+}
+
+sub wrap[T]($v: T): Box[T] {
+  Box(value: $v)
+}
+
+sub wrap_enum[T]($v: T): EBox[T] {
+  Wrap($v)
+}
+
+# T is bound from the scalar $v; the Box[T] param and return are flattened.
+sub identity_box[T]($b: Box[T], $v: T): Box[T] {
+  $b
+}
+
+# T is bound from the scalar $v; the EBox[T] param and return are flattened.
+sub identity_ebox[T]($b: EBox[T], $v: T): EBox[T] {
+  $b
+}
+
+# T is bound from the scalar $default; Box[T] param is flattened.
+sub get_or_default[T]($b: Box[T], $default: T): T {
+  $b.value
+}
+
+sub main(): Int {
+  # Generic sub returning a generic class (Int)
+  $bi = wrap(5)
+  print("{ $bi.value }")
+
+  # Generic sub returning a generic class (Str)
+  $bs = wrap("hello")
+  print("{ $bs.value }")
+
+  # Generic sub returning a generic enum (Int)
+  $ei = wrap_enum(7)
+  print("{ match $ei { Wrap($vi) { $vi } } }")
+
+  # Generic sub returning a generic enum (Str)
+  $es = wrap_enum("world")
+  print("{ match $es { Wrap($vs) { $vs } } }")
+
+  # Generic sub with class param+return, T bound from scalar
+  $b2 = identity_box($bi, 99)
+  print("{ $b2.value }")
+
+  $s2 = identity_box($bs, "x")
+  print("{ $s2.value }")
+
+  # Generic sub with enum param+return, T bound from scalar
+  $e2 = identity_ebox($ei, 99)
+  print("{ match $e2 { Wrap($v2) { $v2 } } }")
+
+  # Generic sub with class param and scalar return, T bound from scalar default
+  print("{ get_or_default($bi, 0) }")
+  $s_def = get_or_default($bs, "")
+  print("{ $s_def }")
+
+  0
+}

@@ -1,0 +1,27 @@
+# P5b-2b(carrier-eq collections): Result[List[Int], Str] equality. The ok slot is
+# a by-value guji_slice_t; native compares it structurally with guji_list_equal
+# (same tag, then the active payload). Covers Ok/Ok equal, Ok/Ok unequal (element
+# diff), Err/Err equal, Ok-vs-Err tag mismatch, the != operator, and bound-local
+# operands (EName borrowed, no double-release). Expected output is the interpreter
+# answer; three-way verified interp == native == selfhost.
+
+sub okList($n: Int): Result[List[Int], Str] {
+    if $n < 0 { Err("neg") } else { Ok([$n, $n]) }
+}
+
+sub main(): Unit {
+    print("res_list_ok_eq: { okList(3) == okList(3) }")
+    print("res_list_ok_neq: { okList(3) == okList(4) }")
+    print("res_list_err_eq: { okList(-1) == okList(-2) }")
+    print("res_list_ok_vs_err: { okList(3) == okList(-1) }")
+    print("res_list_ne_op: { okList(3) != okList(4) }")
+
+    # Bound-local operands: the borrowed-EName path (no owned temp release) plus a
+    # scope-exit release of each Result[List] local (LSan-verified balanced).
+    $a: Result[List[Int], Str] = okList(9)
+    $b: Result[List[Int], Str] = okList(9)
+    $e: Result[List[Int], Str] = okList(-5)
+    print("bind_ok_eq: { $a == $b }")
+    print("bind_ok_vs_err: { $a == $e }")
+    print("bind_err_eq: { $e == okList(-6) }")
+}

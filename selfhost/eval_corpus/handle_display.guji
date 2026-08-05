@@ -1,0 +1,9 @@
+# §15.4 Handle display is opaque and stable for direct standard handles,
+# aliases, and interpolation. C must still evaluate and release each Handle.
+sub main(): Int {
+    print(stdin)
+    $out = stdout
+    print($out)
+    print("stream={ stderr }")
+    0
+}

@@ -1,0 +1,32 @@
+# P9-11b-2a: pin the annotated-`: Unit` sub shape — the sub lowers to an
+# int64_t C function whose trailing `()` literal returns the Unit zero, and a
+# hatch task calls the Chan-param sub in statement position with the caller
+# retaining the channel handle (the callee-owned +1 convention).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print("codegen-ok")
+            # `: Unit` user sub compiles to an int64_t C function.
+            print(has_text($c, "static int64_t gf_forward(guji_chan_t* gp0, int64_t gp1) \{"))
+            # Trailing `()` literal lowers to the Unit zero return.
+            print(has_text($c, "return 0LL;"))
+            # Callee-owned channel param: scope-exit releases alias + param.
+            print(has_text($c, "guji_chan_release(gp0);"))
+            # Hatch body calls the Chan-param sub, caller retains the handle.
+            print(count_of($c, "gf_forward(guji_chan_retain(") == 1)
+            print(has_text($c, "guji_task_spawn(&ghatch_"))
+            0
+        }
+    }
+}

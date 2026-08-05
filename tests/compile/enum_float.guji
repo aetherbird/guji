@@ -1,0 +1,32 @@
+# Enum Float payloads (Stage S2): a Float payload slot, a slot that mixes Int
+# and Float across variants (lowered to a C union), and a multi-Float-payload
+# variant. Each match arm reads the Float payload and does Float arithmetic,
+# whose display must match the interpreter's shortest-%g formatting.
+enum Measure {
+    Length($m: Float)
+    Count($n: Int)
+}
+
+enum Pair {
+    Both($a: Float, $b: Float)
+}
+
+sub describe($x: Measure): Float {
+    match $x {
+        Length($m) { $m + 0.25 }
+        Count($n) { 0.0 }
+    }
+}
+
+sub area($p: Pair): Float {
+    match $p {
+        Both($a, $b) { $a * $b }
+    }
+}
+
+sub main(): Int {
+    print("len: { describe(Length(3.5)) }")
+    print("cnt: { describe(Count(7)) }")
+    print("area: { area(Both(2.5, 0.5)) }")
+    0
+}

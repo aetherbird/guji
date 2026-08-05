@@ -1,0 +1,11 @@
+pair:alpha:beta
+left:alpha
+right:beta
+no-left-ok
+right:r
+nest:((x))
+expr:((x))
+expr2:(x)
+expr3:x
+atom:x
+parse-fail

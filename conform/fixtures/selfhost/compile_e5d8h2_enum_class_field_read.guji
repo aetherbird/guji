@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 5 E5d-8h-2 compiler codegen fixture.
+# Pins reading an ENUM-typed class field as a VALUE, both when bound to an
+# unannotated local and when passed directly as a call argument. Native rejects
+# enum-typed class fields, so this is interp-oracle coverage for selfhost codegen.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # The field read retains the embedded enum before each by-value copy.
+            print(has_text($c, "guji_retain_TokKind_fields(&ge2.f0.f0)"))
+            # Local-binding path: `$k = $tok.kind`.
+            print(has_text($c, "gv4 = ge2.f0.f0;"))
+            print(has_text($c, "guji_release_TokKind_fields(&gv4)"))
+            # Direct call-argument path: `score($tok.kind)` materializes/release a temp.
+            print(has_text($c, "ge6 = ge2.f0.f0;"))
+            print(has_text($c, "guji_release_TokKind_fields(&ge6)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

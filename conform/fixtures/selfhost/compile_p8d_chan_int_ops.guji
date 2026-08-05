@@ -1,0 +1,22 @@
+# P8d-1: pin Chan[Int] builder/send/recv/close + conc main exit shape.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_new(2LL, sizeof(int64_t), NULL)") >= 1)
+            print(count_of($c, "guji_chan_send(") >= 2)
+            print(count_of($c, "guji_chan_recv(") >= 3)
+            print(count_of($c, "guji_chan_close(") >= 1)
+            print(count_of($c, "guji_chan_release(") >= 1)
+            print(count_of($c, "guji_res_unit_closed") >= 1)
+            print(count_of($c, "guji_conc_main_exit((int)gf_main())") >= 1)
+            0
+        }
+    }
+}

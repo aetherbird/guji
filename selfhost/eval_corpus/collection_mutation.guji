@@ -1,0 +1,34 @@
+# I5c: §15.2 set/remove are persistent, so source maps and aliases remain
+# unchanged. The later cases pin whole Map rebinding and a nested update
+# rebuilt from the inner map outward rather than mutating shared storage.
+sub main(): Int {
+    %base: Map[Str, Int] = {"b": 2, "a": 1}
+    %added: Map[Str, Int] = %base.set("c", 3)
+    %replaced: Map[Str, Int] = set(%added, "a", 9)
+    %removed: Map[Str, Int] = %replaced.remove("b")
+    %missing: Map[Str, Int] = remove(%removed, "absent")
+    print(%base)
+    print(%added)
+    print(%replaced)
+    print(%removed)
+    print(%missing)
+
+    mut %current: Map[Str, Str] = {"left": "old", "keep": "yes"}
+    %map_alias: Map[Str, Str] = %current
+    %current = %current.set("left", "new")
+    %current = remove(%current, "keep")
+    print(%map_alias{"left"})
+    print(%map_alias.has_key("keep"))
+    print(%current{"left"})
+    print(%current.has_key("keep"))
+
+    mut %nested: Map[Str, Map[Str, Int]] = {"root": {"x": 1, "keep": 2}}
+    %nested_alias: Map[Str, Map[Str, Int]] = %nested
+    %inner: Map[Str, Int] = {"x": 1, "keep": 2}.set("x", 7).remove("keep")
+    %nested = %nested.set("root", %inner)
+    print(%nested_alias{"root"}{"x"})
+    print(%nested_alias{"root"}.has_key("keep"))
+    print(%nested{"root"}{"x"})
+    print(%nested{"root"}.has_key("keep"))
+    0
+}

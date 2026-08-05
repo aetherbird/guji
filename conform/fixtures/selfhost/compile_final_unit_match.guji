@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# Pins FINAL-UNIT-MATCH: a final expression-statement `match` with Unit-shaped
+# arms lowers through statement-position match codegen, emits the arm chain for
+# side effects, and makes the enclosing main return 0.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag == 1LL"))
+            print(has_text($c, "gf_announce("))
+            print(has_text($c, "non-exhaustive match"))
+            print(has_text($c, "return 0LL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

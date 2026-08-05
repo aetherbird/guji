@@ -1,0 +1,8 @@
+# §15.1 List.map with Map-valued callback output. Heap-built Str values and a
+# second data-first identity pass prove every ARR_MAP row owns its two arrays.
+sub main(): Unit {
+    @maps = [{"a": "x" ~ "1"}, {"b": "y" ~ "2"}]
+    @method = @maps.map(sub(%row) { %row })
+    @function = map(@method, sub(%row2) { %row2 })
+    print(@function)
+}

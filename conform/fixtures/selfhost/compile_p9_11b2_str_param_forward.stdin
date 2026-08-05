@@ -1,0 +1,20 @@
+sub forward($ch: Chan[Str], $v: Str): Unit {
+    $alias = $ch
+    $alias.send($v);
+    ()
+}
+
+sub relay(): Chan[Str] {
+    channel()
+}
+
+sub main(): Int {
+    $ch: Chan[Str] = relay()
+    $alias = $ch
+    hatch {
+        forward($alias, "via-param")
+    }
+    print($ch.recv().unwrap())
+    $ch.close()
+    0
+}

@@ -1,0 +1,12 @@
+# §15.3 string `split` method form. Function-form `split($s, $sep)` was already
+# covered; this pins data-first `$s.split($sep)` as an owned List[Str] producer,
+# including unannotated binding inference and empty-separator character splitting.
+sub main(): Int {
+    @parts = "red,green,blue".split(",")
+    print(@parts[1])
+
+    @chars = "abc".split("")
+    print("{ count(@chars) }/{ @chars.join(':') }")
+
+    count(@parts) + count(@chars)
+}

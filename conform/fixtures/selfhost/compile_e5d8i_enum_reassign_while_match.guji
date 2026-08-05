@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 5 E5d-8i compiler codegen fixture.
+# Pins enum-typed `mut` locals reassigned inside a while body whose statement is a
+# discarded match expression, the real `reverse_tokens` shape.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "while (1)"))
+            print(has_text($c, "tag == 0LL))"))
+            print(has_text($c, "guji_release_Toks_fields(&gv"))
+            print(has_text($c, ' = (Toks){1LL'))
+            print(has_text($c, "guji_alloc(GUJI_KIND_Toks"))
+            print(has_text($c, " = *((Toks*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

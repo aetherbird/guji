@@ -1,0 +1,23 @@
+# Spec 15.1: left folds, aggregates, stable natural/key ordering, reversal,
+# slicing, source persistence, and empty identity results.
+sub main(): Int {
+    @source = [3, 1, 4, 1, 5]
+    $reduced = @source.reduce(0, sub($acc: Int, $n: Int): Int { $acc + $n })
+    $digits = @source.reduce(0, sub($acc: Int, $n: Int): Int { $acc * 10 + $n })
+    print("reduce=$reduced")
+    print("digits=$digits")
+    print("sum={ sum(@source) }")
+    print("min={ @source.min() } max={ max(@source) }")
+    print("sort={ sort(@source) }")
+    @sort_by = [12, 22, 11, 21].sort_by(sub($n: Int): Int { $n % 10 })
+    print("sort-by=@sort_by")
+    print("reverse={ reverse(@source) }")
+    print("take={ @source.take(2) } drop={ drop(@source, 2) }")
+    @empty: List[Int] = []
+    $empty_reduce = @empty.reduce(41, sub($acc: Int, $n: Int): Int { $acc + $n })
+    print("empty-reduce=$empty_reduce")
+    print("empty-sum={ @empty.sum() }")
+    print("empty-sort={ @empty.sort() }")
+    print("source=@source")
+    0
+}

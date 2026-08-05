@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct Run"))
+            print(has_text($c, "const char* f0;"))
+            print(has_text($c, "int64_t f1;"))
+            print(has_text($c, "guji_retain_Run_fields"))
+            print(has_text($c, "guji_release_Run_fields"))
+            print(has_text($c, "guji_retain(gv1.f0)"))
+            print(has_text($c, "return gv1.f1;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

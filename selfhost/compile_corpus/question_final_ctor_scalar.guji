@@ -1,0 +1,42 @@
+# Slice 6 P3b-2b-2a: final carrier constructors can wrap a direct `?`.
+sub maybe_int($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub pass_option($n: Int): Option[Int] {
+    Some(maybe_int($n)?)
+}
+
+sub return_option($n: Int): Option[Int] {
+    return Some(maybe_int($n)?)
+}
+
+sub pass_result($s: Str): Result[Int, Str] {
+    Ok(parse_int($s)?)
+}
+
+sub return_result($s: Str): Result[Int, Str] {
+    return Ok(parse_int($s)?)
+}
+
+sub parse_bool($s: Str): Result[Bool, Str] {
+    $n = parse_int($s)?
+    Ok($n > 0)
+}
+
+sub pass_bool_result($s: Str): Result[Bool, Str] {
+    Ok(parse_bool($s)?)
+}
+
+sub main(): Int {
+    $a = match pass_option(9) { Some($n) { $n } None { 100 } }
+    $b = match pass_option(-1) { Some($n) { $n } None { 5 } }
+    $c = match return_option(7) { Some($n) { $n } None { 100 } }
+    $d = match return_option(0) { Some($n) { $n } None { 6 } }
+    $e = match pass_result("10") { Ok($n) { $n } Err($err) { 100 } }
+    $f = match pass_result("bad") { Ok($n) { $n } Err($err) { 8 } }
+    $g = match return_result("12") { Ok($n) { $n } Err($err) { 100 } }
+    $h = match return_result("nope") { Ok($n) { $n } Err($err) { 3 } }
+    $i = match pass_bool_result("1") { Ok($ok) { if $ok { 2 } else { 100 } } Err($err) { 100 } }
+    $a + $b + $c + $d + $e + $f + $g + $h + $i
+}

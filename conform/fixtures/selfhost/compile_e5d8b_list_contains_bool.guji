@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 5 E5d-8b compiler codegen fixture.
+# Pins the narrow list-literal `.contains` Bool predicate shape used by the
+# selfhost lexer's `is_punct_char`/`is_op_char` character predicates:
+# `["(", ")", '{'].contains($c)` lowers the subject once (owned retain), ORs a
+# `strcmp(subject, elem) == 0` term per literal element into a Bool temp, then
+# releases the element temps and the subject exactly once.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "(strcmp(gt0, gt1) == 0) || (strcmp(gt0, gt2) == 0) || (strcmp(gt0, gt3) == 0)"))
+            print(has_text($c, "? 1LL : 0LL);"))
+            print(has_text($c, "\tguji_release(gt1);\n\tguji_release(gt2);\n\tguji_release(gt3);\n\tguji_release(gt0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

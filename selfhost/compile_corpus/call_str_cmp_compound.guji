@@ -1,0 +1,7 @@
+# Str-arg call inside a compound arithmetic expression that is itself compared.
+sub score($s: Str): Int {
+    if $s == "ok" { 7 } else { 3 }
+}
+sub main(): Int {
+    if score("ok") + 1 == 8 { 2 } else { 5 }
+}

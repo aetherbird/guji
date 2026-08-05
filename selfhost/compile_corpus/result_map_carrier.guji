@@ -1,0 +1,45 @@
+# P9-7b: Result[Map[Str, scalar|Str], Str] construct / match-borrow / discard /
+# mut-rebind ownership (gate twin of result_map_ownership).
+sub counts($ok: Bool): Result[Map[Str, Int], Str] {
+    if $ok { Ok({"a": 10, "b": 20}) } else { Err("no-counts") }
+}
+sub words($ok: Bool): Result[Map[Str, Str], Str] {
+    if $ok { Ok({"first": "alpha", "second": "beta"}) } else { Err("no-words") }
+}
+sub wrap(%m: Map[Str, Int]): Result[Map[Str, Int], Str] {
+    Ok(%m)
+}
+sub main(): Int {
+    %local = {"x": 3, "y": 4}
+    print(match wrap(%local) {
+        Ok(%m) { %m{"x"} + %m{"y"} }
+        Err($e) { 0 }
+    })
+    print(match counts(true) {
+        Ok(%m) { %m{"a"} + %m{"b"} }
+        Err($e) { -1 }
+    })
+    match counts(false) {
+        Ok(%m) { print(%m{"a"}) }
+        Err($e) { print($e) }
+    }
+    print(match words(true) {
+        Ok(%m) { %m{"first"} ~ "-" ~ %m{"second"} }
+        Err($e) { "none" }
+    })
+    match words(false) {
+        Ok(%m) { print(%m{"first"}) }
+        Err($e) { print($e) }
+    }
+    wrap(%local)
+    counts(false)
+    words(true)
+    mut $cur = counts(true)
+    $cur = counts(false)
+    $cur = wrap(%local)
+    print(match $cur {
+        Ok(%m) { %m{"x"} + %m{"y"} }
+        Err($e) { -2 }
+    })
+    0
+}

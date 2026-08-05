@@ -1,0 +1,7 @@
+# O4a: List literals are expressions, not match patterns.
+sub main(): Int {
+    match [1] {
+        [1] { 0 }
+        _ { 1 }
+    }
+}

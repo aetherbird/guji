@@ -1,0 +1,4 @@
+value:/^a\.b\+$/
+text:true:false
+composed:ab:!:hidden
+named:word

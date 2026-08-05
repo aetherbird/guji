@@ -1,0 +1,18 @@
+sub lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub chained($n: Int): Option[Int] {
+    $v = lookup($n)?
+    Some($v + 100)
+}
+
+sub mks($n: Int): Option[Str] {
+    if $n > 0 { Some("pay" ~ "load") } else { None }
+}
+
+sub main(): Int {
+    print("{ chained(5).unwrap_or(-1) }")
+    print(mks(-1).unwrap_or("d"))
+    0
+}

@@ -1,0 +1,29 @@
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok("tag:" ~ $s) }
+}
+
+sub res_if($take: Bool, $s: Str): Result[Int, Str] {
+    if $take {
+        Ok(parse_int($s)? + 1)
+    } else {
+        Ok(0)
+    }
+}
+
+sub opt_if($take: Bool, $o: Option[Int]): Option[Int] {
+    if $take {
+        Some($o? + 2)
+    } else {
+        Some(0)
+    }
+}
+
+sub str_if($take: Bool, $s: Str): Result[Str, Str] {
+    if $take {
+        Ok(tag($s)? ~ "!")
+    } else {
+        Ok("idle")
+    }
+}
+
+sub main(): Int { 0 }

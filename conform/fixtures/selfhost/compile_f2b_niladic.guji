@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 4b F2b compiler codegen fixture (NILADIC scrutinee).
+# The stdin source matches over a bare niladic enum value (`match Green`, an
+# ETypeName). Before F2b the selfhost compiler DECLINED this; now compile_program_c
+# must accept it, resolving the niladic variant's owning enum through the registry
+# metadata and materialising the value through the generic path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct Color"))
+            print(has_text($c, "(Color)\{"))
+            print(has_text($c, "niladic-scrutinee"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

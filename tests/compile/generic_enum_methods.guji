@@ -1,0 +1,37 @@
+# G3b-2 slice: plain methods on generic enums monomorphize like generic classes.
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub get($self): T {
+        match $self {
+            Wrap($v) { $v }
+            Empty { panic("empty") }
+        }
+    }
+
+    sub describe($self): Str {
+        "a box"
+    }
+
+    sub is_empty($self): Bool {
+        match $self {
+            Wrap(_) { false }
+            Empty { true }
+        }
+    }
+}
+
+sub main(): Int {
+    $bi = Wrap(42)
+    print("{ $bi.get() }")
+    print("{ $bi.describe() }")
+    print("{ $bi.is_empty() }")
+
+    $bs = Wrap("hello")
+    print("{ $bs.get() }")
+    print("{ $bs.describe() }")
+    print("{ $bs.is_empty() }")
+
+    0
+}

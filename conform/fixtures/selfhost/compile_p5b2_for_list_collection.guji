@@ -1,0 +1,26 @@
+# P5b-2b: collection-valued list loops bind shallow borrowed slice/map rows.
+# A Map element must use its guji_map_t fields; treating it as a named map
+# binding would emit nonexistent `<tmp>_keys` locals.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_slice_t gl"))
+            print(has_text($c, "guji_map_t gmv"))
+            print(has_text($c, " = ((guji_slice_t*)"))
+            print(has_text($c, " = ((guji_map_t*)"))
+            print(has_text($c, ".keys[") && has_text($c, ".vals)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

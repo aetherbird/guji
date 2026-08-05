@@ -1,0 +1,15 @@
+sub mk($s: Str): Result[Str, Str] {
+    if $s == "x" { Ok($s) } else { Err($s ~ "!") }
+}
+
+sub use($r: Result[Str, Str]): Int {
+    match $r {
+        Ok($s) { print($s) 1 }
+        Err($e) { print($e) 2 }
+    }
+}
+
+sub main(): Int {
+    $r: Result[Str, Str] = mk("x")
+    use($r)
+}

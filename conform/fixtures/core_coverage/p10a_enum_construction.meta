@@ -1,0 +1,2 @@
+engines: both
+spec: 9, 10.1, 10.3, 20:enum_decl, 20:variant, 20:sep

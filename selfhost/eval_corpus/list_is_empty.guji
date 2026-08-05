@@ -1,0 +1,12 @@
+# §15.1 List is_empty is a Bool query in both data-first spellings. Pin both
+# truth values and distinct element shapes so D must inspect list length, not data.
+sub main(): Int {
+    @nums = [4, 9]
+    @words: List[Str] = []
+
+    print(is_empty(@nums))
+    print(@nums.is_empty())
+    print(is_empty(@words))
+    print(@words.is_empty())
+    0
+}

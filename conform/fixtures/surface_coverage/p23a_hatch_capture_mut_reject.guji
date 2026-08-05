@@ -1,0 +1,6 @@
+# Spec 17.1: hatch bodies cannot capture a mutable binding.
+sub main(): Int {
+    mut $value = 1
+    hatch { print($value) }
+    0
+}

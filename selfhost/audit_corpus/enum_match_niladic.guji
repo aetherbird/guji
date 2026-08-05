@@ -1,0 +1,14 @@
+# DECLINE-AUDIT seed (slice 4b). match-over-enum where the scrutinee is a NILADIC
+# value (match Green, parsed as a bare ETypeName). Both oracles accept; the
+# selfhost compiler used to DECLINE (rc 4) for the same reason as the inline case:
+# no enum-valued-expression materialisation. F2b fixed it, so this must stay
+# COVERED.
+enum Color { Red, Green, Blue }
+
+sub main(): Int {
+    match Green {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}

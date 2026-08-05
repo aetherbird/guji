@@ -1,0 +1,20 @@
+# P9-11a stdin: recursive-box nested collections for C-shape pin.
+enum Chain {
+    End
+    Link($grid: List[List[Int]], $nest: Map[Str, Map[Str, Int]], $next: Chain)
+}
+
+sub tip($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link($g, _, _) { $g[0][0] }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Chain] = channel(1)
+    $c = Link([[1]], {"a": {"b": 2}}, End)
+    $ch.send($c)
+    print(tip($ch.recv().unwrap()))
+    0
+}

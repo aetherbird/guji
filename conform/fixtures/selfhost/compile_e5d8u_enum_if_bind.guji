@@ -1,0 +1,38 @@
+# gujiconform - selfhost slice 5 E5d-8u compiler codegen fixture.
+# Pins the NON-FINAL local binding of a value-position `if` producing a user
+# enum carrier (`$final = if $use_bound { $bound } else { TFun(..) }`), the
+# reduced `check_stmt_t2` shape. The binding-kind inference reads the branch
+# bodies; the RHS then lowers via the existing value-position enum-if path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static SymTable gf_bind_final(int64_t gp0, Ty gp1, Ty gp2, SymTable gp3)"))
+            print(has_text($c, 'if (gp0) {'))
+            # then branch: borrowed enum param retained into the if result temp
+            print(has_text($c, "guji_retain_Ty_fields(&gp1);"))
+            print(has_text($c, "ge0 = gp1;"))
+            # else-if branch is lowered even though its condition is false
+            print(has_text($c, 'if (0LL) {'))
+            # else branch constructs the same result temp from enum params
+            print(has_text($c, 'ge0 = (Ty){1LL, {.p = geb4}, geb5};'))
+            # the if result temp is bound to the non-final local `$final` (gv6)
+            print(has_text($c, "gv6 = ge0;"))
+            print(has_text($c, "guji_retain_Ty_fields(&gv6);"))
+            # `$final` flows into the downstream STCons constructor, released after
+            print(has_text($c, "guji_release_Ty_fields(&gv6);"))
+            print(has_text($c, 'return (SymTable){1LL, gv6, geb7};'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

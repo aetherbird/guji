@@ -1,0 +1,31 @@
+# P9-10b-3b: unannotated compound returns (Option/class/enum) via body inference
+# (native T3 SubSig). Result omitted — Ok/Err alone are polymorphic.
+sub make_opt() { Some(42) }
+
+class Point {
+    has $.x: Int
+    has $.y: Int
+}
+sub make_point() { Point(x: 3, y: 4) }
+
+enum Status {
+    On
+    Off
+}
+sub make_on() { On }
+
+sub main(): Int {
+    $o = make_opt()
+    match $o {
+        Some($v) { print("opt: { $v }") }
+        None { print("opt: none") }
+    }
+    $p = make_point()
+    print("point: { $p.x }, { $p.y }")
+    $s = make_on()
+    match $s {
+        On { print("status: on") }
+        Off { print("status: off") }
+    }
+    0
+}

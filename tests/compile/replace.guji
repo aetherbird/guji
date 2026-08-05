@@ -1,0 +1,21 @@
+sub main(): Int {
+    $r1 = 'hello world'.replace(/\w+/, '<$0>')
+    print($r1)
+
+    $r2 = 'a1b2c3'.replace(/(\d)/, '[$1]')
+    print($r2)
+
+    $r3 = 'price: 10'.replace(/\d+/, '$$$0')
+    print($r3)
+
+    $r4 = 'abc-def'.replace(/-/, '_')
+    print($r4)
+
+    $r5 = 'hello'.replace(/xyz/, 'nope')
+    print($r5)
+
+    $r6 = 'ada@example.com'.replace(/(?<user>\w+)@(?<host>\w+)/, '<$<user>> at $<host>')
+    print($r6)
+
+    0
+}

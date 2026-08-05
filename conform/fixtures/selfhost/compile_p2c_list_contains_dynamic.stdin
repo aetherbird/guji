@@ -1,0 +1,12 @@
+sub main(): Int {
+    @xs = [3, 5, 8]
+    if @xs.contains(5) {
+        print("hit")
+    }
+    @ws = ["ant", "bee"]
+    $w = "bee"
+    if contains(@ws, $w) {
+        print("w")
+    }
+    0
+}

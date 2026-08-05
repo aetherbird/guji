@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins the §15.3 `$s.split($sep)` method-form lowering. The method call should
+# infer an owned List[Str] slice just like function-form `split($s, $sep)`, fill it
+# through `guji_split`, and release both owned Str argument temps after the helper
+# copies the bytes it needs.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_slice_t gl2 = \{0};"))
+            print(has_text($c, "gl2.data = (void*)guji_split(gt0, gt1, &gl2.len);"))
+            print(has_text($c, "guji_release(gt0);"))
+            print(has_text($c, "guji_release(gt1);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

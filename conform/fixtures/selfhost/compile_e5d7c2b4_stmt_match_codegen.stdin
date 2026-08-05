@@ -1,0 +1,11 @@
+enum Verdict { VAccept VRejectP($m: Str) VRejectT($m: Str) }
+
+sub main(): Int {
+    match VRejectP("bad") {
+        VRejectP($m) { note($m) return 1 }
+        VRejectT($m) { note($m) return 1 }
+        VAccept { 0 }
+    }
+    print("after")
+    0
+}

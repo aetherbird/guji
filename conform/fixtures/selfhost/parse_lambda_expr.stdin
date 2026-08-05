@@ -1,0 +1,5 @@
+sub main(): Int {
+    $scale = sub($x: Int): Int { $x * 2 }
+    @nums.map({ $_ + 1 })
+    0
+}

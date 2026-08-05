@@ -1,0 +1,35 @@
+# gujiconform - selfhost slice 5 E5d-8t compiler codegen fixture.
+# Pins the NON-FINAL local binding of a value-position `match` producing a user
+# enum carrier (`$sym = match $fields { SLeaf { $enum_ty } _ { TFun(..) } }`), the
+# reduced `add_sem_variant_symbols` shape. The binding-kind inference reads the
+# arms; the RHS then lowers via the existing value-position enum match path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static SymTable gf_add_variant(Ty gp0, Shape gp1, SymTable gp2)"))
+            # arm 1: the borrowed enum param is retained into the match result temp
+            print(has_text($c, "guji_retain_Ty_fields(&gp0);"))
+            print(has_text($c, "ge1 = gp0;"))
+            # arm 2: TFun is constructed into the same result temp
+            print(has_text($c, 'ge1 = (Ty){1LL, gp1, geb2};'))
+            # the match result temp is bound to the non-final local `$sym` (gv3)
+            print(has_text($c, "gv3 = ge1;"))
+            print(has_text($c, "guji_retain_Ty_fields(&gv3);"))
+            # `$sym` flows into the downstream STCons constructor, released after
+            print(has_text($c, "guji_release_Ty_fields(&gv3);"))
+            print(has_text($c, 'return (SymTable){1LL, gv3, geb4};'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

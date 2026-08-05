@@ -1,0 +1,10 @@
+sub main(): Int {
+    mut $n = 1
+    $n = $n + 1
+    if $n == 2 {
+        $n = $n + 5
+    } else {
+        $n = 0
+    }
+    $n
+}

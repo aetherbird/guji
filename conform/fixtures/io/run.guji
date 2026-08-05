@@ -1,0 +1,44 @@
+# gujiconform -- Platform slice 3: run($cmd, $args) spawns without a shell,
+# captures stdout/stderr separately into Proc fields, returns Ok for a process
+# that ran even with a non-zero exit, and returns the fixed OS-reason-free Err
+# string only when spawning fails (Section 15.6). Expected output is derived
+# from the spec, not captured from native.
+sub main(): Int {
+    match run("printf", ["guji-run"]) {
+        Ok($p) {
+            if $p.exit_code == 0 {
+                print("printf exit=0")
+            } else {
+                print("printf exit unexpected")
+            }
+            if $p.stdout == "guji-run" {
+                print("printf stdout=guji-run")
+            } else {
+                print("printf stdout unexpected")
+            }
+            if $p.stderr == "" {
+                print("printf stderr-empty")
+            } else {
+                print("printf stderr unexpected")
+            }
+        }
+        Err($e) { print("unexpected err: $e") }
+    }
+
+    match run("false", []) {
+        Ok($p) {
+            if $p.exit_code != 0 {
+                print("false nonzero")
+            } else {
+                print("false zero")
+            }
+        }
+        Err($e) { print("unexpected false err: $e") }
+    }
+
+    match run("guji-run-definitely-absent-command-0000021", []) {
+        Ok($p) { print("unexpected missing ok") }
+        Err($e) { print($e) }
+    }
+    0
+}

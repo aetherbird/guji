@@ -1,0 +1,10 @@
+# P8e-1: two ordered hatches — spawn order preserved for unbuffered rendezvous.
+sub main(): Int {
+    $ch1: Chan[Int] = channel(0)
+    $ch2: Chan[Int] = channel(0)
+    hatch { $ch1.send(10) }
+    hatch { $ch2.send(20) }
+    print($ch1.recv().unwrap())
+    print($ch2.recv().unwrap())
+    0
+}

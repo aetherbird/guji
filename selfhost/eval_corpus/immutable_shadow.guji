@@ -1,0 +1,11 @@
+# §4 nested-scope shadowing: an immutable outer binding is shadowed inside an
+# inner block; the outer binding is unchanged after the block.
+sub main(): Int {
+    $x = 1
+    if true {
+        $x = 99
+        print($x)
+    }
+    print($x)
+    0
+}

@@ -1,0 +1,9 @@
+# Assigning to an enclosing mut binding from a closure is statically rejected.
+sub main(): Int {
+    mut $x = 1
+    $f = sub($n: Int): Int {
+        $x = $n
+        $x
+    }
+    $f(2)
+}

@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 5 E4b-2c compiler codegen fixture.
+# A nested user-CLASS class field is NATIVE-REJECTED ("codegen supports class field
+# ... as Int, Bool, Str, Float, or List[scalar] only"), so it is interp-oracle work:
+# the selfhost compiler must EMBED the child class BY VALUE in the outer struct
+# (positional member f0) and recurse retain/release into the child class's generated
+# guji_<op>_<Class>_fields helper (the class analogue of E4b-2a's nested enum).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct Inner"))
+            print(has_text($c, "struct Outer"))
+            print(has_text($c, "Inner f0;"))
+            print(has_text($c, "guji_release_Outer_fields"))
+            print(has_text($c, "guji_release_Inner_fields(&p->f0);"))
+            print(has_text($c, "guji_retain_Inner_fields(&p->f0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

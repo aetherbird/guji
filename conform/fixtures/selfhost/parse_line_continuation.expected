@@ -1,0 +1,1 @@
+Program(decls=[Sub(public=false,name="f",params=[],ret=Some(Type(name="Str",args=[])),body=BlockBody(stmts=[Expr(value=Binary(op="~",left=Binary(op="~",left=Str(value="a"),right=Str(value="b")),right=Str(value="c")))]))])

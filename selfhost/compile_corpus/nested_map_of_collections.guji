@@ -1,0 +1,73 @@
+# P5b-2b(nested-map-collection): maps whose VALUES are collections —
+# `Map[Str, List[V]]` lays its value array out as GUJI_KIND_ARR_SLICE of
+# guji_slice_t and `Map[Str, Map[Str, V]]` as GUJI_KIND_ARR_MAP of guji_map_t
+# (mirroring native's emitted C). Each value is materialized to an owned
+# collection temp and MOVED into the value array; the interned key Strs are
+# MOVED into the ARR_STR keys array (g7_map_key_assigns); the value-array drop
+# cascades at map release (guji_drop_arr_slice / guji_drop_arr_map).
+#
+# Also pins the row-ownership fixes this slice forced:
+#   * g7_lower_map_value_from_var deep-copies collection-valued maps
+#     (guji_copy_arr both arrays) — `[%m]` below;
+#   * take/drop gained g7_row_retain_slot (they shallow-copied nested rows and
+#     use-after-freed BEFORE this slice — a pre-existing hole no corpus fixture
+#     covered), reverse/filter gained CgMap row arms.
+#
+# Observed through keys()/count() (map display of collection values stays a
+# documented decline). Three-way: interp == native == selfhost, ASan-clean.
+
+sub main(): Int {
+    # --- annotated Map[Str, List[V]] (ARR_SLICE value array) ---
+    %ml: Map[Str, List[Int]] = {"a": [1, 2], "b": [3]}
+    %mls: Map[Str, List[Str]] = {"x": ["p", "q"], "y": ["r"]}
+    @k1 = %ml.keys()
+    @k2 = %mls.keys()
+    print("{ @k1.count() }/{ @k2.count() }")
+
+    # --- annotated Map[Str, Map[Str, V]] (ARR_MAP value array) ---
+    %mm: Map[Str, Map[Str, Int]] = {"a": {"i": 1}, "b": {"j": 2, "k": 3}}
+    %mms: Map[Str, Map[Str, Str]] = {"s": {"t": "u"}}
+    @k3 = %mm.keys()
+    @k4 = %mms.keys()
+    print("{ @k3.count() }/{ @k4.count() }")
+
+    # --- unannotated: the first value fixes V (scalar -> list -> map order) ---
+    %u1 = {"a": [1.5], "b": [2.5, 3.5]}
+    %u2 = {"a": {"t": true}, "b": {"f": false}}
+    @k5 = %u1.keys()
+    @k6 = %u2.keys()
+    print("{ @k5.count() }/{ @k6.count() }")
+
+    # --- deep composition: map-of-map-of-map-of-list, list-of-map-of-list ---
+    %deep = {"a": {"b": {"c": [1, 2]}}}
+    @lom = [{"a": [{"x": 1}]}]
+    @k7 = %deep.keys()
+    print("{ @k7.count() }/{ @lom.count() }")
+
+    # --- a BOUND collection-valued map as a list element: deep copy, the
+    #     source binding stays usable and both release independently ---
+    @wrapped = [%ml]
+    @k8 = %ml.keys()
+    print("{ @wrapped.count() }/{ @k8.count() }")
+
+    # --- row ownership through the prelude cores (pre-existing UAF fixes):
+    #     take/drop/reverse/filter over list-of-maps and nested lists ---
+    @lm = [{"a": 1}, {"b": 2}, {"c": 3}]
+    @t = @lm.take(2)
+    @d = @lm.drop(1)
+    @r = @lm.reverse()
+    @f = @lm.filter(sub(%x: Map[Str, Int]): Bool { true })
+    print("{ @t.count() }/{ @d.count() }/{ @r.count() }/{ @f.count() }")
+    @ll = [[1], [2], [3]]
+    @tl = @ll.take(2)
+    @dl = @ll.drop(1)
+    print("{ @tl.count() }/{ @dl.count() }")
+
+    # deterministic exit:
+    # 2+2 + 2+1 + 2+2 + 1+1 + 1+2 + 2+2+3+3 + 2+2 = 30
+    $s1 = @k1.count() + @k2.count() + @k3.count() + @k4.count() + @k5.count() + @k6.count()
+    $s2 = @k7.count() + @lom.count() + @wrapped.count() + @k8.count()
+    $s3 = @t.count() + @d.count() + @r.count() + @f.count()
+    $s4 = @tl.count() + @dl.count()
+    $s1 + $s2 + $s3 + $s4
+}

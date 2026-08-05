@@ -1,0 +1,20 @@
+# D1 divergence guard: Match equality is structural by capture state (§13.3),
+# not pointer identity between two fresh heap-allocated match objects.
+sub show($b: Bool): Str {
+    if $b { "true" } else { "false" }
+}
+
+sub main(): Unit {
+    $a = ("abc" ~~ /a(b)c/).unwrap()
+    $b = ("abc" ~~ /a(b)c/).unwrap()
+    print("equal: { show($a == $b) }")
+    print("neq: { show($a != $b) }")
+
+    $named = ("ab" ~~ /(?<word>ab)/).unwrap()
+    $unnamed = ("ab" ~~ /(ab)/).unwrap()
+    print("named-vs-unnamed: { show($named == $unnamed) }")
+
+    $none = ("ac" ~~ /a(?<mid>b)?c/).unwrap()
+    $empty = ("ac" ~~ /a(?<mid>x*)c/).unwrap()
+    print("none-vs-empty: { show($none == $empty) }")
+}

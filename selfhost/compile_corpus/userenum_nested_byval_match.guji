@@ -1,0 +1,35 @@
+# slice 4d-D3: a variant field whose type is ANOTHER (non-self) user enum is
+# embedded BY VALUE. The outer enum's struct holds the inner enum's struct directly
+# (Inner f0;), construction nests the inner compound literal, the match binds the
+# by-value child and matches it again, and the outer retain/release must RECURSE
+# transitively into the by-value child's own counted fields (here the inner Str).
+# The "hi" ~ "!" concatenation forces a heap (non-interned) string so the transitive
+# release is real, not an immortal-literal no-op.
+enum Inner {
+    Named($s: Str)
+    Anon
+}
+
+enum Outer {
+    Wrap($g: Inner)
+}
+
+sub label($o: Outer): Int {
+    match $o {
+        Wrap($g) {
+            match $g {
+                Named($s) {
+                    print($s)
+                    1
+                }
+                Anon {
+                    0
+                }
+            }
+        }
+    }
+}
+
+sub main(): Int {
+    label(Wrap(Named("hi" ~ "!"))) + label(Wrap(Anon))
+}

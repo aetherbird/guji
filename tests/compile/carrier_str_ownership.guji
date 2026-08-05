@@ -1,0 +1,72 @@
+sub make_some($s: Str): Option[Str] {
+    Some($s)
+}
+
+sub local_some(): Option[Str] {
+    $s = "lo" ~ "cal"
+    Some($s)
+}
+
+sub pass_opt($o: Option[Str]): Option[Str] {
+    $o
+}
+
+sub fail($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub pass_res($r: Result[Int, Str]): Result[Int, Str] {
+    $r
+}
+
+sub main(): Unit {
+    # Same named Option[Str] is consumed twice; the carrier binding must own
+    # its payload independently from the call-result temp.
+    $a = make_some("A" ~ "B")
+    $one = match $a {
+        Some($v) { $v }
+        None { "none" }
+    }
+    print($one)
+    $again = match $a {
+        Some($v) { $v }
+        None { "none" }
+    }
+    print($again)
+
+    $b = pass_opt(local_some())
+    $two = match $b {
+        Some($v) { $v }
+        None { "none" }
+    }
+    print($two)
+
+    mut $cur: Option[Str] = Some("old" ~ "!")
+    $cur = make_some("new" ~ "!")
+    $three = match $cur {
+        Some($v) { $v }
+        None { "none" }
+    }
+    print($three)
+
+    make_some("discard" ~ "!")
+    @words = ["red", "blue"]
+    $got = @words.get(1)
+    print($got.unwrap())
+    $found = @words.find({ $_ == "red" })
+    print($found.unwrap())
+
+    $bad = pass_res(parse_int("nope"))
+    $msg = match $bad {
+        Ok($n) { "ok" }
+        Err($e) { $e }
+    }
+    print($msg)
+
+    $made = fail("ERR" ~ "!")
+    $msg2 = match $made {
+        Ok($n) { "ok" }
+        Err($e) { $e }
+    }
+    print($msg2)
+}

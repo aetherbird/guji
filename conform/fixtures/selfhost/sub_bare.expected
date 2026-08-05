@@ -1,0 +1,1 @@
+Program(decls=[Sub(public=false,name="greet",params=[],ret=None,body=BlockBody(stmts=[Expr(value=Call(callee=Name(value="note"),args=[Str(value="hi")]))]))])

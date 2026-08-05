@@ -1,0 +1,72 @@
+# Slice 6 P3b-2b-2c-4: `?` bind/reassign inside a `while` loop body (§11.1 + §6.3).
+# The loop body is walked by the retkind-aware g5_lower_loop_stmts, so a statement
+# `?` lowers to native's guard shape: its early `return` exits the whole function
+# (releasing the full env in scope), and a successful payload threads through the
+# env so the loop's per-iteration release frees an owned Str payload.
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad tag") } else { Ok("<" ~ $s ~ ">") }
+}
+
+sub maybe_pos($i: Int): Option[Int] {
+    if $i > 1 { None } else { Some($i) }
+}
+
+# REASSIGN Int payload: `$acc = parse_int($a)? + $acc` reassigns an existing mut.
+sub parse_sum($a: Str, $n: Int): Result[Int, Str] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < $n {
+        $acc = parse_int($a)? + $acc
+        $i = $i + 1
+    }
+    Ok($acc)
+}
+
+# FRESH Int bind: `$v = parse_int($a)?` binds a new payload local each iteration.
+sub accum($a: Str, $n: Int): Result[Int, Str] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < $n {
+        $v = parse_int($a)?
+        $acc = $acc + $v
+        $i = $i + 1
+    }
+    Ok($acc)
+}
+
+# Option `?` in a loop: the None early-return exits with `(guji_opt_int){0LL, 0LL}`.
+sub opt_sum($n: Int): Option[Int] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < $n {
+        $v = maybe_pos($i)?
+        $acc = $acc + $v
+        $i = $i + 1
+    }
+    Some($acc)
+}
+
+# Owned Str payload in a loop: `$s` is released per iteration; the Err early-return
+# releases the accumulated `$out` before returning the moved `.err`.
+sub tag_loop($a: Str, $n: Int): Result[Str, Str] {
+    mut $out = ""
+    mut $i = 0
+    while $i < $n {
+        $s = tag($a)?
+        $out = $out ~ $s
+        $i = $i + 1
+    }
+    Ok($out)
+}
+
+sub main(): Int {
+    match parse_sum("5", 3) { Ok($v) { print("parse_sum { $v }\n") } Err($e) { print("parse_sum err { $e }\n") } }
+    match parse_sum("bad", 3) { Ok($v) { print("parse_sum { $v }\n") } Err($e) { print("parse_sum err { $e }\n") } }
+    match accum("4", 3) { Ok($v) { print("accum { $v }\n") } Err($e) { print("accum err { $e }\n") } }
+    match accum("x", 3) { Ok($v) { print("accum { $v }\n") } Err($e) { print("accum err { $e }\n") } }
+    match opt_sum(2) { Some($v) { print("opt { $v }\n") } None { print("opt none\n") } }
+    match opt_sum(3) { Some($v) { print("opt { $v }\n") } None { print("opt none\n") } }
+    match tag_loop("hi", 3) { Ok($s) { print("tag { $s }\n") } Err($e) { print("tag err { $e }\n") } }
+    match tag_loop("bad", 3) { Ok($s) { print("tag { $s }\n") } Err($e) { print("tag err { $e }\n") } }
+    63
+}

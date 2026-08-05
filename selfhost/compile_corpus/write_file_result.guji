@@ -1,0 +1,20 @@
+# selfhost slice 5 E5d-8z — THREE-WAY (native accepts write_file + the Ok($u) NAME
+# bind). `write_file(...)` lowers to a `Result[Unit, Str]` carrier matched in
+# STATEMENT position (value discarded, non-final) — the exact shape of the driver's
+# `main`. The Ok arm binds the Unit payload `$u` and discards it; a following
+# `read_file` match reads the file back so stdout is deterministic across all three
+# engines. Exercises both slice-5 E5d-8z additions: statement-position Result-match
+# lowering and the write_file prelude (path + content owned temps released after the
+# call, the Unit-Ok carrier owns only its Err Str).
+sub main(): Int {
+    $path = "/tmp/guji_selfhost_e5d8z.txt"
+    match write_file($path, "hello " ~ "selfhost") {
+        Ok($u) { $u }
+        Err($e) { print($e) return 1 }
+    }
+    match read_file($path) {
+        Ok($s) { print($s) }
+        Err($e) { print($e) return 2 }
+    }
+    return 0
+}

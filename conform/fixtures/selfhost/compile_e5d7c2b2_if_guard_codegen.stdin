@@ -1,0 +1,9 @@
+sub main(): Int {
+    @argv = args()
+    if @argv.count() < 3 {
+        note("usage: compile_driver <src> <out> <prologue>")
+        return 2
+    }
+    note("ready")
+    0
+}

@@ -1,0 +1,9 @@
+HoldingInt(Some(4))
+HoldingInt(None)
+HoldingBool(Some(true))
+HoldingFloat(Some(2.5))
+4
+-1
+true
+2.5
+7

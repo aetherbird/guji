@@ -1,0 +1,25 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-2 compiler codegen fixture.
+# Result[enum] carriers are NATIVE-REJECTED, so this pins generated-C shape while
+# selfhost/result_class_diff.sh covers end-to-end interp-oracle behavior.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_res_Piece_str;"))
+            print(has_text($c, "guji_res_Piece_str gf_mk"))
+            print(has_text($c, "(Piece)\{0}"))
+            print(has_text($c, "guji_release_Piece_fields(&gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

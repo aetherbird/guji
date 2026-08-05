@@ -1,0 +1,43 @@
+# P5b-2b: chained map `set`/`remove` — the receiver of a set/remove call is
+# itself a set/remove call. Each intermediate result is materialized into an
+# owned guji_map_t, copied (with per-slot key/value retains) by the next call in
+# the chain, then released only AFTER that copy — native materializes the receiver
+# value, copies with retains, releases it last. The value kind (scalar / Str /
+# depth-3 Map / List[Map]) is invariant through the chain, so it flows unchanged
+# into each inner call.
+sub main(): Int {
+    # depth-3 Map[Str, Map[Str, Map[Str, Int]]] through set().remove()
+    %m = {"a": {"b": {"c": 1, "d": 2}}, "e": {"f": {"g": 3}}}
+    %m3 = %m.set("z", {"y": {"w": 7}}).remove("e")
+    print(%m3{"z"}{"y"}{"w"})
+    print(%m3{"a"}{"b"}{"d"})
+    print(%m3.has_key("e"))
+    # the receiver map is only borrowed by the chain, so it survives intact
+    print(%m{"e"}{"f"}{"g"})
+
+    # List[Map] value shape through set().remove()
+    %buckets = {"left": [{"a": 1}], "right": [{"b": 2}, {"c": 3}]}
+    %more = %buckets.set("extra", [{"z": 4}]).remove("left")
+    print(%more{"extra"}[0]{"z"})
+    print(%more{"right"}[1]{"c"})
+    print(%more.has_key("left"))
+
+    # scalar map: set-after-set then remove (a three-link chain)
+    %s = {"a": 1, "b": 2}
+    %s2 = %s.set("c", 3).set("d", 4).remove("a")
+    print(%s2{"b"} + %s2{"c"} + %s2{"d"})
+    print(%s2.has_key("a"))
+
+    # Str-valued map: fresh string leaves exercise retain/release of the leaf
+    # through the materialized intermediate's release.
+    %w = {"one": "x" ~ "1", "two": "y" ~ "2"}
+    %w2 = %w.set("three", "z" ~ "3").remove("one")
+    print(%w2{"two"})
+    print(%w2{"three"})
+
+    # remove-then-set order (the removed intermediate is the set's receiver)
+    %r = %m.remove("a").set("q", {"y": {"w": 9}})
+    print(%r{"q"}{"y"}{"w"})
+    print(%r{"e"}{"f"}{"g"})
+    0
+}

@@ -1,0 +1,10 @@
+# §7.4: a capturing closure passed through an unannotated function-valued
+# parameter and applied in the callee. This pins the native callback ABI port.
+sub apply($f, $x: Int): Int { $f($x) }
+
+sub main(): Int {
+    $base = 10
+    $f = sub($n: Int): Int { $n + $base }
+    print("{ apply($f, 5) }")
+    0
+}

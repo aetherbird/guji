@@ -1,0 +1,36 @@
+# Canonical compiler regression: a map-valued `match` in direct display position
+# must lower through one owned guji_map_t result and release it after rendering.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    $src = stdin.slurp()
+    match lexer::typecheck_verdict($src) {
+        TcAccept {
+            match lexer::compile_program_c($src) {
+                Ok($c) {
+                    print("codegen-ok")
+                    print(has_text($c, "guji_map_t"))
+                    print(has_text($c, "guji_map_str"))
+                    print(has_text($c, ".keys = NULL;"))
+                    0
+                }
+                Err($e) {
+                    note($e)
+                    1
+                }
+            }
+        }
+        TcRejectType($m) {
+            note($m)
+            1
+        }
+        TcRejectParse($m) {
+            note($m)
+            1
+        }
+    }
+}

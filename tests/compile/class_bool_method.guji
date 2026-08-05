@@ -1,0 +1,47 @@
+# T2b: a class method's scalar return type is taken from the checker side-table.
+# A Bool-returning method and an Int-returning method both lower to int64_t, so
+# the C signatures are identical — only the checker's inferred result type tells
+# codegen to DISPLAY the Bool result as `true`/`false` rather than `1`/`0`.
+# Before T2b, classMethodCall typed every non-Str/Float/Unit/Bush return as Int,
+# so `{ $c.positive() }` printed `1` natively while the interpreter printed `true`.
+class Counter {
+    has $.n: Int
+
+    sub positive($self): Bool {
+        $self.n > 0
+    }
+
+    sub doubled($self): Int {
+        $self.n * 2
+    }
+
+    sub half($self): Float {
+        2.0
+    }
+
+    sub tag($self): Str {
+        "counter"
+    }
+}
+
+sub main(): Unit {
+    $c = Counter(n: 5)
+    $z = Counter(n: 0)
+
+    # Interpolation is where Bool vs Int display diverges.
+    print("{ $c.positive() }")
+    print("{ $z.positive() }")
+
+    # Bind the Bool result, then use it in a boolean context too.
+    $p = $c.positive()
+    if $p {
+        print("positive")
+    } else {
+        print("not positive")
+    }
+
+    # Non-Bool returns must keep working unchanged.
+    print("{ $c.doubled() }")
+    print("{ $c.half() }")
+    print("{ $c.tag() }")
+}

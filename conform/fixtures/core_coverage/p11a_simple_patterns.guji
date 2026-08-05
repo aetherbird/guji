@@ -1,0 +1,17 @@
+# P11a: literal, wildcard, and binding patterns use first-match order.
+sub classify($value: Int): Str {
+    match $value {
+        0 { "zero" }
+        1 { "one" }
+        $bound if $bound < 0 { "negative { $bound }" }
+        _ { "other" }
+    }
+}
+
+sub main(): Int {
+    print(classify(0))
+    print(classify(1))
+    print(classify(-2))
+    print(classify(8))
+    0
+}

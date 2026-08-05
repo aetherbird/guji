@@ -1,0 +1,9 @@
+# P8d-2c-3d-2a: unwrap-on-closed empty List channel — exit 1, stderr byte-identical.
+# (Native rejects List `expect` binds; unwrap is the three-way panic shape.)
+sub main(): Int {
+    $ch: Chan[List[Int]] = channel(1)
+    $ch.close()
+    @xs = $ch.recv().unwrap()
+    print(@xs.count())
+    0
+}

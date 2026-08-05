@@ -1,0 +1,23 @@
+# P10a: nullary/payload construction, matching, and values crossing calls.
+enum Status {
+    Ready
+    Count($value: Int)
+    Label($text: Str)
+}
+
+sub relay($status: Status): Status { $status }
+
+sub describe($status: Status): Str {
+    match $status {
+        Ready { "ready" }
+        Count($number) { "count={ $number }" }
+        Label($text) { "label=$text" }
+    }
+}
+
+sub main(): Int {
+    print(describe(relay(Ready)))
+    print(describe(relay(Count(7))))
+    print(describe(relay(Label("ok"))))
+    0
+}

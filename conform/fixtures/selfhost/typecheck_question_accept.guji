@@ -1,0 +1,22 @@
+# gujiconform — selfhost slice 6 P3b-1 `?`-operator type-checker fixture (§11.1).
+# The stdin source is classified by the self-hosted type checker; this pins the
+# `?` accept verdict at the typecheck boundary (Result stays permissive since it
+# is unmodeled in the SemType lattice; Option is enforced exactly).
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

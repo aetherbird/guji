@@ -1,0 +1,26 @@
+# Phase 2 (Platform IO): Handle.lines returns a closed Chan[Str]. This fixture
+# intentionally has no source-level channel operation (`channel`, `send`,
+# `recv`, `close`, `hatch`, or `select`) so native must still link the §17
+# runtime because the builtin itself yields a channel. It is also the P2f
+# grep-shaped dogfood smoke: the first argv element selects the pattern "disk",
+# then each chomped line is tested with `~~` and matching lines are printed.
+sub main(): Int {
+    @argv = args()
+    if @argv[0] != "disk" {
+        note("usage: io_handle_lines disk")
+        exit(2)
+    }
+    $h = open("io_handle_lines.input").unwrap()
+    $lines: Chan[Str] = $h.lines()
+    mut $n = 0
+    for $line in $lines {
+        print("[" ~ $line ~ "]")
+        match $line ~~ /disk/ {
+            Some($m) { print("hit:" ~ $line) }
+            None { () }
+        }
+        $n = $n + 1
+    }
+    print("count=" ~ "$n")
+    0
+}

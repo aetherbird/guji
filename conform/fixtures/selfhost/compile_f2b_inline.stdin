@@ -1,0 +1,9 @@
+enum Msg { Text($s: Str), Other($s: Str) }
+
+sub main(): Int {
+    print("inline-scrutinee")
+    match Text("hi") {
+        Text($x) { print($x) 0 }
+        Other($x) { print($x) 1 }
+    }
+}

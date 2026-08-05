@@ -1,0 +1,83 @@
+# §13 (I7d): the backtracking engine's advanced forms plus dynamic splices.
+# Every line isolates an observable rule: modifiers, backreferences, assertions,
+# atomic/possessive behavior, Unicode scalar/cluster properties, splice escaping,
+# capture hiding, atom grouping, and stable runtime compile failures.
+sub hit($o: Option[Match]): Bool { $o.is_some() }
+
+sub bad_backref(): Unit {
+    match Regex.compile("\\1(a)") {
+        Ok($re) { print("bad-backref:ok") }
+        Err($e) { print("bad-backref:" ~ $e) }
+    }
+    ()
+}
+
+sub bad_lookbehind(): Unit {
+    match Regex.compile("(?<=a+)b") {
+        Ok($re) { print("bad-lookbehind:ok") }
+        Err($e) { print("bad-lookbehind:" ~ $e) }
+    }
+    ()
+}
+
+# §13.5 (I7d2): unknown Unicode property is a Regex.compile runtime Err, not a
+# codegen decline. Use a single-quoted pattern: double-quoted "\p{Name}" would
+# treat {Name} as §12 interpolation (and C still declines bare type-name
+# interpolation), which is a different boundary from property validation.
+sub bad_unknown_property(): Unit {
+    match Regex.compile('\p{Not_A_Property}') {
+        Ok($re) { print("bad-prop:ok") }
+        Err($e) { print("bad-prop:" ~ $e) }
+    }
+    ()
+}
+
+sub main(): Int {
+    $fi = hit("É" ~~ /(?i)^é$/)
+    $fm = hit("a\nb" ~~ /(?m)^b$/)
+    $fs = hit("a\nb" ~~ /(?s)^a.b$/)
+    $fx = hit("abc" ~~ /(?x)^ a b c $/)
+    print("flags:$fi:$fm:$fs:$fx")
+    $uw = hit("é" ~~ /^\w$/)
+    $aw = hit("é" ~~ /(?a)^\w$/)
+    print("ascii:$uw:$aw")
+    $nr = hit("abab" ~~ /^(ab)\1$/)
+    $kr = hit("same-same" ~~ /^(?<w>\w+)-\k<w>$/)
+    print("refs:$nr:$kr")
+    $lp = hit("ab" ~~ /^a(?=b)b$/)
+    $ln = hit("ac" ~~ /^a(?!b)c$/)
+    $bp = hit("ab" ~~ /(?<=a)b$/)
+    $bn = hit("ac" ~~ /(?<!b)c$/)
+    print("looks:$lp:$ln:$bp:$bn")
+    $atomic = hit("ab" ~~ /^(?>ab|a)b$/)
+    $possessive = hit("aaa" ~~ /^a++a$/)
+    print("prune:$atomic:$possessive")
+    $greek = hit("αβ" ~~ /^\p{Script=Greek}+$/)
+    $emoji = hit("😀" ~~ /^\p{Emoji}$/)
+    $cluster = hit("👨‍👩‍👧‍👦" ~~ /^\X$/)
+    $rgi = hit("👨‍👩‍👧‍👦" ~~ /^\p{RGI_Emoji}$/)
+    print("unicode:$greek:$emoji:$cluster:$rgi")
+
+    $literal = "a.b"
+    $literal_yes = hit("a.b" ~~ /^<{ $literal }>$/)
+    $literal_no = hit("axb" ~~ /^<{ $literal }>$/)
+    print("str-splice:$literal_yes:$literal_no")
+    $caps = Regex.compile("(?<inner>a)(b)").unwrap()
+    match "ab!" ~~ /^(?<host><{ $caps }>)(!)$/ {
+        Some($m) {
+            $host = $m[1].unwrap_or("?")
+            $bang = $m[2].unwrap_or("?")
+            $hidden = $m[3].unwrap_or("hidden")
+            print("regex-splice:$host:$bang:$hidden")
+        }
+        None { print("regex-splice:none") }
+    }
+    $alts = Regex.compile("ab|cd").unwrap()
+    $atom = hit("abcdab" ~~ /^<{ $alts }>+$/)
+    print("atom:$atom")
+
+    bad_backref()
+    bad_lookbehind()
+    bad_unknown_property()
+    0
+}

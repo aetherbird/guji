@@ -1,0 +1,31 @@
+# gujiconform — selfhost slice 5 E5d-8k compiler codegen fixture.
+# Pins the per-class Option[<class>] carrier in generated C for an ENUM VARIANT
+# field (the class analogue of E5d-7c-2d-7's Option[<enum>] variant field): the
+# `guji_opt_<Class>` tagged typedef, the by-value member in the wrapping enum
+# struct, the Some/None constructor literals, and the tag-guarded transitive
+# retain/release into the wrapped class's fields helper. Needles are single-quoted
+# RAW strings so literal braces are not interpolation.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, '} guji_opt_Box;'))
+            print(has_text($c, 'guji_opt_Box f0;'))
+            print(has_text($c, '(guji_opt_Box){1LL, (Box){'))
+            print(has_text($c, '(guji_opt_Box){0LL, (Box){0}}'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_release_Box_fields(&p->f0.val); }'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_retain_Box_fields(&p->f0.val); }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

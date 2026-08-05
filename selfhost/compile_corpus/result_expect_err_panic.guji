@@ -1,0 +1,15 @@
+# §15.5 / §11.2 `expect` of an `Err` panics with the user message. The message is
+# heap-built so the lowering must pass the owned temp to `guji_panic`; native and
+# selfhost stderr should be byte-identical, with the interpreter agreeing that the
+# program panicked.
+
+sub erri($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub main(): Int {
+    $bad: Result[Int, Str] = erri("bad")
+    print("before")
+    if $bad.expect("custom" ~ ": err") == 5 { print("unreachable") }
+    0
+}

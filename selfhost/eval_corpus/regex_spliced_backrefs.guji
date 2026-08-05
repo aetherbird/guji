@@ -1,0 +1,20 @@
+# §13.4: splice-private captures stay hidden from the host Match, while numeric
+# and named backreferences remain scoped to and operational inside the splice.
+sub main(): Int {
+    $numeric = Regex.compile("(a)\\1").unwrap()
+    match "aa!" ~~ /^(?<host><{ $numeric }>)(!)$/ {
+        Some($m) {
+            print("numeric:" ~ $m<host>.unwrap_or("?") ~ ":" ~ $m[2].unwrap_or("?") ~ ":" ~ $m[3].unwrap_or("hidden"))
+        }
+        None { print("numeric:none") }
+    }
+
+    $named = Regex.compile("(?<unit>b)\\k<unit>").unwrap()
+    match "bb?" ~~ /^(?<host><{ $named }>)(\?)$/ {
+        Some($m) {
+            print("named:" ~ $m<host>.unwrap_or("?") ~ ":" ~ $m[2].unwrap_or("?") ~ ":" ~ $m[3].unwrap_or("hidden"))
+        }
+        None { print("named:none") }
+    }
+    0
+}

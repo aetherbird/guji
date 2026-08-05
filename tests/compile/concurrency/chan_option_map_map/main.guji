@@ -1,0 +1,48 @@
+# Chan[Option[Map[Str, Map[Str, T]]]] is the deepest currently constructible
+# carrier-over-channel map shape: send must detach the outer map arrays and every
+# inner map, recv must preserve map value metadata, and an undelivered buffered
+# Some must be released by the carrier elem_drop under LSan.
+
+sub sum_grid(%m: Map[Str, Map[Str, Int]]): Int {
+    %m{"a"}{"p"} + %m{"b"}{"q"} + %m{"b"}{"r"}
+}
+
+sub join_grid(%m: Map[Str, Map[Str, Str]]): Str {
+    %m{"left"}{"a"} ~ %m{"left"}{"b"} ~ %m{"right"}{"c"}
+}
+
+sub main(): Int {
+    $ints: Chan[Option[Map[Str, Map[Str, Int]]]] = channel(3)
+    %grid = {"a": {"p": 1}, "b": {"q": 2, "r": 3}}
+    $some: Option[Map[Str, Map[Str, Int]]] = Some(%grid)
+    $none: Option[Map[Str, Map[Str, Int]]] = None
+    $ints.send($some)
+    $ints.send($none)
+    $ints.send($some)
+
+    $got = $ints.recv().unwrap()
+    print(match $got {
+        Some(%m) { sum_grid(%m) }
+        None { 0 }
+    })
+
+    $got_none = $ints.recv().unwrap()
+    print(match $got_none {
+        Some(%m) { %m{"a"}{"p"} }
+        None { 99 }
+    })
+
+    $words: Chan[Option[Map[Str, Map[Str, Str]]]] = channel(2)
+    %parts = {"left": {"a": "gu", "b": "ji"}, "right": {"c": "!"}}
+    $some_words: Option[Map[Str, Map[Str, Str]]] = Some(%parts)
+    $words.send($some_words)
+    $words.send($some_words)
+
+    $got_words = $words.recv().unwrap()
+    print(match $got_words {
+        Some(%m) { join_grid(%m) }
+        None { "none" }
+    })
+
+    0
+}

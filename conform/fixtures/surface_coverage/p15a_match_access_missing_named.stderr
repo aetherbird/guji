@@ -1,0 +1,1 @@
+type error: Match has no named capture missing in literal regex (§13.4)

@@ -1,0 +1,7 @@
+# Bool equality between two Str-arg Bool-returning calls (both pure).
+sub ok($s: Str): Bool {
+    $s == "ok"
+}
+sub main(): Int {
+    if ok("ok") == ok("no") { 1 } else { 0 }
+}

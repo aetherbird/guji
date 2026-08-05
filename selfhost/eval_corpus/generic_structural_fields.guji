@@ -1,0 +1,139 @@
+# Generic class field inference follows the declared TypeRef recursively instead
+# of special-casing a bare T or one List[T] layer.
+class MapBox[T] {
+    has %.items: Map[Str, T]
+}
+
+class MaybeBox[T] {
+    has $.item: Option[T]
+}
+
+class Rows[T] {
+    has @.items: List[List[T]]
+}
+
+class Nested[T] {
+    has %.items: Map[Str, List[T]]
+}
+
+class Direct[T] {
+    has $.value: T
+}
+
+class ListBox[T] {
+    has @.items: List[T]
+}
+
+class BranchBox[T] {
+    has @.items: List[T]
+}
+
+class HigherOrderBox[T] {
+    has @.items: List[T]
+}
+
+class ParamBox[T] {
+    has @.items: List[T]
+}
+
+class LoopBox[T] {
+    has @.items: List[T]
+}
+
+class SelectBox[T] {
+    has $.item: Option[T]
+}
+
+sub from_param(@items: List[Str]): Unit {
+    $box = ParamBox(items: @items)
+    print("param:" ~ $box.items.join(","))
+}
+
+sub main(): Int {
+    $mi = MapBox(items: {"a": 7, "b": 8})
+    print($mi.items)
+
+    $oi = MaybeBox(item: Some(9))
+    print($oi.item)
+
+    $rows = Rows(items: [[1, 2], [3]])
+    print($rows.items)
+
+    $nested = Nested(items: {"left": [4, 5], "right": [6]})
+    print($nested.items)
+
+    %words = {"lang": "guji"}
+    $ms = MapBox(items: %words)
+    print($ms.items)
+
+    $word: Option[Str] = Some("typed")
+    $os = MaybeBox(item: $word)
+    print($os.item)
+
+    @more = [[10], [11, 12]]
+    $more_rows = Rows(items: @more)
+    print($more_rows.items)
+
+    $typed: Int = 13
+    $direct = Direct(value: $typed)
+    print($direct.value)
+
+    if true {
+        @same: List[Str] = ["branch"]
+        $text_box = ListBox(items: @same)
+        print($text_box.items)
+    } else {
+        @same: List[Int] = [99]
+        $int_box = ListBox(items: @same)
+        print($int_box.items)
+    }
+    @same: List[Bool] = [true]
+    $bool_box = ListBox(items: @same)
+    print($bool_box.items)
+
+    # A child shadow whose RHS is an if-value must replace, rather than reuse,
+    # the outer Int descriptor. BranchBox has no other call site that could seed
+    # its Str specialization.
+    @shadow = [70]
+    if true {
+        @shadow = if true { ["inner"] } else { ["other"] }
+        $inner_box = BranchBox(items: @shadow)
+        print("inner:" ~ $inner_box.items.join(","))
+    }
+    $outer_box = ListBox(items: @shadow)
+    print("outer:{ $outer_box.items[0] }")
+
+    # List[T] unified with List[List[Int]] must bind T=List[Int], preserving the
+    # extra wrapper in both the specialization name and its field type.
+    @higher_rows: List[List[Int]] = [[21, 22], [23]]
+    $higher_box = HigherOrderBox(items: @higher_rows)
+    print($higher_box.items)
+
+    from_param(["seeded"])
+
+    @matrix = [[2.25, 3.75]]
+    for @row in @matrix {
+        $row_box = LoopBox(items: @row)
+        print("for:{ $row_box.items.sum() }")
+    }
+
+    $maybe_items: Option[List[Str]] = Some(["matched"])
+    match $maybe_items {
+        Some(@bound_items) {
+            $match_box = ListBox(items: @bound_items)
+            print("match:" ~ $match_box.items.join(","))
+        }
+        None { print("match:none") }
+    }
+
+    $ready: Chan[Float] = channel(1)
+    $ready.send(3.25)
+    select {
+        $received = $ready.recv() {
+            $select_box = SelectBox(item: $received)
+            print($select_box.item)
+        }
+    }
+
+    0
+}

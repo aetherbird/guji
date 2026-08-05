@@ -1,0 +1,29 @@
+# P9-11b-2b corpus twin: Chan[Option[Bush]] — mirror gate fixture (native-accepted).
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub main(): Int {
+    $ch: Chan[Option[Bush]] = channel(4)
+    $b1 = Pair.parse("aa-bb")
+    $b2 = Pair.parse("zz!")
+    $b3 = Pair.parse("cc-dd")
+    $b4 = Pair.parse("ee-ff")
+    $ch.send($b1)
+    $ch.send($b2)
+    $ch.send($b3)
+    $ch.send($b4)
+    $first = $ch.recv().unwrap()
+    print(match $first {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+    0
+}

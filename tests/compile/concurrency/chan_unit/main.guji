@@ -1,0 +1,12 @@
+sub main(): Int {
+    $ch: Chan[Unit] = channel(0)
+    hatch { $ch.send(()) }
+    $opt = $ch.recv()
+    if $opt.is_some() {
+        print("some")
+    } else {
+        print("none")
+    }
+    $ch.close()
+    0
+}

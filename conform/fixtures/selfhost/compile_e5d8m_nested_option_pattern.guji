@@ -1,0 +1,35 @@
+# gujiconform — selfhost slice 5 E5d-8m compiler codegen fixture.
+# Pins nested `None` / `Some(...)` constructor sub-pattern lowering over an
+# Option[<user enum>] carrier ENUM VARIANT field (the real-source `render_stmt`
+# `SReturn(None)` / `SReturn(Some($v))` shape). The outer SReturn variant tag is
+# tested, then the carrier `.tag` (0 = None / 1 = Some) is tested as a NESTED
+# sub-condition, and the Some payload is bound to the carrier's borrowed `.val`
+# slot — the E5d-8l nested-pattern path extended to Option carriers. The Option
+# field is kept at a NON-UNION position (SNop is niladic); a carrier in a mixed
+# union slot is the separate E5d-8h-3 boxing problem. Needles are single-quoted RAW
+# strings so literal braces/parens are not interpolation.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, '} guji_opt_Expr;'))
+            print(has_text($c, 'guji_opt_Expr f0;'))
+            print(has_text($c, '.tag == 1LL && ('))
+            print(has_text($c, '.f0).tag == 0LL)'))
+            print(has_text($c, '.f0).tag == 1LL)'))
+            print(has_text($c, '.f0.val;'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_retain_Expr_fields(&p->f0.val); }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

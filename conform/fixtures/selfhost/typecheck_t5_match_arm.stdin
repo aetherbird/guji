@@ -1,0 +1,7 @@
+# T5: match arms must return compatible result types.
+sub main(): Int {
+    match Some(1) {
+        Some($n) { $n }
+        None { "none" }
+    }
+}

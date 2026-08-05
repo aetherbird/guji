@@ -1,0 +1,31 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Unannotated callback params in generic specs are cloned as internal
+            # Func[...] params, matching native's monomorphized spec names.
+            print(has_text($c, "static int64_t gf_apply__Func_Int_Int_Int_Int(guji_fn_t gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_apply__Func_Str_Str_Str_Str(guji_fn_t gp0, const char* gp1)"))
+            print(has_text($c, "static int64_t gf_apply__Func_Bool_Bool_Bool_Bool(guji_fn_t gp0, int64_t gp1)"))
+            print(has_text($c, "static int64_t gf_apply_twice__Func_Int_Int_Int_Int(guji_fn_t gp0, int64_t gp1)"))
+            # The cloned body calls through the borrowed guji_fn_t callback ABI.
+            print(has_text($c, "((int64_t (*) (void*, int64_t))gp0.fn)(gp0.env, gp1)"))
+            print(has_text($c, "((const char* (*) (void*, const char*))gp0.fn)(gp0.env, gt0)"))
+            # Transitive generic calls inside apply_twice route to the same Func-tagged spec.
+            print(has_text($c, "gf_apply__Func_Int_Int_Int_Int(gp0, gf_apply__Func_Int_Int_Int_Int(gp0, gp1))"))
+            # The unspecialized templates are not emitted.
+            print(has_text($c, "gf_apply(guji_fn_t"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

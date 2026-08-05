@@ -1,0 +1,96 @@
+# §15.5 Option `map`, method form `$o.map(f)` and function form `map($o, f)`, over
+# bound `Option[T]` locals producing a fresh `Option[U]` through a single-expression
+# inline lambda: `Some(v)` -> `Some(f(v))`, `None` -> `None`. Native lowers it to a
+# zeroed Option[U] temp filled only under the Some guard
+# (`if (opt.tag != 0) { binder = opt.val; <body>; r.tag = 1; r.val = <result>; }`):
+# the binder BORROWS the source payload (no retain), and a Str body result is an
+# OWNED tmp MOVED into the fresh Some slot (no extra retain — the consuming binding
+# releases it once; verified under ASan/LSan). Source T and result U are independent
+# scalar/Str kinds (cross-kind maps are native-accepted). Native `guji build`
+# supports all of it, so this is a THREE-WAY case (interp == native == selfhost).
+# Exit 255 (code 4095) iff every polarity/payload assertion holds.
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    # A heap-built Some payload: a wrong binder/slot retain shows under ASan.
+    if $n > 0 { Some("v" ~ "al{ $n }") } else { None }
+}
+sub mkf($n: Int): Option[Float] {
+    if $n > 0 { Some(1.5) } else { None }
+}
+sub mkb($n: Int): Option[Bool] {
+    if $n > 0 { Some(false) } else { None }
+}
+
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ni: Option[Int] = mki(-1)
+    $ss: Option[Str] = mks(9)
+    $ns: Option[Str] = mks(-1)
+    $sf: Option[Float] = mkf(1)
+    $sb: Option[Bool] = mkb(1)
+    $base = 100
+
+    mut $code = 0
+
+    # Int -> Int, both spellings; None propagates as None.
+    $a: Option[Int] = $si.map(sub($v: Int): Int { $v * 2 })
+    $b: Option[Int] = map($ni, sub($v: Int): Int { $v + 1 })
+    if $a.unwrap_or(0) == 10 { $code = $code + 1 }
+    if $b.is_none() { $code = $code + 2 }
+
+    # Str -> Str: the guarded body builds a fresh heap Str from the borrowed
+    # binder; the owned result is moved into the Some slot.
+    $c: Option[Str] = $ss.map(sub($s: Str): Str { $s ~ "!" })
+    $d: Option[Str] = map($ns, sub($s: Str): Str { $s ~ "?" })
+    print($c.unwrap_or("x"))
+    if $d.is_none() { $code = $code + 4 }
+
+    # Cross-kind maps: Int -> Str, Str -> Int, Int -> Bool, Bool -> Int.
+    $e: Option[Str] = $si.map(sub($v: Int): Str { "n={ $v }" })
+    $f: Option[Int] = $ss.map(sub($t: Str): Int { 42 })
+    $g: Option[Bool] = $si.map(sub($v: Int): Bool { $v > 2 })
+    $h: Option[Int] = $sb.map(sub($w: Bool): Int { if $w { 1 } else { 0 } })
+    print($e.unwrap_or("y"))
+    if $f.unwrap_or(0) == 42 { $code = $code + 8 }
+    if $g.unwrap_or(false) { $code = $code + 16 }
+    if $h.unwrap_or(9) == 0 { $code = $code + 32 }
+
+    # Float -> Float.
+    $i: Option[Float] = $sf.map(sub($x: Float): Float { $x * 2.0 })
+    if $i.unwrap_or(0.0) == 3.0 { $code = $code + 64 }
+
+    # The callback body may reference enclosing locals (lowered inline, not a
+    # lifted closure), and a None source never runs the body.
+    $j: Option[Int] = map($si, sub($v: Int): Int { $v + $base })
+    $k: Option[Int] = $ni.map(sub($v: Int): Int { $v + $base })
+    if $j.unwrap_or(0) == 105 { $code = $code + 128 }
+    if $k.is_none() { $code = $code + 256 }
+
+    # Mapping a None Str source leaves the zeroed temp untouched (no body, no
+    # allocation); mapping to a Str from a None Int source likewise.
+    $l: Option[Str] = map($ni, sub($v: Int): Str { "z={ $v }" })
+    if $l.is_none() { $code = $code + 512 }
+
+    # A fresh mapped Option is itself a mappable bound local.
+    $m: Option[Int] = $a.map(sub($v: Int): Int { $v - 3 })
+    if $m.unwrap_or(0) == 7 { $code = $code + 1024 }
+
+    # A mapped Option used directly as a match SCRUTINEE (the probe-chain path
+    # through g6_option_value): the fresh owned Str payload is released by the
+    # match's owned-scrutinee cleanup, not a binding.
+    match $ss.map(sub($s: Str): Str { $s ~ "." }) {
+        Some($mx) { print($mx) }
+        None { print("none") }
+    }
+    match map($ni, sub($v: Int): Int { $v * 3 }) {
+        Some($mn) { $code = $code + 4096 }
+        None { $code = $code + 2048 }
+    }
+
+    print("{ $code }")
+    # 1+2+4+8+16+32+64+128+256+512+1024+2048 = 4095; keep exit below 256.
+    $code - 3840
+}

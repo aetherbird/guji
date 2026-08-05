@@ -1,0 +1,5 @@
+# Each import binds its final path segment as a unique top-level value name.
+import alpha::shared
+import beta::shared
+
+sub main(): Int { 0 }

@@ -1,0 +1,35 @@
+# P8d-2c-3c-2: `for` over Chan[Map[Str, Int|Str]] adopts each detached map.
+# Distinct binder names avoid native's same-C-local redefinition limitation.
+# An empty drain proves final release of a zeroed map is harmless.
+sub main(): Int {
+    %one: Map[Str, Int] = {"a": 1, "b": 2}
+    %two: Map[Str, Int] = {"a": 3, "b": 4}
+    $maps: Chan[Map[Str, Int]] = channel(2)
+    $maps.send(%one)
+    $maps.send(%two)
+    $maps.close()
+    mut $sum = 0
+    for %m in $maps {
+        $sum = $sum + %m{"a"} + %m{"b"}
+    }
+
+    %first: Map[Str, Str] = {"k": "m" ~ "ap"}
+    %second: Map[Str, Str] = {"k": "o" ~ "k"}
+    $words: Chan[Map[Str, Str]] = channel(2)
+    $words.send(%first)
+    $words.send(%second)
+    $words.close()
+    mut $seen = ""
+    for %w in $words {
+        $seen = $seen ~ %w{"k"}
+    }
+
+    $empty: Chan[Map[Str, Int]] = channel(1)
+    $empty.close()
+    mut $drained = 0
+    for %e in $empty {
+        $drained = $drained + %e{"never"}
+    }
+    print("$sum|$seen|$drained")
+    0
+}

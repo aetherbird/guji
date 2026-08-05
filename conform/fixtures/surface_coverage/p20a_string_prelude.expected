@@ -1,0 +1,13 @@
+split=[, a, b, ]
+scalars=[a, λ]
+lines=[a, , b]
+empty-lines=[]
+one-empty-line=[]
+trim=[λ]
+case=abc/XYZ
+unicode-case=É/λ
+replace=ab:12:$
+replace-with=a[1]b[2]
+match=true
+parse=-42
+parse-fail=invalid integer: 4x

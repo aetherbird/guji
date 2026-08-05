@@ -1,0 +1,46 @@
+# A-collapse-get-find: the four carrier{Option,Result}{List,Map}Payload gates no
+# longer enumerate their accepted leaf element types via per-(Option|Result)×(List|
+# Map) `case ty…` switches — they share ONE leaf classifier (listLeafCounted /
+# isScalarCarrierPayload via listCarrierElemCounted / mapCarrierValCounted). This
+# fixture proves the unified classifier routes EVERY leaf type (not just the Int/Str
+# the existing get/find fixtures cover) through the single mechanism, across all
+# carrier×collection payload combos, with NO per-shape code. The interpreter is the
+# semantic oracle; the sanitizer/leak gate is the memory one.
+
+sub main(): Unit {
+    # List[List[Float]] receiver -> Option[List[Float]]: Float leaf via list-of-list.
+    @grid = [[1.5, 2.5], [3.0]]
+    print(match @grid.get(0) { Some(@r) { count(@r) } None { -1 } })    # 2
+    print(match @grid.get(9) { Some(@rb) { count(@rb) } None { -1 } })  # -1
+
+    # List[List[Bool]] receiver -> Option[List[Bool]]: Bool leaf via list-of-list.
+    @flags = [[true, false, true], [false]]
+    print(match @flags.get(0) { Some(@fr) { count(@fr) } None { -1 } })  # 3
+
+    # List[Map[Str, Float]] receiver -> Option[Map[Str, Float]]: Float map value.
+    @fmaps = [{"a": 1.5}, {"b": 2.5, "c": 3.5}]
+    print(match @fmaps.get(1) { Some(%fm) { count(keys(%fm)) } None { -1 } })  # 2
+
+    # Map[Str, List[Bool]] value -> Option[List[Bool]]: Bool leaf via map-of-list.
+    %bylist = {"x": [true, false], "y": [true]}
+    print(match %bylist.get("x") { Some(@bl) { count(@bl) } None { -1 } })       # 2
+    print(match %bylist.get("missing") { Some(@bm) { count(@bm) } None { -1 } })  # -1
+
+    # Map[Str, Map[Str, Float]] value -> Option[Map[Str, Float]]: nested map value.
+    %fnest = {"p": {"a": 1.5, "b": 2.5}, "q": {"c": 3.5}}
+    print(match %fnest.get("p") { Some(%fi) { count(keys(%fi)) } None { -1 } })  # 2
+
+    # find over List[List[Float]]: the matched row is itself a List[Float].
+    print(match @grid.find(sub(@g) { @g.count() == 1 }) { Some(@gr) { count(@gr) } None { -1 } })  # 1
+
+    # find over List[Map[Str, Bool]]: the matched row is a Map[Str, Bool].
+    @bmaps = [{"a": true}, {"b": false, "c": true}]
+    print(match @bmaps.find(sub(%bp) { %bp.keys().count() == 2 }) { Some(%bm) { count(keys(%bm)) } None { -1 } })  # 2
+
+    # Discarded carrier results across Float/Bool leaves must free their +1, not leak.
+    @grid.get(0)
+    @flags.get(0)
+    %bylist.get("x")
+    %fnest.get("p")
+    print(0)
+}

@@ -1,0 +1,31 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-8 compiler codegen fixture.
+# Pins the per-enum Option[<enum>] carrier when it appears as a CLASS field:
+# the `guji_opt_<Enum>` tagged typedef, the wrapping class member, Some/None
+# constructor literals, field-read retain, and tag-guarded transitive class RC.
+# Needles are single-quoted RAW strings so literal braces are not interpolation.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, '} guji_opt_Piece;'))
+            print(has_text($c, 'guji_opt_Piece f0;'))
+            print(has_text($c, '(guji_opt_Piece){1LL, (Piece){'))
+            print(has_text($c, '(guji_opt_Piece){0LL, (Piece){0}}'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_release_Piece_fields(&p->f0.val); }'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_retain_Piece_fields(&p->f0.val); }'))
+            print(has_text($c, 'if (gp0.f0.tag != 0LL) { guji_retain_Piece_fields(&gp0.f0.val); }'))
+            print(has_text($c, 'go0 = gp0.f0;'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

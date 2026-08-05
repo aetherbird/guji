@@ -1,0 +1,21 @@
+# P1c-b-2b (§7.4): a lambda that CAPTURES an enclosing Str local. Native lays the
+# genv_* struct out with Str fields FIRST, allocates guji_alloc(GUJI_KIND_ENV,
+# <str_count>, ...), retains each captured Str into the env, and guji_drop_env
+# releases exactly the leading Str slots when the last fn value holding the env
+# dies. This slice mirrors that: two closures each capture the SAME Str (plus
+# scalars, so the Str-first ordering matters), which exercises the env
+# retain/release balance across two independent envs. The heap `~` string proves
+# the counting is real (not masked by an immortal literal). The captured Str is
+# read borrowed via genv->capN; the body return stays Int (non-Int lambda returns
+# remain the last P1c-b-2b piece).
+sub main(): Int {
+    $prefix = "cou" ~ "nt"
+    $base = 100
+    $flag = true
+    $f = sub($n: Int): Int { if $flag { if $prefix == "count" { $n + $base } else { $n } } else { 0 } }
+    print("{ $f(5) }")
+    print("{ $f(7) }")
+    $g = sub($n: Int): Int { if $prefix == "nope" { $n } else { 0 - $n } }
+    print("{ $g(3) }")
+    $f(0) + $g(10)
+}

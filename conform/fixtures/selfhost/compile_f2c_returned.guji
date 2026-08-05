@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 4b F2c compiler codegen fixture.
+# The stdin source matches over an enum returned from a user sub; compile_program_c
+# must accept it instead of declining the enum-returning signature.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static Msg gf_mk"))
+            print(has_text($c, "guji_release_Msg_fields"))
+            print(has_text($c, "gf_mk()"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

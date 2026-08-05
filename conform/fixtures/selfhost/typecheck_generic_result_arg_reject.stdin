@@ -1,0 +1,13 @@
+# P5b-2b(e-result): a bare Ok constructor in argument position leaves the error
+# type free (Result[Int, E]), so it cannot satisfy Result[T, Str].
+sub or_def[T]($r: Result[T, Str], $default: T): T {
+    match $r {
+        Ok($v) { $v }
+        Err($e) { $default }
+    }
+}
+
+sub main() {
+    $x = or_def(Ok(5), 0)
+    print($x)
+}

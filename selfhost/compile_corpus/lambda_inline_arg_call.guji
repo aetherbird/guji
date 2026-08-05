@@ -1,0 +1,11 @@
+# P1c-b-2b-2a (§7.4): direct inline lambda literals may be passed to a
+# function-valued parameter. The capturing lambda's fresh env is unbound, so
+# codegen must release it after the call rather than waiting for a local binding.
+sub apply($f, $x: Int): Int { $f($x) }
+
+sub main(): Int {
+    $base = 4
+    $a = apply(sub($n: Int): Int { $n + $base }, 6)
+    $b = apply(sub($n: Int): Int { $n * 3 }, 7)
+    $a + $b
+}

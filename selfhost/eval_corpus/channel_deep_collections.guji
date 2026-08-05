@@ -1,0 +1,41 @@
+# Recursive List/Map channel element graphs are first-class Guji values. This
+# executes all five shapes that the archived Go backend historically declined.
+sub main(): Int {
+    @cube: List[List[List[Int]]] = [[[1, 2], [3]], [[4]]]
+    $cube_ch: Chan[List[List[List[Int]]]] = channel(1)
+    $cube_ch.send(@cube)
+    @cube_got = $cube_ch.recv().unwrap()
+    print(@cube_got[0][0][1] + @cube_got[1][0][0])
+
+    @list_map: List[Map[Str, Int]] = [{"a": 5}, {"b": 6}]
+    $list_map_ch: Chan[List[Map[Str, Int]]] = channel(1)
+    $list_map_ch.send(@list_map)
+    @list_map_got = $list_map_ch.recv().unwrap()
+    print(@list_map_got[0]{"a"} + @list_map_got[1]{"b"})
+
+    %map_lists: Map[Str, List[List[Int]]] = {"rows": [[7, 8], [9]]}
+    $map_lists_ch: Chan[Map[Str, List[List[Int]]]] = channel(1)
+    $map_lists_ch.send(%map_lists)
+    %map_lists_got = $map_lists_ch.recv().unwrap()
+    print(%map_lists_got{"rows"}[0][1] + %map_lists_got{"rows"}[1][0])
+
+    %map_map_list: Map[Str, Map[Str, List[Int]]] = {
+        "outer": {"items": [10, 11]}
+    }
+    $map_map_list_ch: Chan[Map[Str, Map[Str, List[Int]]]] = channel(1)
+    $map_map_list_ch.send(%map_map_list)
+    %map_map_list_got = $map_map_list_ch.recv().unwrap()
+    print(%map_map_list_got{"outer"}{"items"}[0] + %map_map_list_got{"outer"}{"items"}[1])
+
+    %map_cube: Map[Str, Map[Str, Map[Str, Int]]] = {
+        "one": {"two": {"three": 12}}
+    }
+    $map_cube_ch: Chan[Map[Str, Map[Str, Map[Str, Int]]]] = channel(1)
+    $map_cube_ch.send(%map_cube)
+    %map_cube_got = $map_cube_ch.recv().unwrap()
+    print(%map_cube_got{"one"}{"two"}{"three"})
+
+    # Sources remain owned by the sender after each detached send.
+    print(@cube[0][1][0] + @list_map[1]{"b"} + %map_lists{"rows"}[0][0])
+    0
+}

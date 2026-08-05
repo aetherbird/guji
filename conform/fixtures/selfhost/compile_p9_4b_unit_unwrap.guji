@@ -1,0 +1,20 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P9-4b: Result[Unit, Str].unwrap() on write_file emits the native Err-tag
+# panic guard and a void-discard of the Unit Ok payload. The panic-concat
+# pattern is unique to unwrap/expect (not match arms).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "unwrap on Err(") >= 1)
+            print(count_of($c, "(void)(") >= 1)
+            print(count_of($c, "guji_write_file(") == 1)
+            0
+        }
+    }
+}

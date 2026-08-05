@@ -1,0 +1,7 @@
+sub main(): Unit {
+    %base = {"a": "1", "b": "2"}
+    @ks = %base.set("c", "3").keys()
+    print(@ks.count())
+    @vs = %base.remove("a").values()
+    print(@vs.count())
+}

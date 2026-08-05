@@ -1,0 +1,79 @@
+# I10g2: Option/Result channel ops reuse D's WireEnum path for flat scalar/Str
+# arms. Pins Some/None vs closed, Result Ok/Err, Option[Str] for-drain (C's
+# admitted carrier-for shape), and select over Option[Str]/Result[Int,Str].
+# Heap Str payloads prove copy-on-send leaves the source local intact.
+# Bind recv carriers before unwrap — C declines deep call chains on carriers.
+sub ok_int($n: Int): Result[Int, Str] { Ok($n) }
+sub err_str($s: Str): Result[Int, Str] { Err($s) }
+
+sub main(): Int {
+    $opts: Chan[Option[Int]] = channel(3)
+    $o1: Option[Int] = Some(7)
+    $o2: Option[Int] = None
+    $o3: Option[Int] = Some(11)
+    $opts.send($o1)
+    $opts.send($o2)
+    $opts.send($o3)
+    $opts.close()
+    $a = $opts.recv().unwrap()
+    print($a.unwrap())
+    $b = $opts.recv().unwrap()
+    print(match $b { Some($n) { $n } None { 0 } })
+    $c = $opts.recv().unwrap()
+    print($c.unwrap())
+    $drained = $opts.recv()
+    print($drained.is_none())
+
+    $res: Chan[Result[Int, Str]] = channel(2)
+    $ok = ok_int(42)
+    $err = err_str("ba" ~ "d")
+    $res.send($ok)
+    $res.send($err)
+    $res.close()
+    $got = $res.recv().unwrap()
+    print($got.unwrap())
+    $got2 = $res.recv().unwrap()
+    print(match $got2 {
+        Ok($n) { "{ $n }" }
+        Err($e) { $e }
+    })
+    print($ok.unwrap())
+
+    $strs: Chan[Option[Str]] = channel(3)
+    $s1: Option[Str] = Some("al" ~ "pha")
+    $s2: Option[Str] = None
+    $s3: Option[Str] = Some("be" ~ "ta")
+    $strs.send($s1)
+    $strs.send($s2)
+    $strs.send($s3)
+    $strs.close()
+    mut $joined = ""
+    for $item in $strs {
+        $joined = $joined ~ (match $item {
+            Some($s) { $s }
+            None { "-" }
+        })
+    }
+    print($joined)
+    print($s1.unwrap())
+
+    $ready: Chan[Option[Str]] = channel(1)
+    $idle: Chan[Result[Int, Str]] = channel()
+    $wake: Option[Str] = Some("go" ~ "!")
+    $ready.send($wake)
+    select {
+        $got = $ready.recv() {
+            $inner = $got.unwrap()
+            print($inner.unwrap())
+        }
+        $got = $idle.recv() {
+            print("wrong result first")
+        }
+        else { print("wrong else") }
+    }
+    select {
+        $got = $ready.recv() { print("wrong drained") }
+        else { print("idle") }
+    }
+    0
+}

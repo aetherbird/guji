@@ -1,0 +1,64 @@
+# Section 17 hatch capture of Str-payload enum bindings (H4c-rest slice).
+#
+# The prior slice (hatch_enum_scalar_capture) only allowed enums whose variants
+# carry uncounted scalars — those are flat structs with no heap pointers, so a
+# struct copy detaches them. An enum with a Str payload is still a flat by-value
+# struct, but its Str fields are counted heap pointers; a bare struct copy would
+# ALIAS the parent heap, sharing pointers with a child task under non-atomic
+# per-task RC. hatchCopyEnum struct-copies then guji_str_copy's each active Str
+# field, so the task owns a fully detached value, and the child releases those
+# copies (guji_release_<E>_fields) at task exit — leak/UAF-clean.
+#
+# Deterministic: each hatch sends exactly one Str over its OWN unbuffered channel
+# and the parent recvs in a fixed order, so the output has no scheduling freedom.
+enum Msg {
+    Greeting($name: Str)
+    Code($n: Int)
+    Tagged($tag: Str, $n: Int)
+}
+
+sub main(): Int {
+    $greet = Greeting("world")
+    $tag = Tagged("err", 7)
+    $code = Code(42)
+    $greetCh: Chan[Str] = channel(0)
+    $tagCh: Chan[Str] = channel(0)
+    $codeCh: Chan[Str] = channel(0)
+
+    # Capture a Str-payload variant and decode it inside the task.
+    hatch {
+        mut $s = ""
+        $s = match $greet {
+            Greeting($name) { "hello { $name }" }
+            Code($n) { "code { $n }" }
+            Tagged($t, $n) { "{ $t }:{ $n }" }
+        }
+        $greetCh.send($s)
+    }
+    # Capture a mixed Str+scalar payload variant.
+    hatch {
+        mut $s = ""
+        $s = match $tag {
+            Greeting($name) { "hello { $name }" }
+            Code($n) { "code { $n }" }
+            Tagged($t, $n) { "{ $t }:{ $n }" }
+        }
+        $tagCh.send($s)
+    }
+    # A scalar-only variant of a Str-bearing enum still routes through the
+    # Str-copy path (the enum needs helpers because another variant carries Str).
+    hatch {
+        mut $s = ""
+        $s = match $code {
+            Greeting($name) { "hello { $name }" }
+            Code($n) { "code { $n }" }
+            Tagged($t, $n) { "{ $t }:{ $n }" }
+        }
+        $codeCh.send($s)
+    }
+
+    print($greetCh.recv().unwrap())
+    print($tagCh.recv().unwrap())
+    print($codeCh.recv().unwrap())
+    0
+}

@@ -1,0 +1,11 @@
+# List-literal receivers for lambda transforms: this pins the native lowering
+# path that materializes an intermediate list before binding it.
+sub main(): Int {
+    @mapped = [1, 2].map({ $_ + 10 })
+    print("mapped: { @mapped[0] },{ @mapped[1] }")
+
+    @filtered = [1, 2, 3, 4].filter({ $_ % 2 == 0 })
+    print("filtered: { @filtered[0] },{ @filtered[1] }")
+
+    0
+}

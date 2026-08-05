@@ -1,0 +1,90 @@
+# P5b-2b-nested-for-cleanup: nested `for` under an enclosing loop that owns
+# cleanup (an outer iterator slice, a map temp + its order array). Early `?`
+# returns and guard `return`s from inside the inner body must release the
+# INNER loop's own storage first, then every enclosing iterator, then owned
+# locals — while fall-through paths release only each loop's own storage.
+sub check($n: Int): Result[Int, Str] {
+    if $n < 0 { Err("neg" ~ "!") } else { Ok($n * 2) }
+}
+
+# map-value iterator (order array + owned map temp) nested in a list iterator,
+# with owned Str locals in both bodies live across the `?` early return.
+sub grid($cut: Int): Result[Int, Str] {
+    mut $sum = 0
+    for $s in ["a" ~ "x", "b" ~ "y"] {
+        $pre = $s ~ "!"
+        for $k, $v in {"m1": 1, "m2": $cut} {
+            $tag = $pre ~ $k
+            $w = check($v)?
+            print($tag)
+            $sum = $sum + $w
+        }
+    }
+    Ok($sum)
+}
+
+# three levels: list -> list -> range; the range loop owns nothing, so its
+# early return carries exactly the two outer slice releases.
+sub deep($cut: Int): Result[Int, Str] {
+    mut $sum = 0
+    for $a in [1, 2] {
+        for $b in [3, $cut] {
+            for $c in 0 .. 1 {
+                $v = check($a + $b + $c)?
+                $sum = $sum + $v
+            }
+        }
+    }
+    Ok($sum)
+}
+
+# plain guard `return` from an inner list loop: full-env release includes the
+# outer body's owned Str, plus both iterator slices.
+sub first_over($limit: Int): Int {
+    for $a in [1, 5, 9] {
+        $ax = "a" ~ "!"
+        for $b in [10, 20] {
+            if $a + $b > $limit {
+                print($ax)
+                return $a + $b
+            }
+        }
+    }
+    0 - 1
+}
+
+# depth-3 nested map iteration over borrowed collection rows (fall-through
+# only): each level owns an order array released per fall-through.
+sub depth3(): Int {
+    %m = {"a": {"b": {"c": 1, "d": 2}}, "e": {"f": {"g": 3}}}
+    mut $sum = 0
+    for $k, %r in %m {
+        for $k2, %c in %r {
+            for $k3, $v in %c {
+                $sum = $sum + $v
+            }
+        }
+    }
+    $sum
+}
+
+sub main(): Int {
+    match grid(5) {
+        Ok($n) { print("grid ok { $n }") }
+        Err($e) { print("grid err { $e }") }
+    }
+    match grid(0 - 7) {
+        Ok($n) { print("grid ok { $n }") }
+        Err($e) { print("grid err { $e }") }
+    }
+    match deep(4) {
+        Ok($n) { print("deep ok { $n }") }
+        Err($e) { print("deep err { $e }") }
+    }
+    match deep(0 - 9) {
+        Ok($n) { print("deep ok { $n }") }
+        Err($e) { print("deep err { $e }") }
+    }
+    print(first_over(100))
+    depth3() + first_over(25)
+}

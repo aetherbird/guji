@@ -1,0 +1,26 @@
+# Section 17 channel copy-on-send for Map[Str, List[scalar/Str]] values.
+#
+# The message graph must be fully detached: outer keys/values are copied, each
+# nested list row gets fresh backing storage, and Str rows copy their elements.
+# A second buffered send is intentionally undrained so guji_chan_drop_map must
+# release the copied ARR_SLICE value array under the sanitizer gate.
+
+sub main(): Unit {
+    $ints: Chan[Map[Str, List[Int]]] = channel(2)
+    %scores = {"evens": [2, 4], "odds": [1, 3]}
+    %dropints = {"unused": [9, 10]}
+    $ints.send(%scores)
+    $ints.send(%dropints)
+
+    %got = $ints.recv().unwrap()
+    print(%got{"evens"}[0] + %got{"evens"}[1] + %got{"odds"}[1])
+
+    $words: Chan[Map[Str, List[Str]]] = channel(2)
+    %names = {"primary": ["ada", "grace"], "backup": ["lin"]}
+    %dropwords = {"unused": ["drop", "me"]}
+    $words.send(%names)
+    $words.send(%dropwords)
+
+    %seen = $words.recv().unwrap()
+    print(%seen{"primary"}[0] ~ "/" ~ %seen{"backup"}[0])
+}

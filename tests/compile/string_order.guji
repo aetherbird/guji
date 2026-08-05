@@ -1,0 +1,10 @@
+# Covers Stage T2b binary scalar typing: string ordering operators are checked
+# as Bool and native codegen must match the interpreter's lexicographic result.
+sub main(): Int {
+    $a = "ant" < "bee"
+    $b = "cat" <= "cat"
+    $c = "dog" > "cat"
+    $d = "eel" >= "fox"
+    print("{ $a } { $b } { $c } { $d }")
+    if $a && $b && $c && !$d { 0 } else { 1 }
+}

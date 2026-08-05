@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P9-6b List[Map] index method chains.
+# Pins the shallow borrowed guji_map_t assign from list data[i] (no retain on
+# the index hop) plus guji_map_order for the values() projection.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = ((guji_map_t*)"))
+            print(has_text($c, "guji_map_order("))
+            print(has_text($c, ".keys"))
+            print(has_text($c, ".vals"))
+            print(has_text($c, ".len"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

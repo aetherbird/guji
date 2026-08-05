@@ -1,0 +1,6 @@
+# §17.3: send takes exactly one payload argument after its receiver.
+sub main(): Int {
+    $ch: Chan[Int] = channel()
+    $ch.send()
+    0
+}

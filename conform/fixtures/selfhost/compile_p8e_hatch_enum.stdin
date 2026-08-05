@@ -1,0 +1,52 @@
+enum Signal {
+    Code($n: Int)
+    Ratio($x: Float)
+}
+
+enum Packet {
+    Data($tag: Str, @nums: List[Int], %labels: Map[Str,Str])
+    Empty
+}
+
+enum Tree {
+    Leaf($name: Str)
+    Node($left: Tree, $right: Tree)
+}
+
+sub tree_names($tree: Tree): Str {
+    match $tree {
+        Leaf($name) { $name }
+        Node($left, $right) { tree_names($left) ~ tree_names($right) }
+    }
+}
+
+sub main(): Int {
+    $signal = Code(7)
+    $packet = Data("t" ~ "ag", [2, 3], {"k": "v" ~ "!"})
+    $tree = Node(Leaf("l"), Leaf("r"))
+    $ich: Chan[Int] = channel(0)
+    $sch: Chan[Str] = channel(0)
+    $tch: Chan[Str] = channel(0)
+    hatch {
+        match $signal {
+            Code($n) { $ich.send($n) }
+            Ratio($x) { $ich.send(0) }
+        }
+    }
+    hatch {
+        match $packet {
+            Data($tag, @nums, %labels) {
+                $label_value = %labels{"k"}
+                $sch.send("$tag:{ @nums[0] + @nums[1] }:$label_value")
+            }
+            Empty { $sch.send("empty") }
+        }
+    }
+    hatch {
+        $tch.send(tree_names($tree))
+    }
+    print($ich.recv().unwrap())
+    print($sch.recv().unwrap())
+    print($tch.recv().unwrap())
+    0
+}

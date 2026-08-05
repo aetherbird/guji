@@ -1,0 +1,44 @@
+# gujiconform - EB-2 typedef TOPOLOGICAL ordering fixture.
+# Each enum embeds a class declared LATER in source order BY VALUE (a homogeneous
+# variant position). Source-order typedef emission would place the enum struct -- with a
+# by-value class member -- before that class's typedef, an incomplete C type. EB-2 emits
+# the type typedefs (and, in lockstep, the drop-table entries) in by-value-dependency
+# order, so each embedded class precedes the enum that embeds it. Native accepts the
+# shape, so it is also covered three-way by selfhost/compile_corpus/enum_embeds_later_class.guji;
+# here we pin the GENERATED-C ORDER: `struct Point` is defined before `struct Boxed`, and
+# `struct Size` before `struct Tagged`, even though the source declares the enums first.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# True iff $first appears before the first occurrence of $second in $s (the text
+# preceding the first $second contains $first).
+sub before($s: Str, $first: Str, $second: Str): Bool {
+    @parts = split($s, $second)
+    if @parts.count() < 2 {
+        false
+    } else {
+        has_text(@parts[0], $first)
+    }
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(before($c, "struct Point \{", "struct Boxed \{"))
+            print(before($c, "struct Size \{", "struct Tagged \{"))
+            print(has_text($c, "Point f0;"))
+            print(has_text($c, "Size f0;"))
+            print(has_text($c, "guji_release_Point_fields(&p->f0);"))
+            print(has_text($c, "guji_release_Size_fields(&p->f0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

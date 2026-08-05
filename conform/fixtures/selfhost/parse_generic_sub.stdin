@@ -1,0 +1,9 @@
+sub first[T](@xs: List[T]): Option[T] {
+    if @xs.is_empty() { None } else { Some(@xs[0]) }
+}
+
+class Box[T] {
+    has $.value: T
+
+    sub wrap($v: T): Box[T] = Box(value: $v)
+}

@@ -1,0 +1,1 @@
+description: selfhost codegen hoists a right-operand ? guard when the left operand is a non-pure but side-effect-free call or ~ concat

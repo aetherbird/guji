@@ -1,0 +1,95 @@
+# P8d-2c-3c-13: collection-payload enums cross channels as deep-detached
+# messages. Pack's mixed first slot proves union `.l`/`.m` access; Row's
+# homogeneous list slot proves the plain-member detach; senders stay live.
+enum Pack {
+    Nums(@xs: List[Int])
+    Words(@ws: List[Str])
+    Table(%m: Map[Str,Int])
+    Env(%e: Map[Str,Str])
+    Flags(@bs: List[Bool])
+    Tag($n: Int)
+}
+
+enum Row {
+    Named($name: Str, @vals: List[Float])
+    Anon($tag: Int, @vals: List[Float])
+}
+
+sub show_pack($p: Pack): Str {
+    match $p {
+        Nums(@xs) {
+            $a = @xs[0]
+            $b = @xs[2]
+            "nums:$a,$b"
+        }
+        Words(@ws) {
+            $w = @ws[1]
+            "words:$w"
+        }
+        Table(%m) {
+            $v = %m{"k2"}
+            "table:$v"
+        }
+        Env(%e) {
+            $s = %e{"a"}
+            "env:$s"
+        }
+        Flags(@bs) {
+            if @bs[0] { "flags:t" } else { "flags:f" }
+        }
+        Tag($n) { "tag:$n" }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Pack] = channel(8)
+    $src: Pack = Nums([1, 2, 3])
+    $ch.send($src)
+    $ch.send(Words(["alpha" ~ "-w", "beta" ~ "-w"]))
+    $ch.send(Table({"k1": 10, "k2": 20}))
+    $ch.send(Env({"a": "x" ~ "-e"}))
+    $ch.send(Flags([true, false]))
+    $ch.send(Tag(7))
+
+    $got = $ch.recv().unwrap()
+    print(show_pack($got))
+    $held = $ch.recv()
+    $got2 = $held.unwrap()
+    print(show_pack($got2))
+    $got3 = unwrap($ch.recv())
+    print(show_pack($got3))
+    $got4 = $ch.recv().unwrap()
+    print(show_pack($got4))
+    $got5 = $ch.recv().unwrap()
+    print(show_pack($got5))
+    print(show_pack($src))
+
+    # Tag(7) stays buffered so channel destruction runs guji_chan_drop_Pack;
+    # a rejected send after close detaches then drops the same way.
+    $late: Chan[Pack] = channel(1)
+    $late.send(Words(["undelivered" ~ "-x"]))
+    $late.close()
+    $late.send(Nums([9, 9]))
+
+    $rows: Chan[Row] = channel(2)
+    $rsrc: Row = Named("row" ~ "-one", [1.5, 2.25])
+    $rows.send($rsrc)
+    $rows.send(Anon(4, [0.5]))
+    $rgot = $rows.recv().unwrap()
+    match $rgot {
+        Named($name, @vals) {
+            $f = @vals[1]
+            print("named:$name/$f")
+        }
+        Anon($tag, @vals) { print("anon:$tag") }
+    }
+    match $rsrc {
+        Named($name, @vals) {
+            $f0 = @vals[0]
+            print("rsrc:$name/$f0")
+        }
+        Anon($tag, @vals) { print("rsrc-gone") }
+    }
+    # Anon stays buffered for the Row drop hook.
+    0
+}

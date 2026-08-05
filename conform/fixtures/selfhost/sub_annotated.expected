@@ -1,0 +1,1 @@
+Program(decls=[Sub(public=true,name="add",params=[Param(name="$a",type=Some(Type(name="Int",args=[]))),Param(name="$b",type=Some(Type(name="Int",args=[])))],ret=Some(Type(name="Int",args=[])),body=BlockBody(stmts=[Return(value=Some(Binary(op="+",left=Name(value="$a"),right=Name(value="$b"))))]))])

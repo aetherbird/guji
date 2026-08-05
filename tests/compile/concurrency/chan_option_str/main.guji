@@ -1,0 +1,37 @@
+# Chan[Option[Str]] -- the first COUNTED Option carrier payload over a channel
+# (H4c-rest, sec 17). Sends are copy-on-send (the Some Str is deep-copied into a
+# detached message); recv adopts the channel's private copy. The 4th message is
+# left buffered and never received, so channel release must drop the undelivered
+# Some("zz") via guji_chan_drop_opt_str -- exercising the elem_drop under
+# LeakSanitizer. Expected output: hi / none / yo.
+sub main(): Int {
+    $ch: Chan[Option[Str]] = channel(4)
+    $some: Option[Str] = Some("hi")
+    $none: Option[Str] = None
+    $more: Option[Str] = Some("yo")
+    $extra: Option[Str] = Some("zz")
+
+    $ch.send($some)
+    $ch.send($none)
+    $ch.send($more)
+    $ch.send($extra)
+
+    # recv() yields Option[Option[Str]]: outer Some = a message arrived, inner is
+    # the sent Option[Str]. unwrap() peels the outer presence wrapper.
+    $first = $ch.recv().unwrap()
+    print($first.unwrap())
+
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Some($s) { $s }
+        None { "none" }
+    })
+
+    $third = $ch.recv().unwrap()
+    print(match $third {
+        Some($s) { $s }
+        None { "none" }
+    })
+
+    0
+}

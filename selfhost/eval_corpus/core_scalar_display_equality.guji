@@ -1,0 +1,29 @@
+# I2a: each core scalar's display plus ==/!=. Equivalent Float spellings and
+# signed zero pin numeric IEEE-754 identity rather than source-text identity.
+sub main(): Unit {
+    print(42)
+    print(-7)
+    print(1.5)
+    print(2.0)
+    print(1e3)
+    print(1000000.0)
+    print(0.0001)
+    print(0.00001)
+    print(-0.0)
+    print(true)
+    print(false)
+    print("guji")
+    print(())
+
+    print(42 == 42)
+    print(42 != 7)
+    print(1e3 == 1000.0)
+    print(-0.0 == 0.0)
+    print(1.5 != 2.5)
+    print("guji" == "guji")
+    print("guji" != "Guji")
+    print(true == true)
+    print(false != true)
+    print(() == ())
+    print((1 == 1) == true)
+}

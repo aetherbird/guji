@@ -1,0 +1,36 @@
+# Spec 13.3-13.4: group zero, positional/named captures, nonparticipation, and
+# run-time absence for a dynamically compiled pattern.
+sub show($capture: Option[Str]): Str {
+    match $capture {
+        Some($text) { "some:" ~ $text }
+        None { "none" }
+    }
+}
+
+sub main(): Int {
+    match "ab" ~~ /^(?<first>a)(b)?$/ {
+        Some($m) {
+            print("zero=" ~ $m[0].unwrap_or("missing"))
+            print("one=" ~ $m[1].unwrap_or("missing"))
+            print("two=" ~ $m[2].unwrap_or("missing"))
+            print("named=" ~ $m<first>.unwrap_or("missing"))
+        }
+        None { print("no-match") }
+    }
+
+    match "a" ~~ /^(a)(b)?$/ {
+        Some($m) { print("nonparticipating=" ~ show($m[2])) }
+        None { print("no-optional-match") }
+    }
+
+    $dynamic = Regex.compile("^(?<known>x)$").unwrap()
+    match "x" ~~ $dynamic {
+        Some($m) {
+            $outside = 9
+            print("computed-missing=" ~ show($m[$outside]))
+            print("named-missing=" ~ show($m<missing>))
+        }
+        None { print("no-dynamic-match") }
+    }
+    0
+}

@@ -1,0 +1,17 @@
+# C08d: interpolation markers containing `?` run left to right and stop on propagation.
+sub item($tag: Int, $ok: Bool): Result[Int, Str] {
+    print($tag)
+    if $ok { Ok($tag) } else { Err("stopped { $tag }") }
+}
+
+sub build(): Result[Str, Str] {
+    Ok("values { item(301, true)? } { item(302, false)? } { item(303, true)? }")
+}
+
+sub main(): Int {
+    match build() {
+        Ok($text) { print($text) }
+        Err($e) { print($e) }
+    }
+    0
+}

@@ -1,0 +1,18 @@
+# P2b-3c-3 first sub-slice: one-level nested list values.
+# Covers literal binding, row count, row binding, nested-list copy, chained
+# scalar indexing, and Str row ownership through the ARR_SLICE deep-drop path.
+sub main(): Int {
+    @m = [[1, 2], [3, 4, 5], [6]]
+    print("outer { @m.count() }")
+    print("inner { @m[1].count() }")
+    @row = @m[2]
+    print("row { @row.count() }/{ @row[0] }")
+    @copy = @m
+    print("copy { @copy[0][1] }")
+
+    @words = [["a", "b"], ["c"]]
+    @word_row = @words[0]
+    print("word { @word_row[1] }/{ @words[1][0] }")
+
+    @m[1][2]
+}

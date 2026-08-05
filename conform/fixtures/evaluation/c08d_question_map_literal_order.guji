@@ -1,0 +1,26 @@
+# C08d: map entries evaluate key then value, and `?` skips every later entry.
+sub key($tag: Int, $text: Str): Str {
+    print($tag)
+    $text
+}
+
+sub item($tag: Int, $ok: Bool): Result[Int, Str] {
+    print($tag)
+    if $ok { Ok($tag) } else { Err("stopped { $tag }") }
+}
+
+sub build(): Result[Map[Str, Int], Str] {
+    Ok({
+        key(201, "a"): item(202, true)?,
+        key(203, "b"): item(204, false)?,
+        key(205, "c"): item(206, true)?
+    })
+}
+
+sub main(): Int {
+    match build() {
+        Ok(%items) { print(%items) }
+        Err($e) { print($e) }
+    }
+    0
+}

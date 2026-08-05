@@ -1,0 +1,9 @@
+sub f($x: Int): Int {
+    match $x {
+        $n if $n == 1 || $n == 2 { 7 }
+        _ { 0 }
+    }
+}
+sub main(): Int {
+    f(1) + f(2) + f(3)
+}

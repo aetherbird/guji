@@ -1,0 +1,8 @@
+sub good($s: Str): Result[Str, Str] { Ok($s ~ "!") }
+sub bad($s: Str): Result[Str, Str] { Err($s ~ "?") }
+
+sub main(): Int {
+    mut $r: Result[Str, Str] = good("one")
+    $r = bad("two")
+    match $r { Ok($s) { print($s) 1 } Err($e) { print($e) 2 } }
+}

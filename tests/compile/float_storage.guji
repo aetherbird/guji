@@ -1,0 +1,41 @@
+# Float storage surfaces: class fields, List[Float], Map[Str, Float], and
+# Option/Result Float payloads should preserve native double values.
+class Reading {
+    has $.temp: Float
+
+    sub adjusted($self, $delta: Float): Float {
+        $self.temp + $delta
+    }
+}
+
+sub maybe_temp(): Option[Float] {
+    Some(4.5)
+}
+
+sub checked_temp(): Result[Float, Str] {
+    Ok(2.25)
+}
+
+sub main(): Unit {
+    $r = Reading(temp: 20.25)
+    print($r.temp)
+    print($r.adjusted(0.75))
+
+    @temps = [1.25, 2.5, 3.75]
+    print(@temps[1])
+    for $t in @temps {
+        print($t + 0.5)
+    }
+
+    %temps = { "low": 1.5, "high": 9.25 }
+    print(%temps{"high"})
+    for $name, $v in %temps {
+        print("$name=$v")
+    }
+
+    print(maybe_temp().unwrap())
+    match checked_temp() {
+        Ok($v) { print($v) }
+        Err($e) { print($e) }
+    }
+}

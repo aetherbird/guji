@@ -1,0 +1,13 @@
+# §6.3 while: reassignment to outer `mut` bindings persists across iterations and
+# the final main-frame dump reflects the post-loop state. Sums 0..4.
+sub main(): Int {
+    mut $i = 0
+    mut $sum = 0
+    while $i < 5 {
+        $sum = $sum + $i
+        $i = $i + 1
+    }
+    print($sum)
+    print($i)
+    0
+}

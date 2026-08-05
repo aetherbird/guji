@@ -1,0 +1,4 @@
+sub main(): Int {
+    $items: Map[Str, Int] = {"one": 1}
+    0
+}

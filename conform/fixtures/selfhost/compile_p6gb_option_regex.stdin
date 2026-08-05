@@ -1,0 +1,22 @@
+sub pick($o: Option[Regex]): Regex {
+    match $o {
+        Some($rx) { $rx }
+        None { Regex.literal("fallback") }
+    }
+}
+
+sub main(): Int {
+    $some: Option[Regex] = Some(Regex.literal("q.z"))
+    print(match $some {
+        Some($rx) { $rx }
+        None { Regex.literal("none") }
+    })
+    $none: Option[Regex] = None
+    print(match $none {
+        Some($rx) { $rx }
+        None { Regex.literal("none") }
+    })
+    print(pick($some))
+    print(pick($none))
+    0
+}

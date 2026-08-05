@@ -1,0 +1,16 @@
+sub main(): Int {
+    @parts = "red,green,blue".split(",")
+    print(@parts.count())
+    print(@parts[1])
+    print(split("a--b--", "--").join("|"))
+    print("åb".split("").join(":"))
+
+    @lines = "one\ntwo\nthree\n".lines()
+    print(@lines.count())
+    for $line in @lines {
+        print($line.upper())
+    }
+
+    print("c,b,a".split(",").sort().join(""))
+    0
+}

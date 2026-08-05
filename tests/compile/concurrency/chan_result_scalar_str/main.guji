@@ -1,0 +1,39 @@
+# Chan[Result[Int, Str]] -- first Result carrier channel slice (H4c-rest, sec 17).
+# Sends are copy-on-send: the active Err(Str) arm is deep-copied into a detached
+# message. recv adopts the channel-owned carrier, and the final buffered Err is
+# intentionally left undelivered so elem_drop must release it under LeakSanitizer.
+# Expected output: 7 / bad / 9.
+sub ok_int($n: Int): Result[Int, Str] { Ok($n) }
+sub err_str($s: Str): Result[Int, Str] { Err($s) }
+
+sub main(): Int {
+    $ch: Chan[Result[Int, Str]] = channel(4)
+    $ok = ok_int(7)
+    $err = err_str("bad")
+    $more = ok_int(9)
+    $extra = err_str("drop")
+
+    $ch.send($ok)
+    $ch.send($err)
+    $ch.send($more)
+    $ch.send($extra)
+
+    # recv() yields Option[Result[Int, Str]]: outer Some = a message arrived,
+    # inner Result preserves the channel payload.
+    $first = $ch.recv().unwrap()
+    print($first.unwrap())
+
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Ok($n) { "{ $n }" }
+        Err($e) { $e }
+    })
+
+    $third = $ch.recv().unwrap()
+    print(match $third {
+        Ok($n) { "{ $n }" }
+        Err($e) { $e }
+    })
+
+    0
+}

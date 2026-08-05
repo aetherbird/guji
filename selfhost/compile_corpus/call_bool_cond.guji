@@ -1,0 +1,6 @@
+sub even($n: Int): Bool {
+    $n % 2 == 0
+}
+sub main(): Int {
+    if even(4) { 1 } else { 0 }
+}

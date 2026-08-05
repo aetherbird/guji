@@ -1,0 +1,52 @@
+# P7c-2b-2a: direct Grammar.parse owns Option[Bush]; match-arm Bush bindings
+# borrow it, capture access retains a child carrier, and prefix-only parses drop
+# their orphaned TOP node.
+grammar Pair {
+    rule TOP { <left> ':' <right> }
+    token left { [a-z]+ }
+    token right { [a-z]+ }
+}
+
+grammar Pick {
+    rule TOP { <left> | <right> }
+    token left { l }
+    token right { r }
+}
+
+sub main(): Int {
+    $parsed = Pair.parse("alpha:beta")
+    match $parsed {
+        Some($b) {
+            print($b.text)
+            $left = $b<left>
+            match $left {
+                Some($l) { print($l.text) }
+                None { print("missing-left") }
+            }
+        }
+        None { print("invalid-pair") }
+    }
+    # A second match proves the first borrowed rather than consumed the carrier.
+    match $parsed {
+        Some($b) { print($b.text) }
+        None { print("lost-pair") }
+    }
+    match Pair.parse("alpha:beta!") {
+        Some($b) { print("accepted-prefix") }
+        None { print("partial-rejected") }
+    }
+    match Pick.parse("r") {
+        Some($b) {
+            match $b<left> {
+                Some($l) { print("wrong-left") }
+                None { print("no-left") }
+            }
+            match $b<right> {
+                Some($r) { print($r.text) }
+                None { print("missing-right") }
+            }
+        }
+        None { print("invalid-pick") }
+    }
+    0
+}

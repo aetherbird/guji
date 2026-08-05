@@ -1,0 +1,6 @@
+sub main(): Unit {
+    mut @xs = [1, 2, 3].reverse()
+    @keep = @xs
+    @xs = @xs.map({ $_ + 10 })
+    print("{ @xs.sum() } { @keep.sum() }")
+}

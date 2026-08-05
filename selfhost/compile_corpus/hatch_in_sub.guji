@@ -1,0 +1,135 @@
+# P8e-6: hatch inside NON-MAIN subs — the P8e-3 discovered gap, closed by the
+# P8e-5 declaration-order fix (helpers emit after user typedefs + sub forwards)
+# and pinned here. Every admitted capture kind spawns from a sub frame: scalar
+# param, heap Str local, List param iterated in-task, Map param indexed in-task,
+# enum param AND enum local matched in-task, a task body calling a helper sub,
+# a class-method hatch reading receiver state, a final-position hatch in a Unit
+# sub capturing a Chan param, and a second hatch-bearing sub (task-name
+# uniqueness across sub frames). Hatch inside a LOOP is deliberately absent:
+# native hoists the env malloc to the function prologue and frees it per task,
+# a use-after-free on iteration 2 (NATIVE_BACKEND_GAPS.md M4).
+enum Signal {
+    Code($n: Int)
+    Ratio($x: Float)
+}
+
+class Doubler {
+    has $.factor: Int
+
+    sub run($self, $x: Int): Int {
+        $ch: Chan[Int] = channel(0)
+        $f = $self.factor
+        hatch {
+            $ch.send($x * $f)
+        }
+        $ch.recv().unwrap()
+    }
+}
+
+sub sig_val($s: Signal): Int {
+    match $s {
+        Code($n) { $n }
+        Ratio($x) { 0 - 1 }
+    }
+}
+
+# Scalar PARAM capture: the task env copies the caller's argument by value.
+sub scalar_worker($n: Int): Int {
+    $ch: Chan[Int] = channel(0)
+    hatch {
+        $ch.send($n * 2)
+    }
+    $ch.recv().unwrap()
+}
+
+# Heap Str LOCAL capture built from a Str param: guji_str_copy into the env.
+sub str_worker($who: Str): Str {
+    $ch: Chan[Str] = channel(0)
+    $msg = "hi " ~ $who
+    hatch {
+        $ch.send($msg)
+    }
+    $ch.recv().unwrap()
+}
+
+# List PARAM capture (slice-form, header-backed): one guji_copy_arr, the task
+# iterates its private copy.
+sub list_worker(@xs: List[Int]): Int {
+    $ch: Chan[Int] = channel(0)
+    hatch {
+        mut $t = 0
+        for $x in @xs {
+            $t = $t + $x
+        }
+        $ch.send($t)
+    }
+    $ch.recv().unwrap()
+}
+
+# Map PARAM capture: paired keys/vals guji_copy_arr, indexed inside the task.
+sub map_worker(%m: Map[Str, Int], $k: Str): Int {
+    $ch: Chan[Int] = channel(0)
+    hatch {
+        $ch.send(%m{$k})
+    }
+    $ch.recv().unwrap()
+}
+
+# Enum PARAM capture matched inside the task (scalar-only enum: struct copy).
+sub enum_worker($s: Signal): Int {
+    $ch: Chan[Int] = channel(0)
+    hatch {
+        match $s {
+            Code($n) { $ch.send($n) }
+            Ratio($x) { $ch.send(0 - 1) }
+        }
+    }
+    $ch.recv().unwrap()
+}
+
+# Enum LOCAL capture whose task body calls a USER SUB — the exact shape the
+# P8e-5 ordering fix unblocked (hatch body needs the sub's forward decl).
+sub enum_local_worker($n: Int): Int {
+    $ch: Chan[Int] = channel(0)
+    $sig = Code($n)
+    hatch {
+        $ch.send(sig_val($sig))
+    }
+    $ch.recv().unwrap()
+}
+
+# FINAL-position hatch in a Unit sub: the spawn is the last statement, the
+# Chan PARAM capture retains and the caller recvs after the sub returns.
+sub fire($ch: Chan[Int], $v: Int): Unit {
+    hatch {
+        $ch.send($v)
+    }
+}
+
+# A second hatch-bearing sub: task names must stay unique across sub frames.
+sub second(): Int {
+    $ch: Chan[Int] = channel(0)
+    $a = 5
+    hatch {
+        $ch.send($a)
+    }
+    $ch.recv().unwrap()
+}
+
+sub main(): Int {
+    print(scalar_worker(21))
+    print(str_worker("bob"))
+    @v = [1, 2, 3, 4]
+    print(list_worker(@v))
+    %prices = { "a": 3, "b": 8 }
+    print(map_worker(%prices, "b"))
+    print(enum_worker(Code(7)))
+    print(enum_local_worker(9))
+    $d = Doubler(factor: 3)
+    print($d.run(14))
+    $done: Chan[Int] = channel(0)
+    fire($done, 33)
+    print($done.recv().unwrap())
+    print(second())
+    0
+}

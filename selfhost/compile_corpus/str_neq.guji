@@ -1,0 +1,3 @@
+sub main(): Int {
+    if "guji" != "compiler" { 2 } else { 0 }
+}

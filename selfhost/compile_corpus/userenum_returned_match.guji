@@ -1,0 +1,12 @@
+# F2c: an enum returned from a user sub can be used directly as a match
+# scrutinee. This was the remaining slice-4b GAP because CgRet had no enum kind.
+enum N { A($v: Int), B }
+
+sub mk(): N { A(7) }
+
+sub main(): Int {
+    match mk() {
+        A($v) { $v }
+        B { 0 }
+    }
+}

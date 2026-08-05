@@ -1,0 +1,33 @@
+# E5d-8f: an UNANNOTATED list binding whose element kind is inferred from a
+# `split(...)` RHS — the real-source `number_kind($text)` shape, whose first
+# statement is `@nc = split($text, "")`. Before E5d-8f the selfhost codegen
+# inferred only `args()`/user-call list bindings, so an unannotated split binding
+# fell through to scalar binding codegen and declined. Native `guji build`
+# supports both `split` and unannotated list bindings, so this is a THREE-WAY case
+# (interp == native == selfhost).
+
+# Mirror of the real lexer's `number_kind`: split the text into chars, read the
+# two-character prefix, and classify. `@nc` has NO type annotation — its element
+# kind (Str) is inferred purely from the `split(...)` value.
+sub two_char_prefix($text: Str): Str {
+    @nc = split($text, "")
+    @nc[0] ~ @nc[1]
+}
+
+# Same inference, then a length-driven branch over the split pieces.
+sub piece_count($text: Str): Int {
+    @parts = split($text, ",")
+    @parts.count()
+}
+
+sub main(): Int {
+    $p1 = two_char_prefix("0xFF")     # "0x"
+    $p2 = two_char_prefix("3.14")     # "3."
+    $n1 = piece_count("a,b,c")        # 3
+    $n2 = piece_count("solo")         # 1
+
+    mut $code = 0
+    if $p1 == "0x" { $code = $code + 1 } else { $code = $code + 0 }
+    if $p2 == "3." { $code = $code + 2 } else { $code = $code + 0 }
+    $code + $n1 + $n2
+}

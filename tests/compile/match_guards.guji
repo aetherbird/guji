@@ -1,0 +1,76 @@
+# D8: `match` on a SCALAR subject with literal / binding / wildcard arms and
+# guards. Native codegen used to assume a match subject was always an enum value
+# ("$n is not an enum value for codegen"); these are the spec §10.1/§10.2 scalar
+# patterns the frozen interpreter accepts. The expected output (.out) is the
+# interpreter's, never captured from native.
+
+# §10.2 guarded scalar match (the divergence probe), Int subject with a
+# binding+guard arm, a literal arm, and an unguarded binding catch-all.
+sub classify($n: Int): Str {
+    match $n {
+        $x if $x < 0 { "neg" }
+        0 { "zero" }
+        $x if $x > 100 { "big" }
+        $x { "small" }
+    }
+}
+
+# Pure literal chain (no guards) ending in a binding catch-all.
+sub fizz($n: Int): Str {
+    match $n {
+        0 { "zero" }
+        1 { "one" }
+        2 { "two" }
+        $x { "many" }
+    }
+}
+
+# Str subject: literal arms plus a binding catch-all whose value is used (a
+# borrow of the subject, then retained into the result via concatenation).
+sub describe($s: Str): Str {
+    match $s {
+        "hi" { "greeting" }
+        "bye" { "farewell" }
+        $other { "other:" ~ $other }
+    }
+}
+
+# Bool subject: literal arm plus a wildcard catch-all.
+sub flag($b: Bool): Int {
+    match $b {
+        true { 1 }
+        _ { 0 }
+    }
+}
+
+# Float subject: guard + literal + binding catch-all.
+sub band($f: Float): Str {
+    match $f {
+        $x if $x < 0.0 { "neg" }
+        0.0 { "zero" }
+        $x { "pos" }
+    }
+}
+
+sub main(): Int {
+    print(classify(-5))
+    print(classify(0))
+    print(classify(50))
+    print(classify(500))
+
+    print(fizz(0))
+    print(fizz(2))
+    print(fizz(9))
+
+    print(describe("hi"))
+    print(describe("bye"))
+    print(describe("zonk"))
+
+    print(flag(true))
+    print(flag(false))
+
+    print(band(-2.5))
+    print(band(0.0))
+    print(band(7.0))
+    0
+}

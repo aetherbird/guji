@@ -1,0 +1,28 @@
+# P9-9a three-way row: subs whose trailing expression is a lambda RETURN
+# function values (§7.4). Covers an Int->Int maker called through the bound
+# pair and a Str->Bool maker called in an if condition; the owned env temps
+# are released at scope exit (ASan/LSan pin this).
+sub make_double() {
+    sub($n: Int): Int { $n * 2 }
+}
+
+sub make_checker() {
+    sub($s: Str): Bool { $s == "hello" }
+}
+
+sub main(): Int {
+    $f = make_double()
+    print($f(7))
+    $g = make_checker()
+    if $g("hello") {
+        print("yes")
+    } else {
+        print("no")
+    }
+    if $g("bye") {
+        print("yes")
+    } else {
+        print("no")
+    }
+    0
+}

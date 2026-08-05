@@ -1,0 +1,8 @@
+# G7-c-2b-ii-b: Str-value map reassignment. The old keys+values are released, new
+# owned Str refs are moved into the fresh arrays (immortal literals -> no-op
+# release), and scope cleanup releases the latest arrays once (ASan-clean).
+sub main() {
+    mut %m: Map[Str, Str] = {"a": "x"}
+    %m = {"b": "yy", "c": "zz"}
+    print(%m)
+}

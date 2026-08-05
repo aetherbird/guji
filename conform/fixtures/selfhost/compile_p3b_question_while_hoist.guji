@@ -1,0 +1,39 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4 compiler codegen fixture.
+# Pins a `?` bind/reassign INSIDE a `while` loop body (§11.1 + §6.3): the
+# retkind-aware g5_lower_loop_stmts lowers the statement `?` to native's guard
+# shape, so its early `return` exits the whole function and a successful payload
+# threads through the loop's per-iteration release.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Int Result `?` payload bound from the carrier inside the loop.
+            print(has_text($c, "gv6 = gr5.ok;"))
+            # Int Result `?` early-return (Err) emitted inside the while body.
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr5.err};"))
+            # REASSIGN existing mut acc from the hoisted payload (parse_sum).
+            print(has_text($c, "gv0 = guji_add(gv6, gv0);"))
+            # FRESH bind acc + payload (accum).
+            print(has_text($c, "gv0 = guji_add(gv0, gv6);"))
+            # Option `?` payload bind + None early-return inside the loop.
+            print(has_text($c, "gv4 = go3.val;"))
+            print(has_text($c, "return (guji_opt_int)\{0LL, 0LL};"))
+            # Str Result `?` early-return moves `.err`; the accumulated $out was
+            # released just before it (full-env release on the early return).
+            print(has_text($c, "return (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr5.err};"))
+            # Owned Str payload released at the end of each iteration.
+            print(has_text($c, "guji_release(gv6);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

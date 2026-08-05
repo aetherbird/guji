@@ -1,0 +1,18 @@
+sub main(): Int {
+	$name = "world"
+	print("hello, $name")
+	$n = 42
+	$b = 1 < 2
+	print("n=$n b=$b")
+	print("sum: { $n + 3 }")
+	print('no $interp \' here')
+	print("a\tb\nc \$x \"q\"")
+	print("100% done")
+	$s = "foo" ~ "bar"
+	print($s)
+	if $s == "foobar" { print("eq") }
+	$t = if 1 < 2 { "yes" } else { "no" }
+	print($t)
+	print(7 * 6)
+	0
+}

@@ -1,0 +1,18 @@
+# gujiconform -- Platform slice 2 (write IO): write_file($path, $content) is the
+# by-path create + write + close convenience (Section 15.4). It truncates-or-
+# creates the file, writes content VERBATIM (no added newline), and returns
+# Result[Unit, Str]. The program writes, reads back, rewrites (proving truncate),
+# reads again, then exercises the fixed OS-reason-free error on a path under a
+# missing directory. Both engines must agree on observable stdout. Derived from
+# the spec, not captured from native.
+sub main() {
+    $path = "conform/fixtures/io/write_file.generated"
+    write_file($path, "first\nsecond").unwrap()
+    print(read_file($path).unwrap())
+    write_file($path, "replaced").unwrap()
+    print(read_file($path).unwrap())
+    match write_file("conform/fixtures/io/no_such_dir_7b2e/out", "x") {
+        Ok(_)   { print("unexpected-ok") }
+        Err($e) { print($e) }
+    }
+}

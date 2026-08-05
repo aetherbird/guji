@@ -1,0 +1,12 @@
+[a, , b, ]
+[a, b, c]
+[é, 👍, 🏽]
+0
+1
+3
+[a, b, c]
+3
+[a, , b]
+ok: 42
+ok: -7
+err: invalid integer: not a number

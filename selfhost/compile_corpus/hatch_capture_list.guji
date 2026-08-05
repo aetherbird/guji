@@ -1,0 +1,71 @@
+# P8e-3: hatch copy-on-capture for List bindings (§17.1).
+# Covers native hatchCopyList's two storage paths: headerless fixed scalar
+# literals and the empty literal go through guji_arr_alloc + an element-wise
+# copy loop; header-backed storage (non-empty Str-literal arrays, call-produced
+# slices, nested rows, map rows) detaches through one KIND-tagged
+# guji_copy_arr. Each task adopts its detached copy as an owned slice-form
+# local and releases it at task exit. Heap-built Str elements (not immortal
+# literals) keep the sanitizer honest about the deep copy.
+sub build(): List[Int] {
+    [1, 2, 3, 4]
+}
+
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $sch: Chan[Str] = channel(0)
+
+    # fixed scalar literal (stack storage) + a second Float list capture in the
+    # same hatch (multi-list env layout, sizeof(double) alloc path)
+    @xs = [10, 20, 30]
+    @fs = [0.5, 1.5]
+    hatch {
+        mut $sum = 0
+        for $x in @xs {
+            $sum = $sum + $x
+        }
+        $ch.send($sum + @xs.count() + @fs.count())
+    }
+    print($ch.recv().unwrap())
+
+    # heap-built Str elements: header-backed ARR_STR detaches via guji_copy_arr
+    $a = "al" ~ "pha"
+    @words = [$a, "be" ~ "ta"]
+    hatch {
+        $sch.send(@words.join("-"))
+    }
+    print($sch.recv().unwrap())
+
+    # call-produced slice-form binding (header-backed)
+    @built = build()
+    hatch {
+        $ch.send(@built.count())
+    }
+    print($ch.recv().unwrap())
+
+    # nested rows: the KIND-tagged deep copy detaches each inner list
+    @rows = [[1, 2], [3, 4, 5]]
+    hatch {
+        mut $n = 0
+        for @row in @rows {
+            $n = $n + @row.count()
+        }
+        $ch.send($n)
+    }
+    print($ch.recv().unwrap())
+
+    # map rows: ARR_MAP deep copy (keys + vals per row), key reads in the task
+    @recs = [{ "a": 1, "b": 2 }, { "c": 3 }]
+    hatch {
+        $m0 = @recs[0]
+        $ch.send($m0{"a"} + $m0{"b"} + @recs.count())
+    }
+    print($ch.recv().unwrap())
+
+    # empty literal: borrowed stack storage, len-0 alloc, loop runs zero times
+    @none: List[Int] = []
+    hatch {
+        $ch.send(@none.count())
+    }
+    print($ch.recv().unwrap())
+    0
+}

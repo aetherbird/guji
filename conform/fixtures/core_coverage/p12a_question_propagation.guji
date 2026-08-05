@@ -1,0 +1,28 @@
+# P12a: Option/Result success and failure propagate through calls and value control.
+sub positive($number: Int): Option[Int] {
+    if $number > 0 { Some($number) } else { None }
+}
+
+sub option_label($number: Int): Option[Str] {
+    $value = positive($number)?
+    Some(if $value >= 5 { "large { $value }" } else { "small { $value }" })
+}
+
+sub parsed_double($text: Str): Result[Int, Str] {
+    $number = parse_int($text)?
+    Ok(if $number > 0 { $number * 2 } else { 0 })
+}
+
+sub relay_result($text: Str): Result[Int, Str] {
+    Ok(parsed_double($text)? + 1)
+}
+
+sub main(): Int {
+    print(option_label(5))
+    print(option_label(0))
+    print(parsed_double("7"))
+    print(parsed_double("bad"))
+    print(relay_result("4"))
+    print(relay_result("no"))
+    0
+}

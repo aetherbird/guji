@@ -1,0 +1,32 @@
+# P9-8b-2c: direct class/enum equality is structural. Heap-backed class fields,
+# nested class payloads, recursive enum boxes, tag differences, and != all share
+# the generated per-type helper path.
+class Card {
+    has $.id: Int
+    has $.name: Str
+    has $.tags: List[Str]
+}
+
+enum Chain {
+    End($n: Int)
+    Link($next: Chain)
+    Empty
+}
+
+enum Tagged {
+    Present($card: Card)
+    Missing
+}
+
+sub main(): Int {
+    $a = Card(id: 7, name: "ace", tags: ["red", "black"])
+    $b = Card(id: 7, name: "ace", tags: ["red", "black"])
+    $c = Card(id: 7, name: "ace", tags: ["red", "blue"])
+    print($a == $b)
+    print($a != $c)
+    print(Present($a) == Present($b))
+    print(Link(End(1)) == Link(End(1)))
+    print(Link(End(1)) != Link(End(2)))
+    print(Empty == End(0))
+    0
+}

@@ -1,0 +1,8 @@
+# T-E5d-5 guard: a concrete scalar is still not indexable.
+sub bad($n: Int): Int {
+    $n[0]
+}
+
+sub main(): Int {
+    bad(1)
+}

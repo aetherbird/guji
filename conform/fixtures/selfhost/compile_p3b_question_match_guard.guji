@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4p compiler codegen fixture.
+# Pins guarded Result-scrutinee match-value arms whose bodies contain final `?`
+# hoists: the combined variant+guard condition, the inner carrier guard, the
+# scrutinee cleanup before early return, and the arm result assignment.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "if ((gr2.tag == 0LL) && (((gr2.ok) > (5LL) ? 1LL : 0LL))) \{"))
+            print(has_text($c, "gr7 = gr5;\n\tif (gr7.tag != 0LL) \{"))
+            print(has_text($c, "if (gr2.tag != 0LL) \{ guji_release(gr2.err); gr2.err = NULL; }\n\t\treturn (guji_res_int_str)\{1LL, 0LL, gr7.err};"))
+            print(has_text($c, "gi3 = guji_add(gv8, gr2.ok);"))
+            print(has_text($c, "if ((gr2.tag == 0LL) && (gp2)) \{"))
+            print(has_text($c, "if (gr2.tag == 0LL) \{ guji_release(gr2.ok); gr2.ok = NULL; }\n\tif (gr2.tag != 0LL) \{ guji_release(gr2.err); gr2.err = NULL; }\n\t\treturn (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr6.err};"))
+            print(has_text($c, "guji_release(gv7);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

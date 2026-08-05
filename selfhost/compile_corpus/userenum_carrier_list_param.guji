@@ -1,0 +1,13 @@
+# Slice 4d: a List[Int] enum-carrier field, matched in a sub PARAMETER position.
+# The bound list field is indexed; native + interp + selfhost must agree.
+enum Box {
+    Nums(@xs: List[Int])
+}
+sub first($b: Box): Int {
+    match $b {
+        Nums(@xs) { @xs[0] }
+    }
+}
+sub main(): Int {
+    first(Nums([7, 8, 9]))
+}

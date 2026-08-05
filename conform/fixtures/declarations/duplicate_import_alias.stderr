@@ -1,0 +1,1 @@
+3:14: duplicate import binding shared, already defined at 2:15; each import binds its final path segment once (§16.2)

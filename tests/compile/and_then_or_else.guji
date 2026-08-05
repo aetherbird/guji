@@ -1,0 +1,30 @@
+sub opt_int($x: Int): Option[Int] { if $x > 0 { Some($x) } else { None } }
+sub res_int($x: Int): Result[Int, Str] { if $x > 0 { Ok($x) } else { Err("bad") } }
+
+sub double_opt($n: Int): Option[Int] { Some($n * 2) }
+sub none_opt(): Option[Int] { None }
+sub str_opt($n: Int): Option[Str] { Some("v$n") }
+sub inc_result($n: Int): Result[Int, Str] { Ok($n + 1) }
+sub err_result($m: Str): Result[Int, Str] { Err($m) }
+sub ok99(): Result[Int, Str] { Ok(99) }
+sub bool_result($n: Int): Result[Bool, Str] { Ok($n > 0) }
+
+sub main(): Int {
+    print(opt_int(3).and_then(sub($n) { double_opt($n) }).unwrap_or(-1))
+    print(opt_int(3).and_then(sub($n) { none_opt() }).unwrap_or(-1))
+    print(opt_int(-1).and_then(sub($n) { double_opt($n) }).unwrap_or(-1))
+    print(opt_int(3).and_then(sub($n) { str_opt($n) }).unwrap_or("?"))
+
+    match res_int(3).and_then(sub($n) { inc_result($n) }) { Ok($v1) { print("ok $v1") } Err($e1) { print("err $e1") } }
+    match res_int(3).and_then(sub($n) { err_result("nope") }) { Ok($v2) { print("ok $v2") } Err($e2) { print("err $e2") } }
+    match res_int(-1).and_then(sub($n) { inc_result($n) }) { Ok($v3) { print("ok $v3") } Err($e3) { print("err $e3") } }
+    match res_int(3).and_then(sub($n) { bool_result($n) }) { Ok($v4) { print("ok $v4") } Err($e4) { print("err $e4") } }
+
+    match res_int(-1).or_else(sub($m) { ok99() }) { Ok($v5) { print("ok $v5") } Err($e5) { print("err $e5") } }
+    match res_int(-1).or_else(sub($m) { err_result("still") }) { Ok($v6) { print("ok $v6") } Err($e6) { print("err $e6") } }
+    match res_int(3).or_else(sub($m) { ok99() }) { Ok($v7) { print("ok $v7") } Err($e7) { print("err $e7") } }
+
+    print(and_then(opt_int(5), sub($n) { double_opt($n) }).unwrap_or(-1))
+
+    0
+}

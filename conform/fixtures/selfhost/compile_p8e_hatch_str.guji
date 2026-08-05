@@ -1,0 +1,22 @@
+# P8e-2: pin Str copy-on-capture, interpolation free-vars, and task cleanup.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_task_spawn(&") == 2)
+            print(count_of($c, "const char* cap_") == 4)
+            print(count_of($c, "->cap_base = guji_str_copy(") == 1)
+            print(count_of($c, "->cap_suffix = guji_str_copy(") == 1)
+            print(count_of($c, "->cap_tag = guji_str_copy(") == 1)
+            print(count_of($c, "->cap_who = guji_str_copy(") == 1)
+            print(count_of($c, "guji_release(gv6);") == 1)
+            0
+        }
+    }
+}

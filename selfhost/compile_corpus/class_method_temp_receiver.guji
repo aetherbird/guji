@@ -1,0 +1,36 @@
+# P4c-2: class method calls whose RECEIVER is a temporary expression, not a bound
+# local — a constructor value (`Counter(n: 7).value()`) or a method-call chain
+# (`$c.bumped().value()`). Native accepts these where the final method returns a
+# scalar; the selfhost previously declined (rc 4) because g5_bound_class_receiver
+# only recognised bound EName receivers. All three engines must agree.
+class Counter {
+    has $.n: Int
+    sub bumped($self): Counter { Counter(n: $self.n + 1) }
+    sub value($self): Int { $self.n }
+}
+
+# A Str-owned class exercises the arg-materialization release path: each temp
+# receiver materialises an owned-Str struct that must be released after the call.
+class Tag {
+    has $.label: Str
+    has $.n: Int
+    sub grow($self): Tag { Tag(label: $self.label ~ "x", n: $self.n + 1) }
+    sub num($self): Int { $self.n }
+}
+
+sub main(): Int {
+    # constructor temporary as receiver, in an interpolation
+    print("{ Counter(n: 7).value() }")
+    # chained method-temporary as receiver, in an interpolation
+    $c = Counter(n: 5)
+    print("{ $c.bumped().value() }")
+    print("{ $c.bumped().bumped().value() }")
+    # constructor temporary bound to a local via a temp-receiver method call
+    $v = Counter(n: 40).value()
+    print("{ $v }")
+    # Str-owned class: chained temp receiver, Int-returning final method
+    $t = Tag(label: "a", n: 2)
+    print("{ $t.grow().num() }")
+    # constructor temporary receiver as the final tail return value
+    Tag(label: "z", n: 8).num()
+}

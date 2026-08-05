@@ -1,0 +1,33 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-9 compiler codegen fixture.
+# Pins Option[<user class>] in PARAMETER and RETURN signature positions: the
+# `guji_opt_<Class>` carrier as a sub parameter type and return type, the
+# borrowed by-value carrier-argument ABI (tag-guarded retain before the call,
+# release after), the fresh Some/None carrier literals passed as arguments, and a
+# field-read carrier argument. Needles are single-quoted RAW strings so literal
+# braces are not interpolation.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, '} guji_opt_TypeRef;'))
+            print(has_text($c, 'static const char* gf_suffix(guji_opt_TypeRef gp0);'))
+            print(has_text($c, 'static guji_opt_TypeRef gf_maybe(int64_t gp0);'))
+            print(has_text($c, 'if (gp0.tag != 0LL) { guji_retain_TypeRef_fields(&gp0.val); }'))
+            print(has_text($c, '(guji_opt_TypeRef){1LL, (TypeRef){'))
+            print(has_text($c, '(guji_opt_TypeRef){0LL, (TypeRef){0}}'))
+            print(has_text($c, 'if (gv1.f0.tag != 0LL) { guji_retain_TypeRef_fields(&gv1.f0.val); }'))
+            print(has_text($c, 'gf_maybe(1LL)'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

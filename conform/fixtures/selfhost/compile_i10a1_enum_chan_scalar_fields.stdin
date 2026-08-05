@@ -1,0 +1,18 @@
+# All scalar channel fields must lower before Value adds its I10a2 variants.
+enum ScalarChannels {
+    Empty
+    Active($unit: Chan[Unit], $int: Chan[Int], $bool: Chan[Bool], $float: Chan[Float], $str: Chan[Str])
+}
+
+sub main(): Int {
+    $unit: Chan[Unit] = channel()
+    $int: Chan[Int] = channel(1)
+    $bool: Chan[Bool] = channel(2)
+    $float: Chan[Float] = channel(3)
+    $str: Chan[Str] = channel(4)
+    $alias = $int
+    print($int)
+    print($int == $alias)
+    print(Active($unit, $int, $bool, $float, $str))
+    0
+}

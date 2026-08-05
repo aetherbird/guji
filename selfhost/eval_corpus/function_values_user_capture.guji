@@ -1,0 +1,35 @@
+# §7.4/I4b2: immutable user values are captured at closure creation.
+# Counted Str fields/payloads make the sanitizer prove that the C closure env
+# retains and later releases both class and enum copies, not just flat structs.
+class Card {
+    has $.rank: Int
+    has $.label: Str
+}
+
+enum Mark {
+    Plain($n: Int)
+    Named($name: Str)
+}
+
+sub main(): Int {
+    $card = Card(rank: 7, label: "he" ~ "arts")
+    $mark = Named("lu" ~ "cky")
+    $offset = 2
+    $show = sub($n: Int): Str {
+        match $mark {
+            Plain($value) { "{$card.label}:{ $card.rank + $value + $n + $offset }" }
+            Named($name) { "{$card.label}:$name:{ $card.rank + $n + $offset }" }
+        }
+    }
+    print($show(3))
+
+    $plain = Plain(5)
+    $score = sub($n: Int): Int {
+        match $plain {
+            Plain($value) { $card.rank + $value + $n }
+            Named($name) { 0 }
+        }
+    }
+    print($score(4))
+    0
+}

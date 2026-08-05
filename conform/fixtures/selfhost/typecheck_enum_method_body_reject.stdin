@@ -1,0 +1,18 @@
+# P5b-2b enum-body-check: a NON-generic enum instance-method body whose value
+# type disagrees with the declared return is REJECTED by the self-hosted checker.
+# The declaration binds $self to the enum type and checks every instance and
+# associated method body. An earlier DEnum path skipped those bodies.
+enum Color {
+    Red
+    Green
+
+    sub bad($self): Int {
+        "not an int"
+    }
+}
+
+sub main(): Int {
+    $c = Red
+    print("{ $c.bad() }")
+    0
+}

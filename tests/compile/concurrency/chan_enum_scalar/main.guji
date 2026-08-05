@@ -1,0 +1,46 @@
+# Section 17 native channel send/recv for scalar-payload enums (H4c-rest slice).
+#
+# An enum whose variants carry only scalars (Int/Bool/Float/Unit) or nothing
+# lowers to a flat by-value C struct with NO heap pointers. Crossing a channel
+# boundary it is a plain struct copy on both send (copy-on-send detaches it into
+# the channel's storage) and recv (the receiver adopts a private struct), so no
+# retain/release machinery is needed and the elem_drop is a no-op — the channel
+# free path discards any undelivered scalar-enum message without leaking.
+#
+# Deterministic: the hatch sends three variants over a buffered channel in a
+# fixed order and the parent recvs them FIFO, so the printed decode is stable
+# regardless of scheduling.
+enum Signal {
+    Stop
+    Go
+    Wait($secs: Int)
+}
+
+sub main(): Unit {
+    $ch: Chan[Signal] = channel(3)
+    hatch {
+        $ch.send(Go)
+        $ch.send(Wait(7))
+        $ch.send(Stop)
+    }
+
+    $a = $ch.recv().unwrap()
+    $b = $ch.recv().unwrap()
+    $c = $ch.recv().unwrap()
+
+    print(match $a {
+        Stop { 0 }
+        Go { 1 }
+        Wait($secs) { $secs }
+    })
+    print(match $b {
+        Stop { 0 }
+        Go { 1 }
+        Wait($secs) { $secs }
+    })
+    print(match $c {
+        Stop { 0 }
+        Go { 1 }
+        Wait($secs) { $secs }
+    })
+}

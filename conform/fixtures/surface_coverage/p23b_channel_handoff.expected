@@ -1,0 +1,4 @@
+buffered=10/20
+payload=[alpha, beta]
+source=[alpha, beta]
+identity=true/false

@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 4b F2b compiler codegen fixture (INLINE scrutinee).
+# The stdin source matches over an inline-constructed enum value (`match Text("hi")`).
+# Before F2b the selfhost compiler DECLINED this (g6_lower_scrutinee only aliased an
+# existing env var); now compile_program_c must accept it, materialising the enum
+# value through the generic registry path and emitting the owned-field release.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct Msg"))
+            print(has_text($c, "(Msg)\{"))
+            print(has_text($c, "guji_release_Msg_fields"))
+            print(has_text($c, "inline-scrutinee"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

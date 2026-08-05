@@ -1,0 +1,12 @@
+# A user `sub unwrap_or` SHADOWS the §15.5 prelude for the function form: the call
+# must reach the user sub through the general call path, not the Option-carrier
+# lowering. All three engines resolve the shadow identically (12 = 3 * 4).
+
+sub unwrap_or($a: Int, $b: Int): Int {
+    $a * $b
+}
+
+sub main(): Int {
+    print("{ unwrap_or(3, 4) }")
+    unwrap_or(3, 4)
+}

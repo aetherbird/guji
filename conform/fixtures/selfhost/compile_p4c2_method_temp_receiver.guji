@@ -1,0 +1,27 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # constructor value materialised into a class temp, used as receiver
+            print(has_text($c, '(Counter){7LL}'))
+            # the value() method is called on a class TEMP (gc...), not a bound
+            # local (gv...) — the P4c-2 temp-receiver marker
+            print(has_text($c, "gf_Counter_value(gc"))
+            # chained receiver: bumped() on the bound local yields a class temp...
+            print(has_text($c, "= gf_Counter_bumped(gv"))
+            # ...whose owned fields are released after the terminal method call
+            print(has_text($c, "guji_release_Counter_fields(&gc"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

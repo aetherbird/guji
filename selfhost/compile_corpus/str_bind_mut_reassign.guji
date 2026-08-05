@@ -1,0 +1,6 @@
+sub main(): Unit {
+    mut $s = "a" ~ "b"
+    print($s)
+    $s = $s ~ "c"
+    print($s)
+}

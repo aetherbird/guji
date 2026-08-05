@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P9-5d compiler codegen fixture.
+# Fresh map-literal `.set` materializes the literal into an owned guji_map_t,
+# copies with retains from that temp (`< gmv` / `gmvN.len + 1`), then releases
+# the receiver arrays — same ABI as chained set/remove (P5b-2b), not a named bind.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_map_t gmv"))
+            print(has_text($c, "< gmv"))
+            print(has_text($c, ".len + 1"))
+            print(has_text($c, "guji_release((const void*)gmv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

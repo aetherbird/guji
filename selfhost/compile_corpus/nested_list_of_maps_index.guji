@@ -1,0 +1,42 @@
+# P5b-2b(nested-list-of-maps-index): indexing a List[Map[Str, V]] element
+# (`%x = @m[0]` / `print(@m[i])`) and the empty-map list element `[{}]`.
+#
+# Native's mapFromListIndex shallow-copies the guji_map_t row; selfhost deep-copies
+# keys+vals via guji_copy_arr (the map twin of nested-list index) so bind-from-value
+# can MOVE the owned arrays into a named two-array binding without aliasing the
+# list's counted storage. Also covers `%c = %m` map-binding copy (same from-value
+# path) and unannotated `[{}]` (empty map defaults V to Int, matching native).
+#
+# Three-way: interp == native == selfhost, ASan-clean.
+
+sub main(): Int {
+    @m = [{"a": 1}, {"b": 2, "c": 3}]
+    %x = @m[0]
+    %y = @m[1]
+    $a = %x{"a"}
+    $b = %y{"b"}
+    $c = %y{"c"}
+    print($a)
+    print($b)
+    print($c)
+
+    # print of an indexed map element (owned temp → guji_map_str → release)
+    print(@m[0])
+
+    # map-binding copy: deep-copied, independent of source
+    %copy = %x
+    $a2 = %copy{"a"}
+    print($a2)
+
+    # empty-map list element (unannotated; V defaults to Int)
+    @empty = [{}]
+    print(@empty.count())
+
+    # Str-valued maps through the same index path
+    @ms = [{"k": "hi"}]
+    %s = @ms[0]
+    print(%s{"k"})
+
+    # 1+2+3 + copy(1) + empty.count(1) = 8; "hi" printed separately
+    $a + $b + $c + $a2 + @empty.count()
+}

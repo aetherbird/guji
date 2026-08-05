@@ -1,0 +1,8 @@
+# I5a: §11.2 makes direct Map indexing fail unrecoverably when the key is absent.
+# The prior print pins evaluation and output ordering before the panic.
+sub main(): Int {
+    %scores = {"ada": 10}
+    print(%scores{"ada"})
+    print(%scores{"grace"})
+    0
+}

@@ -1,0 +1,56 @@
+# Regex values produced by Regex.literal are header-backed counted `const char*`
+# (guji_regex_escape_literal allocates them). They must be reference-counted like
+# Str: a straight bind, a mut rebind, a fresh loop-local binding each iteration,
+# and a Regex passed as a borrowed argument and used as a host splice — all must
+# match the interpreter and stay leak-free under LSan (the prior runtime never
+# released a counted Regex binding, leaking one allocation per bind).
+# Match/if expressions that yield Regex are included because their shared result
+# temp owns the selected branch value and must release it after the consumer.
+sub describe($re: Regex): Str {
+    match "a.b.c" ~~ /<{ $re }>/ {
+        Some($m) { $m.text }
+        None { "none" }
+    }
+}
+
+sub main(): Int {
+    mut $r = Regex.literal("a.b")
+    print("$r")
+    # Rebind: the old counted pattern must be released before the new one lands.
+    $r = Regex.literal("x+y")
+    print("$r")
+
+    # A counted Regex bound fresh each iteration must be released per loop turn.
+    mut $i = 0
+    while $i < 3 {
+        $lit = Regex.literal("n$i")
+        print("$lit")
+        $i = $i + 1
+    }
+
+    # Pass an owned counted Regex as a borrowed argument; the callee uses it as a
+    # host splice without taking ownership, the caller still releases it.
+    $needle = Regex.literal("a.b")
+    print("{ describe($needle) }")
+
+    # Regex.escape returns a fresh counted Str used inline (released, not leaked).
+    print(Regex.escape("a+b"))
+
+    # The shared match-result temp owns either an alias arm (retain) or a fresh
+    # Regex.literal arm (transfer), then print releases that temp after display.
+    $some: Option[Regex] = Some(Regex.literal("q.z"))
+    print(match $some {
+        Some($rx) { $rx }
+        None { Regex.literal("none") }
+    })
+    $none: Option[Regex] = None
+    print(match $none {
+        Some($rx) { $rx }
+        None { Regex.literal("none") }
+    })
+
+    # If-expression Regex results use the same branch-result ownership path.
+    $pick = if true { $needle } else { Regex.literal("fallback") }
+    print("$pick")
+    0
+}

@@ -1,0 +1,18 @@
+# I5f2: §15.1 List.reduce. Pins left-to-right two-parameter callback folds,
+# free/method spellings, scalar and Str seeds, capture, and empty-list identity.
+sub main(): Int {
+    @nums = [1, 2, 3, 4]
+    print(@nums.reduce(0, sub($acc: Int, $n: Int): Int { $acc + $n }))
+    print(reduce(@nums, 1, sub($acc: Int, $n: Int): Int { $acc * $n }))
+    print(@nums.reduce(10, sub($acc: Int, $n: Int): Int { $acc * 10 + $n }))
+
+    $dot = "."
+    @words = ["go", "ju", "gi"]
+    print(@words.reduce("seed:", sub($acc: Str, $word: Str): Str { $acc ~ $word ~ $dot }))
+
+    @empty: List[Int] = []
+    print(@empty.reduce(41, sub($acc: Int, $n: Int): Int { $acc + $n }))
+    @no_words: List[Str] = []
+    print(reduce(@no_words, "unchanged", sub($acc: Str, $word: Str): Str { $acc ~ $word }))
+    0
+}

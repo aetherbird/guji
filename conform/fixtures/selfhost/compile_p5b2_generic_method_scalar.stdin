@@ -1,0 +1,23 @@
+# P5b-2a probe: data-first method-style calls to scalar generic subs.
+sub id[T]($v: T): T { $v }
+
+sub pick_first[T]($a: T, $b: T): T { $a }
+
+sub main(): Int {
+    $n = 7
+    $r1 = $n.id()
+    $s = "hello"
+    $r2 = $s.id()
+    $f = 1.5
+    $r3 = $f.id()
+    $r4 = $n.pick_first(99)
+    $r5 = $s.pick_first("world")
+    $r6 = $n.id().id()
+    print("{ $r1 }")
+    print($r2)
+    print("{ $r3 }")
+    print("{ $r4 }")
+    print($r5)
+    print("{ $r6 }")
+    $r1 + $r4 + $r6
+}

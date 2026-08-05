@@ -1,0 +1,10 @@
+# Slice 4d: List[Int] carrier RETURNED from a sub, then matched (owned scrutinee).
+enum Box {
+    Nums(@xs: List[Int])
+}
+sub mk(): Box { Nums([2, 3]) }
+sub main(): Int {
+    match mk() {
+        Nums(@xs) { @xs[0] }
+    }
+}

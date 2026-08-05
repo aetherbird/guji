@@ -1,0 +1,12 @@
+sub scalar_probe($path: Str): Str {
+    $out = match read_file($path).unwrap_or("fallback") {
+        "hit" { return "early" }
+        $s { $s }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(scalar_probe("compile_p9_10b.absent"))
+    0
+}

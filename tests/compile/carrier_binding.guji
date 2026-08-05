@@ -1,0 +1,21 @@
+# carrier_binding.guji — carrier-annotated local bindings in native codegen
+# Option[Int] bindings with Some/None constructors, plus match and unwrap.
+
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    $n: Option[Int] = None
+
+    print("{ $o.unwrap() }")
+    print("{ $n.unwrap_or(99) }")
+
+    match $o {
+        Some($v) { print("some { $v }") }
+        None { print("none") }
+    }
+    match $n {
+        Some($v) { print("some { $v }") }
+        None { print("none") }
+    }
+
+    0
+}

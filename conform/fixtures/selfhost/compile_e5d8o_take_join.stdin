@@ -1,0 +1,17 @@
+sub starts_with($s: Str, $p: Str): Bool {
+    @sc = split($s, "")
+    @pc = split($p, "")
+    if @pc.count() > @sc.count() {
+        false
+    } else {
+        take(@sc, @pc.count()).join("") == $p
+    }
+}
+
+sub main(): Int {
+    if starts_with("guji", "gu") && !starts_with("guji", "ji") {
+        0
+    } else {
+        1
+    }
+}

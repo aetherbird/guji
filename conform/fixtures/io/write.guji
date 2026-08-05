@@ -1,0 +1,14 @@
+# gujiconform -- Platform slice 2 (write IO): `stdout` and `stderr` are pre-open
+# WRITE Handles (Section 15.4), and $h.write($s: Str): Unit writes raw text with
+# NO trailing newline (unlike print/note). stdout writes accumulate on stdout;
+# stderr writes land on stderr. Both engines must agree on stdout AND stderr.
+# Expected output is derived from the spec (raw concatenation, no added newline),
+# not captured from native.
+sub main(): Int {
+    stdout.write("a")
+    stdout.write("b")
+    stdout.write("c\n")
+    write(stdout, "tail\n")
+    stderr.write("diag\n")
+    0
+}

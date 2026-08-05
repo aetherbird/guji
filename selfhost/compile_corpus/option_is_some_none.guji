@@ -1,0 +1,42 @@
+# §15.5 Option `is_some`/`is_none`, function form `is_some($o)` and method form
+# `$o.is_some()`, over bound `Option[T]` locals of every scalar payload kind plus a
+# `find`-produced Option. The test reads only the carrier tag, so it is uniform
+# across payload kinds and touches no payload (no retain/release). Native `guji
+# build` supports this, so it is a THREE-WAY case (interp == native == selfhost).
+# The self-check exits 0 iff every positive lands and every negative/guard holds.
+
+sub main(): Int {
+    $oi: Option[Int] = Some(5)
+    $ni: Option[Int] = None
+    # Str Some built on the heap: a wrong retain/release would show under ASan.
+    $os: Option[Str] = Some("a" ~ "b")
+    $ns: Option[Str] = None
+    $of: Option[Float] = Some(1.5)
+    $ob: Option[Bool] = Some(false)
+    # Options produced by the `find` prelude, then queried.
+    @xs = [1, 2, 3]
+    $found: Option[Int] = @xs.find(sub($n: Int): Bool { $n == 2 })
+    $missing: Option[Int] = @xs.find(sub($n: Int): Bool { $n == 9 })
+
+    mut $code = 0
+    if $oi.is_some() { $code = $code + 1 }        # method is_some, Int Some
+    if $ni.is_none() { $code = $code + 2 }        # method is_none, Int None
+    if is_some($os) { $code = $code + 4 }         # function is_some, Str Some
+    if is_none($ns) { $code = $code + 8 }         # function is_none, Str None
+    if $of.is_some() { $code = $code + 16 }       # method is_some, Float Some
+    if is_some($ob) { $code = $code + 32 }        # function is_some, Bool Some
+    if $found.is_some() { $code = $code + 64 }    # find hit -> Some
+
+    # Guards: these must all evaluate the OTHER way; a wrong tag adds 1000 and
+    # blows the exit code well past 127, so a clean 127 proves them too.
+    if $oi.is_none() { $code = $code + 1000 }         # Int Some -> is_none false
+    if is_some($ni) { $code = $code + 1000 }          # Int None -> is_some false
+    if $found.is_none() { $code = $code + 1000 }      # hit -> is_none false
+    if is_some($missing) { $code = $code + 1000 }     # miss -> is_some false
+    if $missing.is_none() { $code = $code + 0 } else { $code = $code + 1000 }  # miss -> is_none true
+
+    # Bind position: is_some as a Bool binding, then consumed.
+    $flag = $os.is_some()
+    if $flag { $code = $code + 0 } else { $code = $code + 1000 }
+    if $code == 127 { 0 } else { 1 }
+}

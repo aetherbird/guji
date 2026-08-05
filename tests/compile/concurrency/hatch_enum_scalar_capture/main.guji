@@ -1,0 +1,53 @@
+# Section 17 hatch capture of plain scalar-payload enum bindings (H4c-rest slice).
+#
+# Before this fixture, a parent enum binding referenced inside a hatch body was
+# rejected by codegen ("codegen supports ... captures only") even though the
+# interpreter ran it — a native-vs-oracle gap on the §17 path. A plain
+# scalar-payload enum (only Int/Bool/Float/Unit and nullary variants) lowers to
+# a flat by-value C struct with NO heap pointers, so a struct copy fully detaches
+# it into the task's own heap (per-task heap isolation, non-atomic RC). No
+# retain/release machinery is needed and the sanitizer/leak gate stays clean.
+#
+# Deterministic: each hatch sends exactly one scalar over an unbuffered channel
+# and the parent recvs in a fixed order, so the output has no scheduling freedom.
+enum Light {
+    Red
+    Yellow
+    Green
+}
+enum Shape {
+    Circle($r: Int)
+    Rect($w: Int, $h: Int)
+}
+
+sub main(): Int {
+    $light = Green
+    $shape = Rect(3, 4)
+    $codeCh: Chan[Int] = channel(0)
+    $areaCh: Chan[Int] = channel(0)
+
+    # Capture a nullary-variant enum and decode it inside the task.
+    hatch {
+        mut $c = 0
+        $c = match $light {
+            Red { 1 }
+            Yellow { 2 }
+            Green { 3 }
+        }
+        $codeCh.send($c)
+    }
+
+    # Capture an enum with scalar payloads and compute inside the task.
+    hatch {
+        mut $a = 0
+        $a = match $shape {
+            Circle($r) { $r * $r * 3 }
+            Rect($w, $h) { $w * $h }
+        }
+        $areaCh.send($a)
+    }
+
+    print($codeCh.recv().unwrap())
+    print($areaCh.recv().unwrap())
+    0
+}

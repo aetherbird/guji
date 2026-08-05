@@ -1,0 +1,32 @@
+# Slice 6 P3b-2b-2c-3: non-final scalar bindings whose RHS contains a `?`.
+# The RHS hoist lifts the carrier guard into a synthetic scalar bind, then lowers
+# the rebuilt expression through the ordinary fresh-bind path.
+sub parse_plus($s: Str): Result[Int, Str] {
+    $x = parse_int($s)? + 1
+    Ok($x)
+}
+
+sub maybe_plus($o: Option[Int]): Option[Int] {
+    $x = $o? + 2
+    Some($x)
+}
+
+sub main(): Int {
+    match parse_plus("40") {
+        Ok($v) { print("parse ok { $v }") }
+        Err($e) { print("parse err { $e }") }
+    }
+    match parse_plus("bad") {
+        Ok($v) { print("parse ok { $v }") }
+        Err($e) { print("parse err { $e }") }
+    }
+    match maybe_plus(Some(5)) {
+        Some($v) { print("maybe some { $v }") }
+        None { print("maybe none") }
+    }
+    match maybe_plus(None) {
+        Some($v) { print("maybe some { $v }") }
+        None { print("maybe none") }
+    }
+    47
+}

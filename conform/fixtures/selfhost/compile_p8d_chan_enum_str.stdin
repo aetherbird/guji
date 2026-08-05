@@ -1,0 +1,19 @@
+enum Msg {
+    Text($s: Str)
+    Pair($a: Str, $b: Str)
+    Code($n: Int)
+    Done
+}
+
+sub main(): Int {
+    $ch: Chan[Msg] = channel(3)
+    $first: Msg = Text("a" ~ "b")
+    $pair: Msg = Pair("c" ~ "d", "e" ~ "f")
+    $ch.send($first)
+    $ch.send(Code(7))
+    $ch.send($pair)
+    $got = $ch.recv().unwrap()
+    $held = $ch.recv()
+    $got2 = $held.unwrap()
+    0
+}

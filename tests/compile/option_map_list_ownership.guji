@@ -1,0 +1,91 @@
+# Option[Map[Str, List[scalar|Str]]] value construct + match-binding + RC
+# ownership (H4c-rest). A Map[Str, List] carrier payload still reduces to the
+# SAME two counted arrays (`.val.keys` and `.val.vals`) as a flat map carrier:
+# the values array is an ARR_SLICE, so its drop cascades into each value list's
+# storage (and, for Str-valued lists, each Str element). Some(%m) materializes a
+# fresh owned map that deep-copies every value list, a binding/sub-return
+# transfers that +1, a match BORROWS it (reads value lists via key lookup,
+# summing, indexing, and counting), and a discarded or rebound carrier releases
+# both arrays — the values ARR_SLICE drop cascades into every value list. The
+# sanitizer gate (LSan/ASan) is the memory oracle; the interpreter is the
+# semantic oracle.
+
+sub sum_map(%m: Map[Str, List[Int]]): Int {
+    %m{"a"}.sum() + %m{"b"}.sum()
+}
+
+sub count_map(%m: Map[Str, List[Str]]): Int {
+    %m{"x"}.count() + %m{"y"}.count()
+}
+
+sub wrap_ints(%m: Map[Str, List[Int]]): Option[Map[Str, List[Int]]] {
+    Some(%m)
+}
+
+sub wrap_words(%m: Map[Str, List[Str]]): Option[Map[Str, List[Str]]] {
+    Some(%m)
+}
+
+sub empty_ints(): Option[Map[Str, List[Int]]] {
+    None
+}
+
+sub main(): Unit {
+    # Construct from a local, match-borrow, read value lists by key + sum.
+    %grid = {"a": [1, 2], "b": [3, 4, 5]}
+    $a: Option[Map[Str, List[Int]]] = Some(%grid)
+    print(match $a {
+        Some(%m) { sum_map(%m) }
+        None { 0 }
+    })
+
+    # Value-list indexing through the borrowed view (the same carrier, matched
+    # again — borrows never consume the payload).
+    print(match $a {
+        Some(%m) { %m{"a"}[1] }
+        None { -1 }
+    })
+
+    # Str-valued lists: the fresh map retains each value list's Str array, and
+    # releasing the carrier cascades through both levels.
+    %words = {"x": ["alpha", "beta"], "y": ["gamma"]}
+    $w: Option[Map[Str, List[Str]]] = Some(%words)
+    print(match $w {
+        Some(%m) { count_map(%m) }
+        None { 0 }
+    })
+
+    # None arm: NULL payload, no storage owned.
+    $none: Option[Map[Str, List[Int]]] = None
+    print(match $none {
+        Some(%m) { sum_map(%m) }
+        None { -1 }
+    })
+
+    # Sub-return transfers the owned Map[Str, List] payload to the caller.
+    %more = {"a": [10, 20], "b": [30]}
+    $r = wrap_ints(%more)
+    print(match $r {
+        Some(%m) { sum_map(%m) }
+        None { 0 }
+    })
+
+    $rw = wrap_words(%words)
+    print(match $rw {
+        Some(%m) { count_map(%m) }
+        None { 0 }
+    })
+
+    # Discarded carrier result: its fresh Map[Str, List] payload must be freed.
+    wrap_ints(%grid)
+
+    # mut rebind: the old payload is released before the new one is stored,
+    # including a None hop in between.
+    mut $cur: Option[Map[Str, List[Int]]] = wrap_ints(%grid)
+    $cur = empty_ints()
+    $cur = wrap_ints(%more)
+    print(match $cur {
+        Some(%m) { sum_map(%m) }
+        None { 0 }
+    })
+}

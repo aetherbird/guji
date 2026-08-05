@@ -1,0 +1,27 @@
+# §17.5 native `select`: blocking fan-in (no `else`). A task sends a single value
+# on the unbuffered channel $a; main's select has no ready arm initially and parks
+# (guji_select_wait) until the send makes $a's recv arm ready. Only $a ever
+# carries a value, so the chosen arm and output are deterministic. The recv
+# rendezvous synchronizes main with the task before it returns (§17.1).
+sub main(): Int {
+    $a: Chan[Int] = channel()
+    $b: Chan[Int] = channel()
+    hatch {
+        $a.send(7)
+    }
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($n) { print("a { $n }") }
+                None     { print("a closed") }
+            }
+        }
+        $w = $b.recv() {
+            match $w {
+                Some($n) { print("b { $n }") }
+                None     { print("b closed") }
+            }
+        }
+    }
+    0
+}

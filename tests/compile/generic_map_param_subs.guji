@@ -1,0 +1,29 @@
+# G2b slice: generic subs instantiated with scalar-valued Map[Str, T]
+# parameters monomorphize natively and read those params through map
+# prelude/indexing.
+sub value_or[T](%m: Map[Str, T], $key: Str, $default: T): T {
+    if %m.has_key($key) { %m{$key} } else { $default }
+}
+
+sub map_count[T](%m: Map[Str, T]): Int {
+    %m.keys().count()
+}
+
+sub main(): Unit {
+    %scores = {"ada": 10, "grace": 20}
+    $score = value_or(%scores, "ada", 0)
+    print("{ $score }")
+    $missing = value_or(%scores, "linus", 99)
+    print("{ $missing }")
+    %names = {"first": "ada", "last": "lovelace"}
+    $name = value_or(%names, "first", "none")
+    print($name)
+    %flags = {"ready": true}
+    $flag = value_or(%flags, "ready", false)
+    print("{ $flag }")
+    %ratios = {"pi": 3.5}
+    $ratio = value_or(%ratios, "pi", 0.0)
+    print("{ $ratio }")
+    $count = map_count(%names)
+    print("{ $count }")
+}

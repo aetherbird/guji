@@ -1,0 +1,79 @@
+# §11.1 (I6a): Option/Result construction, scalar payload storage across
+# params/returns, structural equality, match (incl. guards), and canonical
+# Some/None/Ok/Err display. Leaves unwrap/combinators/`?` to I6b–I6e.
+sub relay_opt($o: Option[Int]): Option[Int] { $o }
+sub relay_res($r: Result[Str, Int]): Result[Str, Int] { return $r }
+sub mk_ok($s: Str): Result[Str, Int] { Ok($s) }
+sub mk_err($n: Int): Result[Str, Int] { Err($n) }
+sub mk_ok_f($x: Float): Result[Float, Bool] { Ok($x) }
+sub mk_err_b($b: Bool): Result[Int, Bool] { Err($b) }
+
+sub describe_opt($o: Option[Int]): Str {
+    match $o {
+        Some($n) if $n > 0 { "pos:$n" }
+        Some($n) { "nonpos:$n" }
+        None { "none" }
+    }
+}
+
+sub describe_res($r: Result[Str, Int]): Str {
+    match $r {
+        Ok($s) { "ok:$s" }
+        Err($e) { "err:$e" }
+    }
+}
+
+sub main(): Int {
+    $a: Option[Int] = Some(5)
+    $a2: Option[Int] = Some(5)
+    $b: Option[Int] = None
+    $b2: Option[Int] = None
+    print($a)
+    print($b)
+    print("{ $a }/{ $b }")
+    print(if $a == $a2 { "eq-some" } else { "ne-some" })
+    print(if $a != $b { "neq" } else { "eq" })
+    print(if $b == $b2 { "eq-none" } else { "ne-none" })
+    print(describe_opt(relay_opt(Some(7))))
+    print(describe_opt(relay_opt(Some(0 - 2))))
+    print(describe_opt(relay_opt(None)))
+
+    $of: Option[Float] = Some(1.5)
+    $ob: Option[Bool] = Some(true)
+    $os: Option[Str] = Some("hi" ~ "!")
+    print($of)
+    print($ob)
+    print($os)
+    match $of { Some($x) { print("f:$x") } None { print("n") } }
+    match $ob { Some($flag) { if $flag { print("bt") } else { print("bf") } } None { print("n") } }
+    match $os { Some($s) { print("s:$s") } None { print("n") } }
+
+    $ok = mk_ok("hi" ~ "!")
+    $ok2 = mk_ok("hi!")
+    $err = mk_err(9)
+    print($ok)
+    print($err)
+    print("{ $ok }/{ $err }")
+    print(if $ok == $ok2 { "eq-ok" } else { "ne-ok" })
+    print(if $err != $ok { "res-neq" } else { "res-eq" })
+    print(describe_res(relay_res($ok)))
+    print(describe_res(relay_res($err)))
+
+    match mk_ok_f(2.5) { Ok($x) { print("rf:$x") } Err($e) { print("e") } }
+    match mk_err_b(true) { Ok($n) { print("bad") } Err($e) { if $e { print("re-t") } else { print("re-f") } } }
+
+    @xs = [10, 20]
+    match @xs.get(1) {
+        Some($n) { print("get:$n") }
+        None { print("miss") }
+    }
+    match parse_int("42") {
+        Ok($n) { print("pi:$n") }
+        Err($e) { print("pe:$e") }
+    }
+    match parse_int("nope") {
+        Ok($n) { print("bad") }
+        Err($e) { print("pe:$e") }
+    }
+    0
+}

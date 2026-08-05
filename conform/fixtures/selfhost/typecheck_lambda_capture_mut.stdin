@@ -1,0 +1,7 @@
+# §7.4: a closure may not capture a `mut` binding. Reading `$x` inside the lambda
+# crosses the closure boundary -> compile-time error (the DAG-invariant guard).
+sub main(): Int {
+    mut $x = 1
+    $f = sub($n: Int): Int { $n + $x }
+    0
+}

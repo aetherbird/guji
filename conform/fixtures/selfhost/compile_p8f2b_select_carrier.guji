@@ -1,0 +1,36 @@
+# P8f-2b: pin select over CARRIER + USER-ENUM element channels (§17.5).
+# Bound Option[Str] recv adopts into Option[Option[Str]] and releases the
+# nested Str at arm exit; unbound Option[Str] discards the ready element
+# (nested tag-guarded guji_release before the body); enum recv uses
+# Option[E] (guji_opt_Msg) + guji_release_Msg_fields. Avoid `{0}` in
+# count needles — guji string interpolation would eat the braces.
+import lexer
+
+enum Msg {
+    Text($s: Str)
+    Done
+}
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_try_recv(") == 3)
+            print(count_of($c, "guji_progress_snapshot()") == 3)
+            # Bound Option[Str] arm: Option[Option[Str]] typedef present.
+            print(count_of($c, "guji_opt_opt_str") >= 1)
+            # typedef + two Chan[Option[Str]] registrations.
+            print(count_of($c, "guji_chan_drop_opt_str") == 3)
+            # Unbound ready discard: tag-guarded release of the element Str.
+            print(count_of($c, "tag != 0LL) \{ guji_release(") >= 1)
+            # Enum Option wrapper + per-enum field release helper.
+            print(count_of($c, "guji_opt_Msg") >= 1)
+            print(count_of($c, "guji_release_Msg_fields") >= 1)
+            0
+        }
+    }
+}

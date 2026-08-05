@@ -1,0 +1,24 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # The concrete spec method exists and serves BOTH receivers.
+            print(has_text($c, "gf_Box__Int_describe((Box__Int)\{0LL, 42LL})"))
+            # The bare nullary variant lowers against the collected spec, never
+            # the generic template (there is no `Box` struct to instantiate).
+            print(has_text($c, "gf_Box__Int_describe((Box__Int)\{1LL})"))
+            print(!has_text($c, "(Box)\{"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

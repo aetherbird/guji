@@ -1,0 +1,11 @@
+# Failed Option extraction through a call/control expression panics once.
+sub extract($value: Option[Int]): Int {
+    if true { $value.unwrap() } else { 0 }
+}
+
+sub main(): Int {
+    $missing: Option[Int] = if false { Some(1) } else { None }
+    print("before failed extraction")
+    print(extract($missing))
+    0
+}

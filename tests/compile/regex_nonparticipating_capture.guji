@@ -1,0 +1,25 @@
+# Differential-gate regression guard for conformance bug #2 (§13.3, §13.4):
+# a regex group that exists but did not participate must yield None, distinct
+# from a participating group that matched empty text (Some("")). Before the
+# interpreter fix this diverged from native (interp Some("") vs native None);
+# the gate now requires both engines to agree on None.
+sub show($g: Option[Str]): Str {
+    match $g {
+        Some($s) { "some:" ~ $s }
+        None { "none" }
+    }
+}
+
+sub main(): Unit {
+    $m1 = ("ac" ~~ /a(b)?c/).unwrap()
+    print("positional-nonparticipating: { show($m1[1]) }")
+
+    $m2 = ("ac" ~~ /a(x*)c/).unwrap()
+    print("positional-empty: { show($m2[1]) }")
+
+    $m3 = ("ac" ~~ /a(?<mid>b)?c/).unwrap()
+    print("named-nonparticipating: { show($m3<mid>) }")
+
+    $m4 = ("abc" ~~ /a(?<mid>b)c/).unwrap()
+    print("named-participating: { show($m4<mid>) }")
+}

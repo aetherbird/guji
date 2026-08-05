@@ -1,0 +1,21 @@
+sub main(): Int {
+    $ch: Chan[Option[Int]] = channel(3)
+    $some: Option[Int] = Some(7)
+    $none: Option[Int] = None
+    $more: Option[Int] = Some(11)
+
+    $ch.send($some)
+    $ch.send($none)
+    $ch.send($more)
+
+    $first = $ch.recv().unwrap()
+    print($first.unwrap())
+
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Some($n) { $n }
+        None { 0 }
+    })
+
+    0
+}

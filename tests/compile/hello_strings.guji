@@ -1,0 +1,5 @@
+sub main(): Int {
+    $name = "world"
+    print("hello, $name")
+    0
+}

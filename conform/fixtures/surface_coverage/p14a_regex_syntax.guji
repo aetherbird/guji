@@ -1,0 +1,24 @@
+# Spec 13.1: successful examples across the core regular-expression dialect.
+sub yes($label: Str, $value: Bool): Unit {
+    print("$label=$value")
+}
+
+sub main(): Int {
+    yes("classes", ("ab42" ~~ /\A[a-z]{2}\d+\z/).is_some())
+    yes("negated", ("abc" ~~ /\A[^0-9]+\z/).is_some())
+    yes("alternation", ("colour" ~~ /\Acolou?r\z/).is_some())
+    yes("group", ("abbb" ~~ /\A(?:a|x)(b+)\z/).is_some())
+    yes("lazy", ("aaab" ~~ /\Aa+?b\z/).is_some())
+    yes("possessive", !("aa" ~~ /\Aa++a\z/).is_some())
+    yes("atomic", !("aa" ~~ /\A(?>a+)a\z/).is_some())
+    yes("lookahead", ("food" ~~ /foo(?=d)/).is_some())
+    yes("negative-lookahead", ("foot" ~~ /foo(?!d)/).is_some())
+    yes("lookbehind", ("food" ~~ /(?<=foo)d/).is_some())
+    yes("negative-lookbehind", ("wood" ~~ /(?<!foo)d/).is_some())
+    yes("multiline", ("x\ny" ~~ /(?m)^y$/).is_some())
+    yes("dotall", ("a\nb" ~~ /(?s)\Aa.b\z/).is_some())
+    yes("extended", ("abc" ~~ /(?x)\A a b c \z/).is_some())
+    yes("scoped-case", ("Ab" ~~ /\A(?i:ab)\z/).is_some())
+    yes("boundary", ("a!" ~~ /\Aa\b!/).is_some())
+    0
+}

@@ -1,0 +1,6 @@
+sub main(): Int {
+    @xs = [1, 2]
+    print("{ is_empty(@xs) }")
+    print("{ @xs.is_empty() }")
+    if is_empty(@xs) { 0 } else { 1 }
+}

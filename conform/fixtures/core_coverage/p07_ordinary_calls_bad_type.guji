@@ -1,0 +1,7 @@
+# Each call argument must have the declared parameter type.
+sub increment($number: Int): Int { $number + 1 }
+
+sub main(): Int {
+    increment("four")
+    0
+}

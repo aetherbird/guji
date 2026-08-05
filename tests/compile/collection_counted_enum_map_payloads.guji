@@ -1,0 +1,69 @@
+# A-collection-elements-enum-map-payload: a flat List of enum values whose
+# payloads include a flat Map[Str, scalar|Str] now lowers to a counted heap array
+# (GUJI_KIND_<Enum>_ARR) whose drop releases each element's payload fields
+# (including the map's keys + vals arrays, and the key strings inside them).
+# Proves construction (fresh constructor temps AND a non-fresh alias element),
+# .count(), for-loop iteration with `match` reading the Map payload as a borrowed
+# view (.count()/value access/.has_key()), and clean release under LeakSanitizer.
+# The Map payloads are HEAP-built at runtime (`~` concat KEYS and `~` concat
+# VALUES, multi-entry maps) so the per-element retain/release of both the key and
+# value arrays balances exactly — an immortal literal would hide leaks/double
+# frees. This is the Map mirror of the completed enum List-payload slice; it was
+# unblocked by the heap-built map key-string release fix.
+
+enum Node {
+    Tally($scores: Map[Str, Int])
+    Labels($tags: Map[Str, Str])
+    Empty
+}
+
+sub main(): Int {
+    @nodes = [
+        Tally({"a" ~ "1": 1, "b" ~ "2": 2}),
+        Labels({"k" ~ "ey": "v" ~ "al"}),
+        Empty,
+    ]
+    print(@nodes.count())
+
+    # for-loop borrows each element; match reads the Map payload as a view.
+    mut $sum = 0
+    for $n in @nodes {
+        $v = match $n {
+            Tally($m) { $m.keys().count() }
+            Labels($lbl) { $lbl.keys().count() }
+            Empty { 0 }
+        }
+        $sum = $sum + $v
+    }
+    print($sum)
+
+    # Non-fresh (alias) element: an existing value reused inside a literal. The
+    # array copies the struct by value, so it must retain its OWN +1 on the map's
+    # keys/vals arrays; the array drop and $g's own end-of-scope release balance.
+    $g = Tally({"x" ~ "0": 10, "y" ~ "0": 20})
+    @more = [$g, Labels({"p" ~ "q": "r" ~ "s", "tt": "uu"})]
+    print(@more.count())
+    for $mm in @more {
+        $w = match $mm {
+            Tally($ys) { $ys.keys().count() }
+            Labels($qs) { qs_count($qs) }
+            Empty { 0 }
+        }
+        print($w)
+    }
+    $gc = match $g {
+        Tally($zs) { $zs{"x0"} + $zs{"y0"} }
+        Labels($rs) { 0 }
+        Empty { 0 }
+    }
+    print($gc)
+    0
+}
+
+sub qs_count($qs: Map[Str, Str]): Int {
+    if $qs.has_key("pq") {
+        $qs.keys().count()
+    } else {
+        0
+    }
+}

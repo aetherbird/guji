@@ -1,0 +1,28 @@
+enum TypeList {
+    TypeNil
+    TypeCons($head: TypeRef, $tail: TypeList)
+}
+
+class TypeRef {
+    has $.name: Str
+    has $.args: TypeList
+}
+
+sub score($ts: TypeList): Int {
+    match $ts {
+        TypeNil { 0 }
+        TypeCons($head, $tail) {
+            if $head.name == "a" {
+                10 + score($head.args) + score($tail)
+            } else {
+                1 + score($tail)
+            }
+        }
+    }
+}
+
+sub main(): Int {
+    $leaf = TypeRef(name: "b", args: TypeNil)
+    $root = TypeRef(name: "a", args: TypeCons($leaf, TypeNil))
+    score(TypeCons($root, TypeNil))
+}

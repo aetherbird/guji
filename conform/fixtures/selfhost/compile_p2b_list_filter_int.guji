@@ -1,0 +1,29 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P2b-2: `.filter` lowers as an inline predicate loop over an
+# owned source `guji_slice_t`. It allocates a destination slice sized to the
+# source length (an upper bound), binds each element to the lambda param, runs
+# the Bool predicate body, and CONDITIONALLY appends the kept element at the
+# running destination length. The result keeps the source element kind.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".data = guji_arr_alloc(GUJI_KIND_ARR_SCALAR, sizeof(int64_t), gl"))
+            print(has_text($c, "for (gi"))
+            print(has_text($c, "if (((guji_mod("))
+            print(has_text($c, ".len] = gi"))
+            print(has_text($c, ".len = guji_add(gl"))
+            print(has_text($c, "guji_release((const void*)gl"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

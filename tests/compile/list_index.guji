@@ -1,0 +1,6 @@
+sub main(): Int {
+    @xs = [10, 20, 30]
+    print("middle: { @xs[1] }")
+    print("last: { @xs[2] }")
+    0
+}

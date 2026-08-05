@@ -1,0 +1,18 @@
+# P2c: map `keys` / `values` produce list snapshots in deterministic sorted-key
+# order. Covers ordinary and method spellings plus Str value retention via join.
+
+sub main(): Int {
+    %m: Map[Str, Int] = {"c": 3, "a": 1, "b": 2}
+    @ks = keys(%m)
+    @vs = %m.values()
+    print(@ks.join(","))
+    print("{ @vs.sum() }")
+
+    %words: Map[Str, Str] = {"b": "bee", "a": "aye"}
+    @wks = %words.keys()
+    @wvs = values(%words)
+    print(@wks.join(":"))
+    print(@wvs.join(":"))
+
+    @ks.count() + @vs.sum() + @wks.count() + @wvs.count()
+}

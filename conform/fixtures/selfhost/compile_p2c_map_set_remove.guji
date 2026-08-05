@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.2 `set` / `remove` bind-RHS lowering over a bound Str-valued map
+# local: the fresh copy allocates source-length + 1 for `set`, the copy loop
+# retains keys and Str values, the strcmp replace releases the OLD value slot
+# before moving the new value in, the key temp is released only when the key
+# was found (append consumes it otherwise), and `remove` skip-copies every
+# `strcmp != 0` pair.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "_len + 1);"))
+            print(has_text($c, "guji_retain(gv"))
+            print(has_text($c, "strcmp(gv"))
+            print(has_text($c, "guji_release(gv"))
+            print(has_text($c, "!= 0) \{ guji_release(gt"))
+            print(has_text($c, ") != 0) \{"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

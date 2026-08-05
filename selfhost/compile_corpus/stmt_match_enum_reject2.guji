@@ -1,0 +1,13 @@
+# E5d-7c-2b-4: statement-position `match`, SECOND reject arm taken (the else-if
+# segment), early-`return 1` after `note`. Exercises a non-first variant segment.
+enum Verdict { VAccept VRejectP($m: Str) VRejectT($m: Str) }
+
+sub main(): Int {
+    match VRejectT("type failed") {
+        VRejectP($m) { note($m) return 1 }
+        VRejectT($m) { note($m) return 1 }
+        VAccept { 0 }
+    }
+    print("unreachable")
+    0
+}

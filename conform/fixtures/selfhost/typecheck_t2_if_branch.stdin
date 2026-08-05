@@ -1,0 +1,4 @@
+# T2: incompatible if branch values reject.
+sub main(): Int {
+    if true { 1 } else { "s" }
+}

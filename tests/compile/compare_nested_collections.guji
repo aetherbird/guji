@@ -1,0 +1,22 @@
+# A-compare-equality: native List/Map equality is generic over ARR_* KIND tags.
+# The depth-5 list and map-with-nested-list values prove capability beyond the
+# old codegen path, which rejected every collection comparison.
+sub main(): Unit {
+    @a = [[[[[1, 2]]]], [[[[3]]]]]
+    @b = [[[[[1, 2]]]], [[[[3]]]]]
+    @c = [[[[[1, 2]]]], [[[[4]]]]]
+    print(@a == @b)
+    print(@a != @c)
+
+    %m1 = {"b": {"x": [1, 2]}, "a": {"z": [3]}}
+    %m2 = {"a": {"z": [3]}, "b": {"x": [1, 2]}}
+    %m3 = {"a": {"z": [3]}, "b": {"x": [1, 9]}}
+    print(%m1 == %m2)
+    print(%m1 != %m3)
+
+    @strs1 = [{"k": ["aa", "bb"]}]
+    @strs2 = [{"k": ["aa", "bb"]}]
+    @strs3 = [{"k": ["aa", "cc"]}]
+    print(@strs1 == @strs2)
+    print(@strs1 == @strs3)
+}

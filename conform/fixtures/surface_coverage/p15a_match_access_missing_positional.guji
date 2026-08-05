@@ -1,0 +1,8 @@
+# Spec 13.4: an out-of-range literal capture index on a literal-known Match is a static error.
+sub main(): Int {
+    match "x" ~~ /^(x)$/ {
+        Some($m) { print($m[2].unwrap_or("none")) }
+        None { print("no-match") }
+    }
+    0
+}

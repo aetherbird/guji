@@ -1,0 +1,29 @@
+# EB-5f: direct self-recursive enum fields are heap-boxed and their generated drop
+# helper walks unique tails iteratively. This small behavioral case keeps the
+# linked-list shape in the three-way corpus; the conform fixture pins the C loop.
+enum Link {
+    End
+    More($text: Str, $rest: Link)
+}
+
+sub build($n: Int, $acc: Link): Link {
+    mut $i = 0
+    mut $out = $acc
+    while $i < $n {
+        $out = More("x", $out)
+        $i = $i + 1
+    }
+    $out
+}
+
+sub score($xs: Link): Int {
+    match $xs {
+        End { 0 }
+        More($text, $rest) { 1 + score($rest) }
+    }
+}
+
+sub main(): Int {
+    $xs = build(9, End)
+    score($xs)
+}

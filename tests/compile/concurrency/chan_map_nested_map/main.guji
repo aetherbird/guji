@@ -1,0 +1,25 @@
+# Section 17 channel copy-on-send for Map[Str, Map[Str, scalar/Str]] values.
+#
+# The outer map and every nested map row must be copied into storage owned by the
+# channel message. The undrained buffered send exercises guji_chan_drop_map's
+# ARR_MAP value-array cascade for nested map rows.
+
+sub main(): Unit {
+    $points: Chan[Map[Str, Map[Str, Int]]] = channel(2)
+    %coords = {"left": {"x": 10, "y": 20}, "right": {"x": 5}}
+    %droppoints = {"unused": {"z": 99}}
+    $points.send(%coords)
+    $points.send(%droppoints)
+
+    %got = $points.recv().unwrap()
+    print(%got{"left"}{"x"} + %got{"left"}{"y"} + %got{"right"}{"x"})
+
+    $labels: Chan[Map[Str, Map[Str, Str]]] = channel(2)
+    %words = {"one": {"a": "red"}, "two": {"b": "blue"}}
+    %dropwords = {"unused": {"c": "drop"}}
+    $labels.send(%words)
+    $labels.send(%dropwords)
+
+    %seen = $labels.recv().unwrap()
+    print(%seen{"one"}{"a"} ~ "/" ~ %seen{"two"}{"b"})
+}

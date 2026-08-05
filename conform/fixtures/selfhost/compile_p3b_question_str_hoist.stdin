@@ -1,0 +1,12 @@
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok("tag:" ~ $s) }
+}
+
+sub find_s($n: Int): Option[Str] {
+    if $n == 0 { None } else { Some("n" ~ "!") }
+}
+
+sub res_suffix($s: Str): Result[Str, Str] { Ok(tag($s)? ~ "!") }
+sub opt_suffix($n: Int): Option[Str] { Some(find_s($n)? ~ "?") }
+
+sub main(): Int { 0 }

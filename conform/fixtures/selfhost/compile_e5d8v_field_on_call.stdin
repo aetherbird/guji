@@ -1,0 +1,21 @@
+class Box {
+    has $.name: Str
+    has $.size: Int
+}
+
+sub make_box($s: Str, $n: Int): Box {
+    Box(name: $s, size: $n)
+}
+
+sub box_size($s: Str, $n: Int): Int {
+    make_box($s, $n).size
+}
+
+sub box_name($s: Str, $n: Int): Str {
+    make_box($s, $n).name
+}
+
+sub main(): Int {
+    print(box_name("hi", 3))
+    return box_size("hi", 3)
+}

@@ -1,0 +1,33 @@
+# P9-10b-3b: unannotated sub/method returns inferred from the body (native T2b
+# TypeInfo.SubSig). Covers Str/Float/Bool/Int/Unit top-level subs, class and
+# enum methods, plus print/interp call sites that must type through the decl.
+sub greet($name: Str) { "hello, { $name }" }
+sub half($x: Float) { $x / 2.0 }
+sub shout($s: Str) { print($s) }
+sub twice($n: Int) { $n * 2 }
+sub is_big($n: Int) { $n > 10 }
+
+class Counter {
+    has $.n: Int
+    sub positive($self) { $self.n > 0 }
+    sub label($self) { "counter" }
+}
+
+enum Direction {
+    North
+    South
+    sub flag($self) { true }
+}
+
+sub main() {
+    print(greet("world"))
+    print(half(7.0))
+    shout("shouted")
+    print(twice(5))
+    print(is_big(3))
+    $c = Counter(n: 3)
+    print($c.positive())
+    print($c.label())
+    $d = North
+    print($d.flag())
+}

@@ -1,0 +1,40 @@
+# C4: an if condition may create a carrier temp owned by the enclosing
+# statement. Emitting a return in one branch must not drop that temp from the
+# fall-through path's cleanup registry; this leaked read_file's Err string in
+# native sanitized builds before the emitIfChain snapshot/restore.
+sub probe($path: Str): Str {
+    $out = if read_file($path).is_ok() {
+        return "early"
+    } else {
+        "fallthrough"
+    }
+    $out
+}
+
+sub scalar_match_probe($path: Str): Str {
+    $out = match read_file($path).unwrap_or("fallback") {
+        "hit" { return "early" }
+        $s { $s }
+    }
+    $out
+}
+
+enum Payload {
+    Text($value: Str)
+    Empty
+}
+
+sub enum_match_probe($path: Str): Str {
+    $out = match Text(read_file($path).unwrap_or("enum-fallback")) {
+        Empty { return "early" }
+        Text($s) { $s }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(probe("if_condition_return_ownership.absent"))
+    print(scalar_match_probe("if_condition_return_ownership.absent"))
+    print(enum_match_probe("if_condition_return_ownership.absent"))
+    0
+}

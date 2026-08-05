@@ -1,0 +1,6 @@
+# O4a: semicolon is an item separator, not parameter-list layout (§2.7, §20).
+sub add($left: Int;, $right: Int): Int = $left + $right
+
+sub main(): Int {
+    add(1, 2)
+}

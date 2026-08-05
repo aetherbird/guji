@@ -1,0 +1,15 @@
+sub maybe_int($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub pass_option($n: Int): Option[Int] {
+    Some(maybe_int($n)?)
+}
+
+sub pass_result($s: Str): Result[Int, Str] {
+    Ok(parse_int($s)?)
+}
+
+sub main(): Int {
+    0
+}

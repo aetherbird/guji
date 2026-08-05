@@ -1,0 +1,7 @@
+sub main(): Int {
+    mut @xs: List[Str] = ["one", "two", "three"]
+    @xs = ["uno", "dos", "tres"]
+    $i = @xs[1]
+    print($i)
+    3
+}

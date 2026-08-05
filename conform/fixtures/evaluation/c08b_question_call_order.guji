@@ -1,0 +1,33 @@
+# C08b: `?` in calls follows receiver/argument order and skips later arguments
+# after propagation.
+sub value($tag: Int, $n: Int, $ok: Bool): Result[Int, Str] {
+    print($tag)
+    if $ok { Ok($n) } else { Err("stopped { $tag }") }
+}
+
+sub pair($left: Int, $right: Int): Int {
+    $left * 10 + $right
+}
+
+sub ordinary($first_ok: Bool): Result[Int, Str] {
+    Ok(pair(value(101, 1, $first_ok)?, value(102, 2, true)?))
+}
+
+sub method($receiver_ok: Bool): Result[Int, Str] {
+    Ok(value(201, 3, $receiver_ok)?.pair(value(202, 4, true)?))
+}
+
+sub show($r: Result[Int, Str]): Unit {
+    match $r {
+        Ok($n) { print("ok { $n }") }
+        Err($e) { print("err { $e }") }
+    }
+}
+
+sub main(): Int {
+    show(ordinary(true))
+    show(ordinary(false))
+    show(method(true))
+    show(method(false))
+    0
+}

@@ -1,0 +1,29 @@
+# RC1.2b regression pins for two heap-list binding-identity bugs found while
+# extending RC1.2a:
+#   1. `@b = @a` used to register the SAME storage as owned twice, so scope
+#      exit double-released it (ASan heap-use-after-free).
+#   2. Rebinding `mut @a` used to copy IN PLACE through the shared pointer,
+#      clobbering @b's view (native diverged from the interpreter, which keeps
+#      @b at the old value).
+# Now an alias bind gets its own borrowed-view variables and a heap rebind
+# swaps in fresh storage, for scalar and Str element kinds alike.
+sub make_list(): List[Int] {
+    [1, 2, 3].reverse()
+}
+
+sub main(): Int {
+    @xs = make_list()
+    @ys = @xs
+    print("{ @xs.sum() } { @ys.sum() }")
+
+    mut @a = "x,y,z".split(",")
+    @b = @a
+    @a = "p,q".split(",")
+    print("{ @a[0] } { @b[0] } { @b[2] }")
+
+    mut @m = [10, 20].map({ $_ + 1 })
+    @keep = @m
+    @m = [7, 7].map({ $_ })
+    print("{ @m.sum() } { @keep.sum() }")
+    0
+}

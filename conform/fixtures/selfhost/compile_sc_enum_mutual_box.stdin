@@ -1,0 +1,27 @@
+enum Kind {
+    KInt
+    KFn($ret: Ret)
+}
+
+enum Ret {
+    RUnit
+    ROpt($k: Kind)
+}
+
+sub kind_score($k: Kind): Int {
+    match $k {
+        KInt { 1 }
+        KFn($r) { 10 + ret_score($r) }
+    }
+}
+
+sub ret_score($r: Ret): Int {
+    match $r {
+        RUnit { 2 }
+        ROpt($k) { 20 + kind_score($k) }
+    }
+}
+
+sub main(): Int {
+    kind_score(KFn(RUnit)) + kind_score(KFn(ROpt(KFn(RUnit))))
+}

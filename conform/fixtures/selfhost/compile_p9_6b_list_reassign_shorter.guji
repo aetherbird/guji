@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 6 P9-6b shorter stack list reassignment.
+# Pins fixed first-bind stack capacity `_data[3]`, initial `_len = 3`, and the
+# shorter rebind `_len = 1` (native copies a prefix; no heap swap of the local).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "_data[3]"))
+            print(has_text($c, "_len = 3"))
+            print(has_text($c, "_len = 1"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

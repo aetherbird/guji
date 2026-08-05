@@ -1,0 +1,6 @@
+sub main(): Int {
+    triple(7)
+}
+sub triple($x: Int): Int {
+    $x * 3
+}

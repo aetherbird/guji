@@ -1,0 +1,32 @@
+# P5b-2b(b-map): scalar-valued Map[Str, T] generic-sub monomorphization.
+sub value_or[T](%m: Map[Str, T], $key: Str, $default: T): T {
+    match get(%m, $key) { Some($v) { $v } None { $default } }
+}
+
+sub map_count[T](%m: Map[Str, T]): Int {
+    %m.keys().count()
+}
+
+sub single[T]($k: Str, $v: T): Map[Str, T] {
+    {$k: $v}
+}
+
+sub transitive[T]($k: Str, $v: T): Map[Str, T] {
+    %base = single($k, $v)
+    %base.set($k, $v)
+}
+
+sub main(): Int {
+    %scores = {"ada": 10}
+    $score = value_or(%scores, "ada", 0)
+    %names = {"first": "ada"}
+    $name = value_or(%names, "first", "none")
+    %flags = {"ready": true}
+    $flag = value_or(%flags, "ready", false)
+    %ratios = {"pi": 3.5}
+    $ratio = value_or(%ratios, "pi", 0.0)
+    %via = transitive("k", 7)
+    $relayed = value_or(%via, "k", 0)
+    print($name)
+    if $flag && $ratio == 3.5 { $score + $relayed + map_count(%names) } else { 0 }
+}

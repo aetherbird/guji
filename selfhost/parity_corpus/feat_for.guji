@@ -1,0 +1,9 @@
+# §6.3 for/loop — side-effecting iteration accumulating into a mut binding.
+sub main(): Int {
+    mut $sum = 0
+    for $x in [1, 2, 3, 4] {
+        $sum = $sum + $x
+    }
+    print("{ $sum }")
+    0
+}

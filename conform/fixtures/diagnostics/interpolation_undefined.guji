@@ -1,0 +1,5 @@
+# §12 interpolation expressions are statically checked like ordinary expressions.
+sub main(): Int {
+    print("value=$missing")
+    0
+}

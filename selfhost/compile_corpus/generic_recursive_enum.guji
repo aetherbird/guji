@@ -1,0 +1,40 @@
+# D11: self-referential generic enum — Stack[T] { Push($top: T, $rest: Stack[T]) Nil }.
+# Native monomorphization must (a) FLATTEN the recursive Stack[T] payload to the
+# concrete spec name (Stack__Int / Stack__Str) and BOX it for heap indirection,
+# and (b) construct the nullary Nil arm of a generic enum from constructor
+# context (Push's $rest payload slot pins the spec — the bare name has none).
+# Exercises 3-deep construction at both an Int and a Str instantiation, nested
+# Nil terminators, and two-level matching that reads the boxed payloads, with
+# heap-built Str payloads so the box/leaf retain/release balance under the
+# sanitizer gate. Expected output is the interpreter oracle.
+#
+# NOTE: the recursive depth()/top_or() METHODS in tests/generics.guji are not
+# exercised here — calling them needs an enum-typed local as a method receiver,
+# which the (pre-existing, non-D11) escape pre-pass marks as escaping (leak), and
+# a method on a constructor temp is unsupported in value position. Those method
+# cases are outside this fixture.
+
+enum Stack[T] {
+    Push($top: T, $rest: Stack[T])
+    Nil
+}
+
+sub main(): Unit {
+    $deep = Push(1, Push(2, Push(3, Nil)))
+    match $deep {
+        Push($t, $ri) {
+            print($t)
+            match $ri {
+                Push($t2, $r2) { print($t2) }
+                Nil { print(0) }
+            }
+        }
+        Nil { print(0) }
+    }
+
+    $strs = Push("x" ~ "1", Push("y" ~ "2", Nil))
+    match $strs {
+        Push($sv, $rs) { print($sv) }
+        Nil { print("none") }
+    }
+}

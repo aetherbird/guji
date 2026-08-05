@@ -1,0 +1,19 @@
+# gujiconform -- D5: native `\w` agrees with the interpreter on malformed UTF-8.
+# stdin holds three lines: the invalid bytes 0xFF 0xFE; the ASCII "word9"; and
+# the bytes 0xC3 0xA9 "clair" ("éclair"). The interpreter decodes through Go's
+# utf8.DecodeRuneInString, so a lone invalid byte yields U+FFFD (not a word
+# character) and line 1 has no \w. Before the fix, native decoded 0xFF/0xFE as
+# the raw codepoints U+00FF/U+00FE (both \w letters) and matched line 1. \d and
+# [a-z] already agreed and are probed to confirm the fix leaves them untouched.
+# Expected output is the spec/interpreter answer, never captured from native.
+sub main(): Int {
+    $s = stdin.slurp()
+    @ls = lines($s)
+    for $ln in @ls {
+        $w = match $ln ~~ /\w/ { Some($m) { "w:Y" } None { "w:N" } }
+        $d = match $ln ~~ /\d/ { Some($m) { "d:Y" } None { "d:N" } }
+        $a = match $ln ~~ /[a-z]/ { Some($m) { "a:Y" } None { "a:N" } }
+        print($w ~ " " ~ $d ~ " " ~ $a)
+    }
+    0
+}

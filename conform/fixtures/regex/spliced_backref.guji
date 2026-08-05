@@ -1,0 +1,14 @@
+# §13.4: a spliced Regex keeps its captures for its own backreferences while
+# hiding those captures from the host Match's public group indexing.
+sub main(): Int {
+    print("before")
+    $re = Regex.compile("(a)\\1").unwrap()
+    match "aa!" ~~ /^(?<host><{ $re }>)(!)$/ {
+        Some($m) {
+            print("match:" ~ $m<host>.unwrap_or("?") ~ ":" ~ $m[2].unwrap_or("?") ~ ":" ~ $m[3].unwrap_or("hidden"))
+        }
+        None { print("match:none") }
+    }
+    print("after")
+    0
+}

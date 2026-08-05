@@ -1,0 +1,8 @@
+# §5.1 integer division by zero is a runtime panic; stdout printed before the
+# error must agree, and both engines exit nonzero.
+sub main(): Int {
+    print(1)
+    $z = 0
+    print(10 / $z)
+    0
+}

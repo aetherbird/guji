@@ -1,0 +1,86 @@
+# I10g5b: D/C function-channel ownership.  D wires VFunction(key,caps) through
+# WireEnum (WEFunction + Env/bind spines) so send/recv/for/select agree with C's
+# guji_fn_t detach.  The unbuffered hatch crossing proves a captured closure
+# Env is deep-copied before the receiver adopts it.
+class Card {
+    has $.rank: Int
+    has $.label: Str
+}
+
+enum Mark {
+    Plain($n: Int)
+    Named($name: Str)
+}
+
+sub main(): Int {
+    $base = 40
+    $task_ch: Chan[Func[Int, Int]] = channel()
+    hatch {
+        $task_fn: Func[Int, Int] = sub($x: Int): Int { $x + $base }
+        $sent = $task_ch.send($task_fn)
+    }
+    $task_recv = $task_ch.recv()
+    $from_task: Func[Int, Int] = $task_recv.unwrap()
+    print($from_task(2))
+
+    # Channel-for adopts and releases each detached function environment before
+    # rebinding; the original closures remain callable in the sender frame.
+    $offset = 5
+    $plus: Func[Int, Int] = sub($x: Int): Int { $x + $offset }
+    $double: Func[Int, Int] = sub($x: Int): Int { $x * 2 }
+    $loop_ch: Chan[Func[Int, Int]] = channel(2)
+    $s1 = $loop_ch.send($plus)
+    $s2 = $loop_ch.send($double)
+    $closed = $loop_ch.close()
+    for $fn in $loop_ch {
+        print($fn(3))
+    }
+
+    # Both select directions use the same detach/adopt contract.  A bound recv
+    # carrier owns its message until unwrap retains the function pair out.
+    $select_ch: Chan[Func[Int, Int]] = channel(1)
+    select {
+        $status = $select_ch.send($plus) { print($status.is_ok()) }
+        else { print("send blocked") }
+    }
+    select {
+        $got = $select_ch.recv() {
+            $picked: Func[Int, Int] = $got.unwrap()
+            print($picked(1))
+        }
+        else { print("recv blocked") }
+    }
+
+    # A Str capture proves detachment deep-copies owned fields rather than
+    # retaining pointers into the sender's closure environment.
+    $prefix = "hello "
+    $greet: Func[Str, Str] = sub($name: Str): Str { $prefix ~ $name }
+    $str_ch: Chan[Func[Str, Str]] = channel(1)
+    $str_sent = $str_ch.send($greet)
+    $str_got = $str_ch.recv()
+    $greeter: Func[Str, Str] = $str_got.unwrap()
+    print($greeter("guji"))
+
+    # Nominal captures are rebuilt as fresh counted boxes, including their
+    # owned Str fields/payloads, before the receiver adopts the copied Env.
+    $card = Card(rank: 7, label: "he" ~ "arts")
+    $mark = Named("lu" ~ "cky")
+    $show: Func[Int, Str] = sub($n: Int): Str {
+        match $mark {
+            Plain($value) { "{$card.label}:{ $card.rank + $value + $n }" }
+            Named($name) { "{$card.label}:$name:{ $card.rank + $n }" }
+        }
+    }
+    $nominal_ch: Chan[Func[Int, Str]] = channel(1)
+    $nominal_sent = $nominal_ch.send($show)
+    $nominal_got = $nominal_ch.recv()
+    $nominal_fn: Func[Int, Str] = $nominal_got.unwrap()
+    print($nominal_fn(3))
+
+    # The final buffered Str closure is intentionally undrained: channel
+    # teardown must drop both its detached Env and deep-copied Str under LSan.
+    $drop_ch: Chan[Func[Str, Str]] = channel(1)
+    $queued = $drop_ch.send($greet)
+    print($plus(2))
+    0
+}

@@ -1,0 +1,8 @@
+sub main(): Unit {
+    # Option[Str] owns the fresh concat payload and match borrows it for the arm.
+    $o: Option[Str] = Some("he" ~ "llo")
+    print(match $o {
+        Some($v) { $v }
+        None { "none" }
+    })
+}

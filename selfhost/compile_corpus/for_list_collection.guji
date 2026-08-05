@@ -1,0 +1,30 @@
+# §6.3 list iteration borrows collection-valued elements from an owned
+# List[List[T]] / List[Map[Str,T]] iterator. Map-row ops exercise the
+# borrowed guji_map_t storage view (listlen -1); fresh Str leaves make
+# row lifetime mistakes sanitizer-visible.
+# NOTE: native rejects `sub …(): List[Map[…]]` returns in this checkout, so
+# the List[Map[Str,Str]] case is a local binding (not a by-value return).
+sub main(): Int {
+    @nested = [[1, 2], [3, 4, 5]]
+    mut $total = 0
+    for @row in @nested {
+        print("row:{ @row.sum() }")
+        $total = $total + @row[0]
+    }
+
+    @maps = [{"z": 5}, {"x": 6, "y": 7}]
+    for %row in @maps {
+        @values = %row.values()
+        print("map:{ %row }")
+        $total = $total + @values.sum()
+    }
+
+    # Fresh Str payloads — LSan catches a borrowed-row retain/release mistake.
+    @words = [{"c": "g" ~ "amma"}, {"a": "alp" ~ "ha"}]
+    for %wrow in @words {
+        @vals = %wrow.values()
+        print("words:{ @vals.join('-') }")
+        $total = $total + @vals.count()
+    }
+    $total
+}

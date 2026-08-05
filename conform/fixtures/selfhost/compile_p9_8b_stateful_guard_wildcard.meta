@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost stateful Str match guard and wildcard result ownership

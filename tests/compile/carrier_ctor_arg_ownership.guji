@@ -1,0 +1,12 @@
+# RC1.6d-iii: built-in carrier constructors retain Str payload slots, so a
+# caller can release a rebound local while the carrier still reads the old value.
+sub main(): Unit {
+    mut $a = "one".upper()
+    $o: Option[Str] = Some($a)
+    $a = "two".upper()
+    match $o {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+    print($a)
+}

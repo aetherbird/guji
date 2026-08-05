@@ -1,0 +1,50 @@
+# G3b-4: generic enum monomorphization must preserve declared-enum payloads,
+# both as a fixed payload next to a type param and as the type-param value itself.
+enum Color {
+    Red($n: Int)
+    Blue($name: Str)
+}
+
+enum Pair[T] {
+    Both($value: T, $color: Color)
+}
+
+enum Box[T] {
+    Wrap($value: T)
+}
+
+sub color_text($c: Color): Str {
+    match $c {
+        Red($n) { "red { $n }" }
+        Blue($name) { "blue $name" }
+    }
+}
+
+sub main(): Int {
+    $pi = Both(7, Red(1))
+    match $pi {
+        Both($n, $c) { print("pair int { $n } { color_text($c) }") }
+    }
+
+    $ps = Both("tag", Blue("sky"))
+    match $ps {
+        Both($s, $c) { print("pair str $s { color_text($c) }") }
+    }
+
+    $bi = Wrap(42)
+    match $bi {
+        Wrap($n) { print("box int { $n }") }
+    }
+
+    $bs = Wrap("word")
+    match $bs {
+        Wrap($s) { print("box str $s") }
+    }
+
+    $bc = Wrap(Red(9))
+    match $bc {
+        Wrap($c) { print("box color { color_text($c) }") }
+    }
+
+    0
+}

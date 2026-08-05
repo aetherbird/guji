@@ -1,0 +1,12 @@
+sub main(): Int {
+    $base = 3
+    $bump = 2.5
+    $suffix = "cha" ~ "rs!"
+    $pred = sub($n: Int): Bool { $n > $base }
+    $scale = sub($x: Float): Float { $x + $bump }
+    $shout = sub($s: Str): Str { $s ~ $suffix }
+    if $pred(5) { print("hi") } else { print("lo") }
+    print("{ $scale(5.0) }")
+    print($shout("go"))
+    $base + 4
+}

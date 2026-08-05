@@ -1,0 +1,3 @@
+sub main(): Int {
+    if "m" < "a" { 1 } else if "m" > "a" { 9 } else { 0 }
+}

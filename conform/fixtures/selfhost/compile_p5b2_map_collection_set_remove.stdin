@@ -1,0 +1,8 @@
+sub main(): Int {
+    %m: Map[Str, List[Int]] = {"a": [1], "b": [2]}
+    %r = %m.set("a", [9])
+    %d = %m.remove("a")
+    @ks = %d.keys()
+    print("{ @ks.count() }")
+    @ks.count()
+}

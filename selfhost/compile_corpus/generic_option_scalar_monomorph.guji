@@ -1,0 +1,19 @@
+# §3.3 generic sub monomorphization over scalar-payload Option[T] arguments.
+# Covers Some(...) inference, bare None inference from a sibling T argument, and
+# borrowed Option[T] params in the generated specialization.
+sub get_or_default[T]($o: Option[T], $default: T): T {
+    match $o {
+        Some($v) { $v }
+        None { $default }
+    }
+}
+
+sub main(): Int {
+    $n = get_or_default(Some(7), 0)
+    print("{ $n }")
+    $m = get_or_default(None, 42)
+    print("{ $m }")
+    $s = get_or_default(Some("hi"), "bye")
+    print($s)
+    if $n == 7 && $m == 42 && $s == "hi" { 0 } else { 1 }
+}

@@ -1,0 +1,17 @@
+sub main(): Int {
+    # Short-circuit result temps are function locals reused by a loop. Alternate
+    # the LHS so each expression must replace the prior iteration's result even
+    # when the current LHS skips its RHS.
+    mut $i = 0
+    while $i < 4 {
+        $lhs = $i % 2 == 1
+        $either = $lhs || false
+        $both = $lhs && true
+        print("{ $i }:{ $either }:{ $both }")
+        $i = $i + 1
+    }
+
+    $p = true
+    $q = false
+    if $p && !$q { 5 } else { 0 }
+}

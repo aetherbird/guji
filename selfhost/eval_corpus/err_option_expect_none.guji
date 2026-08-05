@@ -1,0 +1,9 @@
+# Spec §15.5/§11.2: expect on None uses the caller's evaluated message.
+sub none_int(): Option[Int] { None }
+
+sub main(): Int {
+    $none: Option[Int] = none_int()
+    print("before")
+    print(expect($none, "custom" ~ ": none"))
+    0
+}

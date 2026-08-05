@@ -1,0 +1,37 @@
+# Chan[Option[List[T]]] must detach active list payloads on send and adopt them
+# on recv; buffered values left unread exercise the carrier elem_drop under LSan.
+sub main(): Int {
+    $ints: Chan[Option[List[Int]]] = channel(3)
+    @nums = [2, 4, 6]
+    $some_nums: Option[List[Int]] = Some(@nums)
+    $none_nums: Option[List[Int]] = None
+    $ints.send($some_nums)
+    $ints.send($none_nums)
+    $ints.send($some_nums)
+
+    $got_nums = $ints.recv().unwrap()
+    print(match $got_nums {
+        Some(@xs) { @xs[0] + @xs[2] }
+        None { 0 }
+    })
+
+    $got_none = $ints.recv().unwrap()
+    print(match $got_none {
+        Some(@xs) { @xs[0] }
+        None { 99 }
+    })
+
+    $words: Chan[Option[List[Str]]] = channel(2)
+    @ws = ["gu", "ji"]
+    $some_words: Option[List[Str]] = Some(@ws)
+    $words.send($some_words)
+    $words.send($some_words)
+
+    $got_words = $words.recv().unwrap()
+    print(match $got_words {
+        Some(@ys) { @ys[0] ~ @ys[1] }
+        None { "none" }
+    })
+
+    0
+}

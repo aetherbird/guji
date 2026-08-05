@@ -1,0 +1,9 @@
+sub main(): Unit {
+    print(if false {
+        $s = "no" ~ "pe"
+        $s
+    } else {
+        $t = "ye" ~ "s"
+        $t
+    })
+}

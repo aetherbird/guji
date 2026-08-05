@@ -1,0 +1,7 @@
+# Exact §6.3 type rejections. Every .guji file in control_reject_corpus must
+# appear here; control_reject_diff.sh fails closed on omissions.
+for_list_arity.guji
+for_map_arity.guji
+for_non_iterable.guji
+for_range_arity.guji
+while_condition_type.guji

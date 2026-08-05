@@ -1,0 +1,11 @@
+sub main(): Int {
+    $o: Option[Float] = Some(1.5)
+    if match $o {
+        Some($f) { $f > 1.0 }
+        None { false }
+    } {
+        3
+    } else {
+        4
+    }
+}

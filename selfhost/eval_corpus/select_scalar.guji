@@ -1,0 +1,72 @@
+# §17.5 scalar/Str select: source-order readiness, recv/send bindings, default,
+# closed-channel readiness, heap Str transfer, and a blocking hatch wakeup.
+sub main(): Int {
+    $ints: Chan[Int] = channel(2)
+    $bools: Chan[Bool] = channel(1)
+    $ints.send(42)
+    $bools.send(true)
+
+    # When several arms are ready the implementation may choose arbitrarily;
+    # canonical C polls in source order, so this exact row pins that choice.
+    select {
+        $got = $ints.recv() { print("int { $got.unwrap() }") }
+        $flag = $bools.recv() { print("wrong first") }
+        else { print("wrong first else") }
+    }
+    select {
+        $got = $ints.recv() { print("wrong empty") }
+        $flag = $bools.recv() { print("bool { $flag.unwrap() }") }
+        else { print("wrong second else") }
+    }
+    select {
+        $got = $ints.recv() { print("wrong poll") }
+        else { print("idle") }
+    }
+
+    $out: Chan[Int] = channel(1)
+    select {
+        $sent = $out.send(9) {
+            match $sent {
+                Ok($u) { print("sent") }
+                Err($e) { print("wrong closed") }
+            }
+        }
+        else { print("wrong send else") }
+    }
+    select { $out.send(10) { print("wrong full") } else { print("full") } }
+    print($out.recv().unwrap())
+
+    # Str is counted heap data; a selected recv binding owns its detached copy.
+    $words: Chan[Str] = channel(1)
+    select { $words.send("he" ~ "llo") { print("str sent") } }
+    select {
+        $word = $words.recv() { print($word.unwrap()) }
+        else { print("wrong str else") }
+    }
+
+    # A send on a closed channel is ready and binds Err(Closed).
+    $closed: Chan[Int] = channel()
+    $closed.close()
+    select {
+        $result = $closed.send(7) {
+            match $result {
+                Ok($u) { print("wrong closed send") }
+                Err($e) { print("send closed") }
+            }
+        }
+    }
+    select {
+        $value = $closed.recv() {
+            match $value {
+                Some($n) { print("wrong closed recv") }
+                None { print("recv closed") }
+            }
+        }
+    }
+
+    # Without else, wait until another task makes an arm ready.
+    $sync: Chan[Float] = channel()
+    hatch { $sync.send(2.5) }
+    select { $value = $sync.recv() { print("wake { $value.unwrap() }") } }
+    0
+}

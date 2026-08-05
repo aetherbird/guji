@@ -1,0 +1,6 @@
+sub main(): Int {
+  %m: Map[Str, Int] = {"k": 10}
+  print(%m)
+  $n = 3 + 4
+  $n
+}

@@ -1,0 +1,16 @@
+# §3.3 generic subs — scalar monomorphized instantiations (P5b-1).
+sub id[T]($v: T): T { $v }
+
+sub pick[T]($a: T, $b: T, $flag: Bool): T {
+    if $flag { $a } else { $b }
+}
+
+sub show[T]($v: T): Str { "value={ $v }" }
+
+sub main(): Int {
+    print("{ id(40) + 2 }")
+    print(id("guji"))
+    print("{ pick(1.5, 2.5, false) }")
+    print(show(true))
+    id(7)
+}

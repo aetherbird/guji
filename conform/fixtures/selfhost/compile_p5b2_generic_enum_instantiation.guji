@@ -1,0 +1,33 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Concrete generic enum annotations materialize ordinary enum specs.
+            print(has_text($c, "typedef struct Box__Int Box__Int;"))
+            print(has_text($c, "struct Box__Int"))
+            print(has_text($c, "typedef struct Box__Str Box__Str;"))
+            print(has_text($c, "struct Box__Str"))
+            print(has_text($c, "static int64_t gf_unwrap_or_zero(Box__Int gp0)"))
+            print(has_text($c, "static const char* gf_describe(Box__Str gp0)"))
+            # Fieldless variants are lowered through the expected concrete enum.
+            print(has_text($c, "gf_unwrap_or_zero((Box__Int)"))
+            print(has_text($c, "gf_describe(ge"))
+            # `print(Int-returning-call)` uses display lowering via guji_int_str.
+            print(has_text($c, "guji_int_str(gi"))
+            print(has_text($c, "guji_print(gt"))
+            # The generic template itself is skipped by typedef emission.
+            print(has_text($c, "typedef struct Box Box;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

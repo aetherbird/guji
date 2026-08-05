@@ -1,0 +1,12 @@
+# DECLINE-AUDIT control: a GENUINE oracle-limit, NOT a gap. A map-valued `if`
+# binding: the interpreter runs it fine, but `guji build` (the native oracle)
+# REJECTS it ("codegen supports map bindings from map expressions only", commit
+# b47999a). Because a required oracle cannot build it, no legitimate three-way
+# corpus can exist and it is permanently out of the selfhost subset. The audit
+# must classify this as ORACLE-LIMIT, never a GAP — this is the case that proves
+# the harness distinguishes "selfhost-only gap" from "native can't either".
+sub main(): Int {
+    %m: Map[Str, Int] = if 1 < 2 { {"a": 1} } else { {"b": 2} }
+    print(%m)
+    0
+}

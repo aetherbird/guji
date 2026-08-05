@@ -1,0 +1,12 @@
+tag:x1
+left+right
+nil
+start-mid
+AABB
+err bad boom
+early-own
+ok good fine
+err early-own
+ok payload-ok
+err was-none
+bound payload-ok

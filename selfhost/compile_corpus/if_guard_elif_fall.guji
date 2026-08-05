@@ -1,0 +1,13 @@
+# Statement-position `if`/`else if` guard with NO matching branch: both the `if`
+# and the `else if` conditions are false, so control falls past the whole chain to
+# the trailing statements and the final return.
+sub main(): Int {
+    $n = "z"
+    if $n == "a" {
+        return 1
+    } else if $n == "b" {
+        return 2
+    }
+    note("fell past elifs: " ~ $n)
+    8
+}

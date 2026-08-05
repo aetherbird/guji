@@ -1,0 +1,36 @@
+# §15 list `is_empty`, P2c slice: whether a List has no elements (result Bool), in
+# both the function form `is_empty(@xs)` and the data-first method form
+# `@xs.is_empty()`. Native lowers this to `(<len> == 0)` — a borrowed `.len` read
+# for a bound-var receiver — so `is_empty` reuses `count`'s length machinery and
+# never rescans the elements. Exercised in three value positions: a `"{ … }"`
+# interpolation (Bool display), an `if` condition, and an arithmetic-derived exit
+# code. An empty list is produced with `take(@xs, 0)` (empty list literals are out
+# of the selfhost subset), so the `true` branch is genuinely covered.
+sub main(): Int {
+    @xs = [10, 20, 30]
+    @empty = take(@xs, 0)
+
+    # interpolation display, both forms, both truth values
+    print("{ is_empty(@xs) }")
+    print("{ @xs.is_empty() }")
+    print("{ is_empty(@empty) }")
+    print("{ @empty.is_empty() }")
+
+    # if-condition position (routes through the Bool condition lowering)
+    if is_empty(@empty) {
+        print("empty-true")
+    } else {
+        print("empty-false")
+    }
+    if @xs.is_empty() {
+        print("xs-empty")
+    } else {
+        print("xs-nonempty")
+    }
+
+    # arithmetic-derived exit: is_empty(@empty) contributes the `true` path,
+    # is_empty(@xs) the `false` path.
+    $a = if is_empty(@empty) { 40 } else { 1 }
+    $b = if @xs.is_empty() { 2 } else { 5 }
+    $a + $b
+}

@@ -1,0 +1,58 @@
+# RC2.1: uniqueness-based in-place map update. A self-rebind `%m = %m.set(...)`
+# / `%m = %m.remove(...)` mutates %m's storage in place when it is uniquely
+# owned (rc == 1), and falls back to copying when an alias exists (rc > 1) so an
+# aliased map is never observably mutated. The interpreter is the oracle: this
+# program must print identically whether the compiler reuses or copies.
+sub build(): Map[Str, Int] {
+    # Seed via set() so %m is a runtime-sized (dynamic) map the self-rebinds can
+    # mutate in place; a bare literal binds fixed-capacity storage.
+    mut %m = {"seed": 0}.set("seed", 0)
+    mut $i = 1
+    # In-place appends: no alias of %m exists, so each set grows the unique
+    # storage rather than copying it.
+    while $i <= 4 {
+        %m = %m.set("k{ $i }", $i * 10)
+        $i = $i + 1
+    }
+    # In-place replace of an existing key.
+    %m = %m.set("k2", 999)
+    # In-place remove of an existing key, then a no-op remove of an absent key.
+    %m = %m.remove("k3")
+    %m = %m.remove("nope")
+    %m
+}
+
+sub main(): Unit {
+    %m = build()
+    print(%m{"seed"})
+    print(%m{"k1"})
+    print(%m{"k2"})
+    print(%m{"k4"})
+    print(%m.has_key("k3"))
+    print(%m.has_key("k2"))
+    @ks = %m.keys()
+    print(@ks.join(","))
+
+    # Alias-then-set: %a aliases %s, so the storage is shared (rc > 1) and the
+    # self-rebind on %s MUST copy, leaving %a's view of the original intact.
+    mut %s = {"x": "1"}.set("y", "2")
+    %a = %s
+    %s = %s.set("x", "9")
+    %s = %s.set("z", "7")
+    print(%a{"x"})
+    print(%a.has_key("z"))
+    print(%s{"x"})
+    print(%s{"z"})
+
+    # Str-valued map in-place accumulation.
+    mut %t = {"g": "start"}.set("g", "start")
+    mut $j = 0
+    while $j < 3 {
+        %t = %t.set("t{ $j }", "v{ $j }")
+        $j = $j + 1
+    }
+    %t = %t.set("g", "done")
+    print(%t{"g"})
+    print(%t{"t0"})
+    print(%t{"t2"})
+}

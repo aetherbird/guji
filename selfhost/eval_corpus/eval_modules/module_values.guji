@@ -1,0 +1,31 @@
+# §16 direct-import support module. Public declarations cover each exported
+# value shape; private helpers remain usable only while an imported body runs.
+sub bump($n: Int): Int {
+    $n + 1
+}
+
+pub sub add($a: Int, $b: Int): Int {
+    bump($a + $b)
+}
+
+pub sub labels($n: Int): List[Str] {
+    ["module-{ $n }", "loaded"]
+}
+
+pub class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub shifted($self, $delta: Int): Int {
+        $self.x + $self.y + $delta
+    }
+}
+
+pub enum Choice {
+    Hot
+    Cold
+
+    sub pick($n: Int): Choice {
+        if $n > 0 { Hot } else { Cold }
+    }
+}

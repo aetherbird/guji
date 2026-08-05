@@ -1,0 +1,5 @@
+sub main(): Int {
+  %m: Map[Str, Int] = {"only": 42}
+  print(%m)
+  7
+}

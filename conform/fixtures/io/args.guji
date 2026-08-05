@@ -1,0 +1,9 @@
+# gujiconform -- Phase 2 (Platform IO pass): args() returns the command-line
+# arguments after the source path as List[Str] (Section 15.4). The program name
+# and source path are excluded; blank arguments are preserved as empty strings.
+# Expected output is derived from the spec, not captured from native.
+sub main() {
+    @argv = args()
+    print("{ @argv.count() }")
+    print(@argv.join("|"))
+}

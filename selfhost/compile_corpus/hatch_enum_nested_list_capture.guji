@@ -1,0 +1,44 @@
+# P9-11a: hatch capture of nested List-payload enums — same predicate widen as
+# channel send; guji_copy_arr detaches List[List]/List[Map] into the task heap.
+enum Bag {
+    Rows($xs: List[List[Str]])
+    Dicts($ms: List[Map[Str, Int]])
+    Empty
+}
+
+sub main(): Int {
+    $rows = Rows([["north", "east"], ["south"]])
+    $dicts = Dicts([{"a": 10}, {"b": 20}])
+    $textCh: Chan[Str] = channel(0)
+    $numCh: Chan[Int] = channel(0)
+
+    hatch {
+        $text = match $rows {
+            Rows($xs) {
+                @first = $xs[0]
+                @second = $xs[1]
+                @first[0] ~ "/" ~ @second[0]
+            }
+            Dicts($ms) { "dicts" }
+            Empty { "empty" }
+        }
+        $textCh.send($text)
+    }
+
+    hatch {
+        $total = match $dicts {
+            Rows($xs) { 0 }
+            Dicts($ms) {
+                %a = $ms[0]
+                %b = $ms[1]
+                %a{"a"} + %b{"b"}
+            }
+            Empty { -1 }
+        }
+        $numCh.send($total)
+    }
+
+    print($textCh.recv().unwrap())
+    print($numCh.recv().unwrap())
+    0
+}

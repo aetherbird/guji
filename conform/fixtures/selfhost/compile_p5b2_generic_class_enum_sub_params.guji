@@ -1,0 +1,39 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Generic-sub return annotations like Box[T] materialize the concrete
+            # class spec after sub specialization, then final signature collection
+            # sees Box__Int/Box__Str as ordinary by-value class returns.
+            print(has_text($c, "typedef struct Box__Int Box__Int;"))
+            print(has_text($c, "typedef struct Box__Str Box__Str;"))
+            print(has_text($c, "static Box__Int gf_wrap__Int_Box__Int(int64_t gp0)"))
+            print(has_text($c, "static Box__Str gf_wrap__Str_Box__Str(const char* gp0)"))
+            # The enum twin uses the same native-shaped type and function tags.
+            print(has_text($c, "typedef struct EBox__Int EBox__Int;"))
+            print(has_text($c, "typedef struct EBox__Str EBox__Str;"))
+            print(has_text($c, "static EBox__Int gf_wrap_enum__Int_EBox__Int(int64_t gp0)"))
+            print(has_text($c, "static EBox__Str gf_wrap_enum__Str_EBox__Str(const char* gp0)"))
+            # Params that mention Box[T]/EBox[T] before a scalar T arg still
+            # specialize from the later scalar argument and substitute both
+            # parameter and return annotations.
+            print(has_text($c, "static Box__Int gf_identity_box__Box__Int_Int_Box__Int(Box__Int gp0, int64_t gp1)"))
+            print(has_text($c, "static EBox__Int gf_identity_ebox__EBox__Int_Int_EBox__Int(EBox__Int gp0, int64_t gp1)"))
+            print(has_text($c, "static int64_t gf_get_or_default__Box__Int_Int_Int(Box__Int gp0, int64_t gp1)"))
+            # Original generic templates are not emitted directly.
+            print(has_text($c, "gf_wrap("))
+            print(has_text($c, "gf_identity_box("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

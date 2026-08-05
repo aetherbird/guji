@@ -1,0 +1,115 @@
+# I10e2 §17.5 select over Chan[List[Int]] / Chan[Map[Str,Str]] / Chan[user-enum].
+# Pins bound/unbound recv (heap adopt + discard), send copy, closed readiness,
+# else idle, early return with owned payload, and hatch wake — sanitizer-clean.
+enum Notice {
+    Quiet
+    Text($value: Str)
+}
+
+sub early_list($ch: Chan[List[Int]]): Int {
+    select {
+        $got = $ch.recv() {
+            return $got.unwrap().count()
+        }
+        else { return -1 }
+    }
+    0
+}
+
+sub main(): Int {
+    $rows: Chan[List[Int]] = channel(2)
+    $words: Chan[Map[Str, Str]] = channel(1)
+    $notes: Chan[Notice] = channel(2)
+
+    $rows.send([1, 2, 3])
+    $words.send({"k": "he" ~ "ap"})
+    $notes.send(Text("al" ~ "pha"))
+
+    # Source-order among ready collection arms (canonical C polls top-down).
+    select {
+        $got = $rows.recv() { print("list { $got.unwrap().count() }") }
+        $got = $words.recv() { print("wrong map first") }
+        $got = $notes.recv() { print("wrong note first") }
+        else { print("wrong first else") }
+    }
+    select {
+        $got = $rows.recv() { print("wrong empty list") }
+        $got = $words.recv() { print($got.unwrap(){"k"}) }
+        $got = $notes.recv() { print("wrong note second") }
+        else { print("wrong second else") }
+    }
+    select {
+        $got = $notes.recv() {
+            match $got.unwrap() {
+                Quiet { print("wrong Quiet") }
+                Text($value) { print($value) }
+            }
+        }
+        else { print("wrong note else") }
+    }
+    select {
+        $got = $rows.recv() { print("wrong idle") }
+        else { print("idle") }
+    }
+
+    # Unbound recv discards an adopted List without binding (LSan).
+    $drop: Chan[List[Int]] = channel(1)
+    $drop.send([9, 8])
+    select { $drop.recv() { print("dropped") } }
+
+    # Send arms: buffered List/Map/enum, then closed Err(Closed).
+    $out_rows: Chan[List[Int]] = channel(1)
+    select {
+        $sent = $out_rows.send([4, 5]) {
+            match $sent {
+                Ok($u) { print("list sent") }
+                Err($e) { print("wrong list closed") }
+            }
+        }
+        else { print("wrong list send else") }
+    }
+    print($out_rows.recv().unwrap().count())
+
+    $out_maps: Chan[Map[Str, Str]] = channel(1)
+    select {
+        $sent = $out_maps.send({"k": "o" ~ "k"}) {
+            match $sent {
+                Ok($u) { print("map sent") }
+                Err($e) { print("wrong map closed") }
+            }
+        }
+    }
+    print($out_maps.recv().unwrap(){"k"})
+
+    $closed: Chan[Notice] = channel()
+    $closed.close()
+    select {
+        $result = $closed.send(Quiet) {
+            match $result {
+                Ok($u) { print("wrong closed send") }
+                Err($e) { print("send closed") }
+            }
+        }
+    }
+    select {
+        $value = $closed.recv() {
+            match $value {
+                Some($n) { print("wrong closed recv") }
+                None { print("recv closed") }
+            }
+        }
+    }
+
+    # Early return releases the adopted List binder before leaving the arm.
+    $early: Chan[List[Int]] = channel(1)
+    $early.send([1, 2, 3, 4])
+    print(early_list($early))
+
+    # No-else wait until hatch delivers a Map.
+    $sync: Chan[Map[Str, Str]] = channel()
+    hatch { $sync.send({"k": "wake"}) }
+    select {
+        $got = $sync.recv() { print($got.unwrap(){"k"}) }
+    }
+    0
+}

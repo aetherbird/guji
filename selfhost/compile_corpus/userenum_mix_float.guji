@@ -1,0 +1,14 @@
+enum Val {
+    I($x: Int)
+    F($x: Float)
+    Nothing
+}
+
+sub main(): Int {
+    $v: Val = F(2.5)
+    match $v {
+        I($n) { $n }
+        F($f) { if $f > 2.0 { 7 } else { 1 } }
+        Nothing { 0 }
+    }
+}

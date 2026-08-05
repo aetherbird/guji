@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: callback map row binders use guji_map_t field storage

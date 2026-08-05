@@ -1,0 +1,5 @@
+sub main(): Int {
+    $a = "alpha"
+    $b = $a ~ "beta"
+    if $b == "alphabeta" { 11 } else { 0 }
+}

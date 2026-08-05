@@ -1,0 +1,75 @@
+# P5b-2b(a): scalar-element List[T] generic-sub monomorphization — PARAMS and
+# RETURNS (§3.3/§15). The self-hosted compiler infers each generic call's element
+# binding from a `CgList(scalar)` argument, substitutes `List[T]` -> `List[Int]`,
+# and names the monomorphized spec native-style (`gf_first_or__List_int_Int_Int`,
+# `gf_pair__Int_Int_List_int`, lowercased element tag). Covers Int/Str/Bool/Float
+# instantiations, a List[T] param read through list prelude/indexing, a List[T]
+# return heap-copied into a guji_slice_t, and a transitive generic->generic list
+# return (`twice` calling `wrap`). Three-way: interp == native == selfhost.
+#
+# Mirrors native generic_list_param_subs/generic_list_return_subs but WITHOUT their
+# orthogonal non-generic blockers (an empty-list binding `@e: List[Int] = []`, and
+# a list argument built directly from a call `sum_list(wrap(9))`), which the
+# selfhost codegen declines for reasons unrelated to generics.
+
+sub first_or[T](@xs: List[T], $default: T): T {
+    if @xs.is_empty() { $default } else { @xs[0] }
+}
+
+sub list_count[T](@xs: List[T]): Int {
+    @xs.count()
+}
+
+sub pair[T]($a: T, $b: T): List[T] {
+    [$a, $b]
+}
+
+sub wrap[T]($x: T): List[T] {
+    [$x]
+}
+
+# A generic body that calls another generic list-returning sub (transitive
+# monomorphization) and returns a freshly built list.
+sub twice[T]($x: T): List[T] {
+    @inner = wrap($x)
+    $head = @inner[0]
+    @out = [$x, $head]
+    @out
+}
+
+sub main(): Int {
+    # --- List[T] PARAMS: Int / Str / Bool receivers, same first_or template ---
+    @nums = [9, 8, 7]
+    $n = first_or(@nums, 0)
+    print("{ $n }")
+
+    @names = ["ada", "grace"]
+    $name = first_or(@names, "none")
+    print($name)
+
+    @flags = [true, false]
+    $flag = first_or(@flags, false)
+    print("{ $flag }")
+
+    $cn = list_count(@nums)
+    print("{ $cn }")
+    $cs = list_count(@names)
+    print("{ $cs }")
+
+    # --- List[T] RETURNS: Int / Str / Float, plus a transitive generic return ---
+    @p = pair(3, 4)
+    print("{ @p[0] }")
+    print("{ @p.count() }")
+
+    @t = twice(7)
+    print("{ @t[1] }")
+
+    @words = pair("x", "y")
+    print("{ @words[1] }")
+
+    @fs = wrap(2.5)
+    print("{ @fs[0] }")
+
+    # deterministic exit code: 9 + 3 + 2 + @p[1](4) + @t[0](7) = 25
+    $n + $cn + $cs + @p[1] + @t[0]
+}

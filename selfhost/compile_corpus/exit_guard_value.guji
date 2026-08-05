@@ -1,0 +1,20 @@
+# §15.4 exit, both positions the gate rows exercise: an UNTAKEN Never-typed
+# if-branch value (Never unifies with Int, so pick() still types as Int) and a
+# TAKEN statement-position exit whose code is a non-literal Int expression.
+# Statements after the taken exit are unreachable and must not print; the
+# process exit code (7) is part of the three-way bar.
+sub pick($n: Int): Int {
+    if $n < 0 {
+        exit(4)
+    } else {
+        $n + 1
+    }
+}
+
+sub main(): Unit {
+    $v = pick(5)
+    print("picked $v")
+    print("before exit")
+    exit(3 + 4)
+    print("unreachable")
+}

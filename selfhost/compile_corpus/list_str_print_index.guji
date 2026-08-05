@@ -1,0 +1,5 @@
+sub main(): Int {
+    @words: List[Str] = ["red", "blue"]
+    print(@words[1])
+    4
+}

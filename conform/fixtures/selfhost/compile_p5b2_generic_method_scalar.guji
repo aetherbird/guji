@@ -1,0 +1,26 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_id__Int_Int(int64_t gp0)"))
+            print(has_text($c, "static const char* gf_id__Str_Str(const char* gp0)"))
+            print(has_text($c, "static double gf_id__Float_Float(double gp0)"))
+            print(has_text($c, "static int64_t gf_pick_first__Int_Int_Int(int64_t gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_pick_first__Str_Str_Str(const char* gp0, const char* gp1)"))
+            print(has_text($c, "gf_id__Int_Int(gv"))
+            print(has_text($c, "gf_pick_first__Int_Int_Int(gv"))
+            print(has_text($c, "gf_id("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

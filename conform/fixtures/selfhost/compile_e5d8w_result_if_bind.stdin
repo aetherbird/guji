@@ -1,0 +1,21 @@
+class Box {
+    has $.text: Str
+}
+
+sub make_box($s: Str): Result[Box, Str] {
+    Ok(Box(text: $s))
+}
+
+sub score($take: Bool): Int {
+    $r = if $take { make_box("ok") } else { Err("miss") }
+    match $r {
+        Ok($b) { print($b.text) 3 }
+        Err($e) { print($e) 8 }
+    }
+}
+
+sub main(): Int {
+    $a = score(true)
+    $b = score(false)
+    $a + $b
+}

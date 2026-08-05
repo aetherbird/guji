@@ -1,0 +1,17 @@
+# C08d: list elements containing `?` follow source order and stop before later elements.
+sub item($tag: Int, $ok: Bool): Result[Int, Str] {
+    print($tag)
+    if $ok { Ok($tag) } else { Err("stopped { $tag }") }
+}
+
+sub build(): Result[List[Int], Str] {
+    Ok([item(101, true)?, item(102, false)?, item(103, true)?])
+}
+
+sub main(): Int {
+    match build() {
+        Ok(@items) { print(@items) }
+        Err($e) { print($e) }
+    }
+    0
+}

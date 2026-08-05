@@ -1,0 +1,13 @@
+enum Flag {
+    On
+    Off
+}
+
+sub main(): Int {
+    $a: Flag = On
+    $b: Flag = $a
+    match $b {
+        On { 7 }
+        Off { 8 }
+    }
+}

@@ -1,0 +1,29 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-11 compiler codegen fixture.
+# A `Result[Unit, Str]` carrier: `Unit` lowers to an int64_t 0LL slot, so the carrier
+# reuses the unconditional `guji_res_int_str` typedef. `Ok(())` constructs tag 0 with
+# the Unit slot 0LL; `Err(..)` constructs tag 1 with the Unit slot 0LL and a Str. The
+# `Ok(())` UNIT PATTERN is NATIVE-REJECTED, so this pins generated-C shape while
+# selfhost/result_unit_diff.sh covers end-to-end interp behavior.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_res_int_str;"))
+            print(has_text($c, "(guji_res_int_str)\{0LL, 0LL, GUJI_EMPTY_STR}"))
+            print(has_text($c, "(guji_res_int_str)\{1LL, 0LL, "))
+            print(has_text($c, "guji_res_int_str gr"))
+            print(has_text($c, "err = NULL; }"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

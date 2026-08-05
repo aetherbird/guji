@@ -1,0 +1,23 @@
+# RC1.6g: reduce with a Str accumulator overwrites one generated C accumulator
+# variable per iteration, so each old accumulator value must be released while
+# the final accumulator remains usable by the caller.
+sub dotted(@words: List[Str], $seed: Str): Str {
+    @words.reduce($seed, sub($s, $w) { $s ~ $w ~ "." })
+}
+
+sub main(): Unit {
+    @words = ["go", "ju", "gi"]
+    print(dotted(@words, "x"))
+
+    $seed = "base"
+    @empty = @words.filter({ $_ == "none" })
+    print(@empty.reduce($seed, sub($s, $w) { $s ~ $w }))
+    print(reduce(["a", "b"], $seed, sub($s, $w) { $s ~ "-" ~ $w }))
+
+    mut $i = 0
+    while $i < 2 {
+        $line = @words.take(2).reduce($seed, sub($s, $w) { $s ~ "-" ~ $w })
+        print($line)
+        $i = $i + 1
+    }
+}

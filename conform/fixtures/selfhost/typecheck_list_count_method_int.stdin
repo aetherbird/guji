@@ -1,0 +1,8 @@
+sub f(@cs: List[Str], $i: Int): Bool {
+    $i >= @cs.count()
+}
+
+sub main(): Int {
+    if f(["a", "b"], 1) { print("yes") } else { print("no") }
+    0
+}

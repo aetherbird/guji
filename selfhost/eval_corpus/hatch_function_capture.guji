@@ -1,0 +1,13 @@
+# I10g1 (§7.4/§17.1): a task may capture an immutable function value. The
+# function's own captured value must remain alive after both closure crossings;
+# the unbuffered result channel makes task completion deterministic.
+sub main(): Int {
+    $done: Chan[Int] = channel()
+    $base = 40
+    $add = sub($n: Int): Int { $base + $n }
+    hatch {
+        $done.send($add(2))
+    }
+    print($done.recv().unwrap())
+    0
+}

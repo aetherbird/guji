@@ -1,0 +1,7 @@
+sub main(): Int {
+    %m = { "a": 1, "b": 2 }.set("c", 3)
+    $a = %m{"a"}
+    $c = %m{"c"}
+    print("{ $a + $c }")
+    0
+}

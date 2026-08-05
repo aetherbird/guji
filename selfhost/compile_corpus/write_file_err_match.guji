@@ -1,0 +1,14 @@
+# selfhost slice 5 E5d-8z — THREE-WAY ownership stress for the write_file Err path.
+# Writing under a non-existent directory FAILS: the C helper (and the interpreter,
+# §15.4 fixed-message rule) return the owned error string "cannot write file: <path>".
+# The Err arm BINDS that heap string and prints it; the `Result[Unit, Str]` carrier
+# owns only its active Err slot, released exactly once after the match — so the
+# generated C is leak- and double-free-clean (verified under ASan/UBSan/LeakSan) while
+# matching both oracles byte-for-byte. The `append_file` twin shares the same lowering.
+sub main(): Int {
+    match write_file("/no_such_dir_e5d8z/out.txt", "x" ~ "y") {
+        Ok($u) { print("wrote") $u }
+        Err($e) { print($e) return 3 }
+    }
+    return 0
+}

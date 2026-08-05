@@ -1,0 +1,1 @@
+Choice.TOP=Choice[Seq[Lit(yes)],Seq[Lit(no)],Seq[Lit(a|b)],Seq[Lit(x'y)]]

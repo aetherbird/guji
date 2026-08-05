@@ -1,0 +1,51 @@
+* text=auto eol=lf
+
+# Source and documentation use stable LF endings on every checkout.
+*.c text eol=lf
+*.guji text eol=lf
+*.h text eol=lf
+*.jsonl text eol=lf
+*.md text eol=lf
+*.pl text eol=lf
+*.pm text eol=lf
+*.sh text eol=lf
+*.tsv text eol=lf
+
+# Golden sidecars are byte-exact but normally line-oriented.
+*.args text eol=lf whitespace=-trailing-space,-blank-at-eof
+*.exit text eol=lf
+*.expected text eol=lf whitespace=-trailing-space,-blank-at-eof
+*.input text eol=lf
+*.meta text eol=lf
+*.out text eol=lf whitespace=-trailing-space,-blank-at-eof
+*.stderr text eol=lf whitespace=-trailing-space,-blank-at-eof
+*.stdin text eol=lf whitespace=-trailing-space,-blank-at-eof
+*.stdout text eol=lf whitespace=-trailing-space,-blank-at-eof
+
+# Generated and syntax-sensitive sources intentionally retain their exact
+# spacing; review them through their generators and byte-level fixtures.
+bootstrap/guji2c.c whitespace=-trailing-space linguist-generated=true
+selfhost/INTERPRETER_BASELINE.md whitespace=-blank-at-eof
+selfhost/compile_corpus/generic_map_return_subs.guji whitespace=-trailing-space
+selfhost/rt/runtime_prologue.c whitespace=-trailing-space
+
+# These fixtures intentionally contain NUL bytes, malformed UTF-8, or mixed
+# CRLF/LF. Never let checkout or add-time normalization change their bytes.
+conform/fixtures/io/read_nul.expected -text -diff !eol
+conform/fixtures/io/read_nul.stdin -text -diff !eol
+conform/fixtures/io/write_nul.expected -text -diff !eol
+conform/fixtures/io/write_nul.stdin -text -diff !eol
+conform/fixtures/regex/word_invalid_utf8.stdin -text -diff !eol
+conform/fixtures/text/o4b_malformed_text.stdin -text -diff !eol
+conform/fixtures/values/o4b_value_contracts.stdin -text -diff !eol
+selfhost/eval_corpus/handle_lines_stdin.stdin -text -diff !eol
+tests/compile/io_read_nul.input -text -diff !eol
+tests/compile/io_read_nul.out -text -diff !eol
+tests/compile/io_write_nul.input -text -diff !eol
+tests/compile/io_write_nul.out -text -diff !eol
+tests/compile/regex_word_invalid_utf8.input -text -diff !eol
+tests/compile/run_stdout_nul.out -text -diff !eol
+tests/compile/split_empty_nul.input -text -diff !eol
+tests/compile/split_empty_nul.out -text -diff !eol
+tests/compile/split_sep_nul.input -text -diff !eol
+tests/compile/split_sep_nul.out -text -diff !eol

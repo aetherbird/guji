@@ -1,0 +1,115 @@
+# §15.5 Result `map_err`, method form `$r.map_err(f)` and function form
+# `map_err($r, f)`, over bound `Result[T,E]` locals producing a fresh
+# `Result[T,F]` through a single-expression inline lambda: `Err(e)` -> `Err(f(e))`,
+# `Ok(v)` -> `Ok(v)`. The polarity swap of `map`: the Ok slot is copied from the
+# source carrier; a Str Ok is retained so the fresh Result co-owns it. Exit 255
+# (code 4095) iff every polarity/payload assertion holds.
+
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+sub ok_s($s: Str): Result[Str, Str] { Ok($s) }
+sub err_f($s: Str): Result[Float, Str] {
+    if $s == "" { Ok(1.5) } else { Err($s) }
+}
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+sub ok_bi($b: Bool): Result[Bool, Int] { Ok($b) }
+
+sub main(): Int {
+    $ri: Result[Int, Str] = ok_i(5)
+    $ei: Result[Int, Str] = err_i("bo" ~ "om")
+    $rs: Result[Str, Str] = ok_s("he" ~ "y")
+    $ef: Result[Float, Str] = err_f("fl")
+    $eii: Result[Int, Int] = err_ii(9)
+    $rbi: Result[Bool, Int] = ok_bi(true)
+    $base = 100
+
+    mut $code = 0
+
+    # Str -> Str err map, both spellings; an Ok source never runs the body.
+    $a: Result[Int, Str] = $ei.map_err(sub($e_s: Str): Str { $e_s ~ "!" })
+    $b: Result[Int, Str] = map_err($ri, sub($o_s: Str): Str { $o_s ~ "?" })
+    match $a {
+        Ok($bad_a) { print("bad") }
+        Err($ae) { if $ae == "boom!" { $code = $code + 1 } }
+    }
+    if $b.unwrap_or(0) == 5 { $code = $code + 2 }
+
+    # Cross-kind err maps: Str -> Int and Int -> Str.
+    $c: Result[Int, Int] = $ei.map_err(sub($e_len: Str): Int { 7 })
+    $d: Result[Int, Str] = $eii.map_err(sub($n_s: Int): Str { "n={ $n_s }" })
+    match $c {
+        Ok($bad_c) { print("bad") }
+        Err($ce) { if $ce == 7 { $code = $code + 4 } }
+    }
+    match $d {
+        Ok($bad_d) { print("bad") }
+        Err($de) {
+            print($de)
+            if $de == "n=9" { $code = $code + 8 }
+        }
+    }
+
+    # Str Ok slot copied across (retained); the Str err type is mapped away.
+    $e: Result[Str, Int] = $rs.map_err(sub($s_i: Str): Int { 0 - 1 })
+    print($e.unwrap_or("x"))
+    if $e.unwrap_or("x") == "hey" { $code = $code + 16 }
+
+    # Float Ok slot with a mapped Str err on the Err path.
+    $f: Result[Float, Str] = $ef.map_err(sub($f_s: Str): Str { $f_s ~ $f_s })
+    match $f {
+        Ok($bad_f) { print("bad") }
+        Err($fe) { if $fe == "flfl" { $code = $code + 32 } }
+    }
+
+    # Bool Ok copy with an Int err mapped cross-kind to Str.
+    $g: Result[Bool, Str] = $rbi.map_err(sub($g_s: Int): Str { "g" })
+    if $g.unwrap_or(false) { $code = $code + 64 }
+
+    # The callback body may reference enclosing locals.
+    $h: Result[Int, Int] = $eii.map_err(sub($h_i: Int): Int { $h_i + $base })
+    match $h {
+        Ok($bad_h) { print("bad") }
+        Err($he) { if $he == 109 { $code = $code + 128 } }
+    }
+
+    # A mapped-err Result can be mapped again as a bound local (chaining).
+    $j: Result[Int, Str] = $a.map_err(sub($j_s: Str): Str { $j_s ~ "!" })
+    match $j {
+        Ok($bad_j) { print("bad") }
+        Err($je) {
+            print($je)
+            if $je == "boom!!" { $code = $code + 256 }
+        }
+    }
+
+    # `map` then `map_err` compose across the two helpers.
+    $k: Result[Int, Str] = $ei.map(sub($k_i: Int): Int { $k_i * 2 })
+    $l: Result[Int, Str] = $k.map_err(sub($l_s: Str): Str { "L:" ~ $l_s })
+    match $l {
+        Ok($bad_l) { print("bad") }
+        Err($le) {
+            print($le)
+            if $le == "L:boom" { $code = $code + 512 }
+        }
+    }
+
+    # Function form over an Err source.
+    $m: Result[Int, Str] = map_err($ei, sub($m_s: Str): Str { "m:" ~ $m_s })
+    match $m {
+        Ok($bad_m) { print("bad") }
+        Err($me) { if $me == "m:boom" { $code = $code + 1024 } }
+    }
+
+    # Bound mapped-err Results remain normal match scrutinees (Str Ok retain path).
+    $n: Result[Str, Int] = $rs.map_err(sub($n_i: Str): Int { 3 })
+    match $n {
+        Ok($nok) {
+            print($nok)
+            if $nok == "hey" { $code = $code + 2048 }
+        }
+        Err($ner) { print("bad") }
+    }
+
+    print("{ $code }")
+    $code - 3840
+}

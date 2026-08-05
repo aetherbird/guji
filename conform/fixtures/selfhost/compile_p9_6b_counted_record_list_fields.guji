@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P9-6b counted class List fields.
+# List fields of a class must lower as owned guji_slice_t values for sum /
+# chained count / index, including when the class receiver is a list index temp.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Nominal Label array kind + field retain/release for tags List.
+            print(has_text($c, "GUJI_KIND_Label_ARR"))
+            print(has_text($c, "guji_retain_Label_fields"))
+            print(has_text($c, "guji_release((const void*)p->f0.data)"))
+            # Owned sum materializes a list copy then folds with guji_add.
+            print(has_text($c, "guji_add"))
+            print(has_text($c, "GUJI_KIND_ARR_SCALAR"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

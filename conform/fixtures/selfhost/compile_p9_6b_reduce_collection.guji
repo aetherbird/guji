@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P9-6b collection-valued reduce accumulators.
+# Pins that List and Map bodies release the previous accumulator, move the next
+# owned handle into place, and clear the moved-from temporary.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_release((const void*)gl"))
+            print(has_text($c, ".data = NULL;"))
+            print(has_text($c, "guji_release((const void*)gmv"))
+            print(has_text($c, "guji_release(gmv"))
+            print(has_text($c, ".keys = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

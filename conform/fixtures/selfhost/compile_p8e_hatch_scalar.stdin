@@ -1,0 +1,10 @@
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $x = 42
+    hatch {
+        $ch.send($x)
+    }
+    $r = $ch.recv().unwrap()
+    print($r)
+    0
+}

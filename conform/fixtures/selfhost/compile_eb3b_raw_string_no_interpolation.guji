@@ -1,0 +1,23 @@
+# gujiconform - selfhost slice 5 EB-3b compiler codegen fixture.
+# Single-quoted raw strings are Str values, but they must not take the §12
+# double-quoted interpolation path. Braces and unknown escapes stay literal.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, 'v{ $n }w'))
+            print(has_text($c, 'a\\{b\\} z\\q'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

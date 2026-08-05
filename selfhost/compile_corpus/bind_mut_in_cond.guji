@@ -1,0 +1,5 @@
+sub main(): Int {
+  mut $n = 5
+  $n = $n * $n
+  if $n >= 25 { $n } else { 0 }
+}

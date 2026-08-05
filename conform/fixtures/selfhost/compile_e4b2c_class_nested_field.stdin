@@ -1,0 +1,18 @@
+class Inner {
+    has $.label: Str
+    has $.n: Int
+}
+class Outer {
+    has $.inner: Inner
+}
+sub mk(): Outer {
+    Outer(inner: Inner(label: "deep", n: 8))
+}
+sub describe($o: Outer): Int {
+    print($o.inner.label)
+    $o.inner.n
+}
+sub main(): Int {
+    $o = mk()
+    describe($o)
+}

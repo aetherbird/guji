@@ -1,0 +1,65 @@
+# Option[List[scalar]] value construct + match-binding + RC ownership (H4c-rest).
+# A counted List carrier payload reduces to one ARR_* storage pointer
+# (`.val.data`): Some(@xs) deep-copies the source into a fresh owned slice, a
+# binding/sub-return transfers that +1, a match BORROWS it, and a discarded or
+# rebound carrier releases it. The sanitizer gate (LSan/ASan) is the memory
+# oracle; the interpreter is the semantic oracle.
+
+sub wrap_ints(@xs: List[Int]): Option[List[Int]] {
+    Some(@xs)
+}
+
+sub wrap_words(@ws: List[Str]): Option[List[Str]] {
+    Some(@ws)
+}
+
+sub main(): Unit {
+    # Construct from a local, match-borrow, read via count/sum.
+    @nums = [10, 20, 30]
+    $a: Option[List[Int]] = Some(@nums)
+    print(match $a {
+        Some(@ys) { sum(@ys) }
+        None { 0 }
+    })
+
+    # Str-element payload: the fresh ARR_STR copy owns each element string, and
+    # releasing the carrier cascades those releases.
+    @words = ["alpha", "beta", "gamma"]
+    $w: Option[List[Str]] = Some(@words)
+    print(match $w {
+        Some(@ss) { count(@ss) }
+        None { 0 }
+    })
+
+    # None arm: NULL payload, no storage owned.
+    $none: Option[List[Int]] = None
+    print(match $none {
+        Some(@zs) { sum(@zs) }
+        None { -1 }
+    })
+
+    # Sub-return transfers the owned payload to the caller.
+    @more = [4, 5, 6, 7]
+    $r = wrap_ints(@more)
+    print(match $r {
+        Some(@ys) { sum(@ys) }
+        None { 0 }
+    })
+
+    $rw = wrap_words(@words)
+    print(match $rw {
+        Some(@ss) { count(@ss) }
+        None { 0 }
+    })
+
+    # Discarded carrier result: its fresh payload must be freed, not leaked.
+    wrap_ints(@nums)
+
+    # mut rebind: the old payload is released before the new one is stored.
+    mut $cur: Option[List[Int]] = wrap_ints(@nums)
+    $cur = wrap_ints(@more)
+    print(match $cur {
+        Some(@ys) { sum(@ys) }
+        None { 0 }
+    })
+}

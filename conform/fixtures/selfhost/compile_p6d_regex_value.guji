@@ -1,0 +1,31 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P6d: first-class Regex VALUES. Pin the native-shaped value rep: a regex
+# literal binds as a fresh counted pattern Str (guji_str_from_c), Regex.literal
+# lowers to guji_regex_escape_literal, Regex.compile validates via the runtime
+# compiler with the Ok slot a guji_str_copy of the pattern, the fresh-receiver
+# unwrap emits the computed `unwrap on Err(` guard, and `~~` with a Regex VALUE
+# RHS dispatches to guji_regex_match_value_engine (the literal RHS keeps the
+# compile-time pattern engine).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_str_from_c(\"([a-z]+)"))
+            print(has_text($c, "guji_regex_escape_literal("))
+            print(has_text($c, "guji_regex_compile("))
+            print(has_text($c, "guji_str_copy("))
+            print(has_text($c, "unwrap on Err("))
+            print(has_text($c, "guji_regex_match_value_engine("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

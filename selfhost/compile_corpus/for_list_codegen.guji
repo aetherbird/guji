@@ -1,0 +1,35 @@
+sub main(): Int {
+    mut $score = 0
+
+    for $x in [1, 2, 3, 4] {
+        $score = $score + $x
+    }
+
+    @words = ["a", "bb", "c"]
+    for $w in @words {
+        if $w == "bb" {
+            $score = $score + 20
+        } else {
+            $score = $score + 1
+        }
+    }
+
+    for $ok in [true, false, true] {
+        if $ok {
+            $score = $score + 100
+        } else {
+            $score = $score + 10
+        }
+    }
+
+    for $d in [1.5, 2.5, 3.5] {
+        if $d > 2.0 {
+            $score = $score + 1000
+        } else {
+            $score = $score + 100
+        }
+    }
+
+    print("{ $score }")
+    $score
+}

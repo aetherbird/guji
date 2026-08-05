@@ -1,0 +1,49 @@
+# Chan[Option[List[List[T]]]] must detach the active nested-list payload on send
+# and adopt it on recv; unread buffered Some messages exercise elem_drop under LSan.
+sub sum_grid(@g: List[List[Int]]): Int {
+    mut $total = 0
+    for @row in @g {
+        $total = $total + @row.sum()
+    }
+    $total
+}
+
+sub join_grid(@g: List[List[Str]]): Str {
+    @g[0][0] ~ @g[1][0] ~ @g[0][1]
+}
+
+sub main(): Int {
+    $ints: Chan[Option[List[List[Int]]]] = channel(3)
+    @grid = [[1, 2], [3, 4, 5]]
+    $some_grid: Option[List[List[Int]]] = Some(@grid)
+    $none_grid: Option[List[List[Int]]] = None
+    $ints.send($some_grid)
+    $ints.send($none_grid)
+    $ints.send($some_grid)
+
+    $got_grid = $ints.recv().unwrap()
+    print(match $got_grid {
+        Some(@rows) { sum_grid(@rows) }
+        None { 0 }
+    })
+
+    $got_none = $ints.recv().unwrap()
+    print(match $got_none {
+        Some(@rows) { @rows[0][0] }
+        None { 99 }
+    })
+
+    $words: Chan[Option[List[List[Str]]]] = channel(2)
+    @parts = [["gu", "ji"], ["!"]]
+    $some_words: Option[List[List[Str]]] = Some(@parts)
+    $words.send($some_words)
+    $words.send($some_words)
+
+    $got_words = $words.recv().unwrap()
+    print(match $got_words {
+        Some(@rows) { join_grid(@rows) }
+        None { "none" }
+    })
+
+    0
+}

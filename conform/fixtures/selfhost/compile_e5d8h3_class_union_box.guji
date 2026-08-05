@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 5 E5d-8h-3 class-union codegen fixture.
+# Pins the first mixed-union boxing piece: a class payload sharing enum field
+# position 0 with an Int payload. The class must be stored through union `.p`,
+# dropped through a generated GUJI_KIND_<Class> entry, and re-exposed to match arms
+# as a borrowed class lvalue so `$tok.field` reads work.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "#define GUJI_KIND_Tok 12"))
+            print(has_text($c, 'union { int64_t i; double f; const char* s; guji_slice_t l; guji_map_t m; void* p; } f0;'))
+            print(has_text($c, "guji_alloc(GUJI_KIND_Tok, 0, sizeof(Tok))"))
+            print(has_text($c, '{.p = gcp'))
+            print(has_text($c, "guji_release((const void*)p->f0.p);"))
+            print(has_text($c, "guji_drop_Tok, /* GUJI_KIND_Tok */"))
+            print(has_text($c, "(*((Tok*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

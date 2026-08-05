@@ -1,0 +1,5 @@
+printf exit=0
+printf stdout=guji-run
+printf stderr-empty
+false nonzero
+cannot run command: guji-run-definitely-absent-command-0000021

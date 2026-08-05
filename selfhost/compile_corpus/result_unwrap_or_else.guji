@@ -1,0 +1,42 @@
+# §15.5 Result `unwrap_or_else`, function form `unwrap_or_else($r, sub($e) { ... })`
+# and method form `$r.unwrap_or_else(sub($e) { ... })`, over bound Result locals.
+# The fallback lambda runs only on Err and receives the borrowed Err payload.
+# Str Ok and fallback results exercise retain/move ownership under ASan/LSan.
+
+sub ok_ii($n: Int): Result[Int, Int] { Ok($n) }
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+sub ok_float($n: Int): Result[Float, Int] {
+    if $n > 0 { Ok(2.5) } else { Err(3) }
+}
+sub ok_bool($b: Bool): Result[Bool, Bool] { Ok($b) }
+sub err_bool($b: Bool): Result[Bool, Bool] { Err($b) }
+sub ok_str($s: Str): Result[Str, Str] { Ok($s) }
+sub err_str($s: Str): Result[Str, Str] { Err($s) }
+
+sub main(): Int {
+    $oi: Result[Int, Int] = ok_ii(5)
+    $ei: Result[Int, Int] = err_ii(40)
+    $of: Result[Float, Int] = ok_float(1)
+    $ef: Result[Float, Int] = ok_float(-1)
+    $ob: Result[Bool, Bool] = ok_bool(false)
+    $eb: Result[Bool, Bool] = err_bool(false)
+    $os: Result[Str, Str] = ok_str("pay" ~ "load")
+    $es: Result[Str, Str] = err_str("fall" ~ "back")
+
+    mut $code = 0
+
+    if $oi.unwrap_or_else(sub($ei_ok: Int): Int { 999 }) == 5 { $code = $code + 1 }
+    if unwrap_or_else($ei, sub($ei_err: Int): Int { $ei_err + 2 }) == 42 { $code = $code + 2 }
+    if $of.unwrap_or_else(sub($ef_ok: Int): Float { 9.5 }) > 2.4 { $code = $code + 8 }
+    if unwrap_or_else($ef, sub($ef_err: Int): Float { 0.75 }) < 1.0 { $code = $code + 16 }
+
+    if $ob.unwrap_or_else(sub($eb_ok: Bool): Bool { true }) { $code = $code + 1000 }
+    if unwrap_or_else($eb, sub($eb_err: Bool): Bool { !$eb_err }) { $code = $code + 4 }
+
+    print($os.unwrap_or_else(sub($es_ok: Str): Str { $es_ok ~ "?" }))
+    print(unwrap_or_else($es, sub($es_err: Str): Str { "de" ~ $es_err }))
+    print($es.unwrap_or_else(sub($es_lit: Str): Str { 'lit' }) ~ "!")
+    print(unwrap_or_else($os, sub($os_tail: Str): Str { 'x' }) ~ "-tail")
+
+    $code + $oi.unwrap_or_else(sub($ei_ret_ok: Int): Int { 0 }) + unwrap_or_else($ei, sub($ei_ret_err: Int): Int { $ei_ret_err + 21 })
+}

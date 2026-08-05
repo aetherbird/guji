@@ -1,0 +1,14 @@
+# E5d-7c-2b-4: statement-position `match`, FIRST reject arm taken — binds the Str
+# field, `note`s it to stderr, and early-`return 1`. The owned enum scrutinee's field
+# is released exactly once before the C return (no leak / no double-free).
+enum Verdict { VAccept VRejectP($m: Str) VRejectT($m: Str) }
+
+sub main(): Int {
+    match VRejectP("parse failed") {
+        VRejectP($m) { note($m) return 1 }
+        VRejectT($m) { note($m) return 1 }
+        VAccept { 0 }
+    }
+    print("unreachable")
+    0
+}

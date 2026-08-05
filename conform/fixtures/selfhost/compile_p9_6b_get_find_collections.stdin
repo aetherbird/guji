@@ -1,0 +1,11 @@
+sub main(): Unit {
+    @grid = [[1.5, 2.5], [3.0]]
+    print(match @grid.get(0) { Some(@row) { @row.count() } None { -1 } })
+
+    @maps = [{"a": true}, {"b": false, "c": true}]
+    print(match @maps.get(1) { Some(%m) { %m.keys().count() } None { -1 } })
+    print(match @maps.find(sub(%m) { %m.keys().count() == 2 }) { Some(%m) { %m.keys().count() } None { -1 } })
+
+    %by_list = {"x": [true, false]}
+    print(match %by_list.get("x") { Some(@xs) { @xs.count() } None { -1 } })
+}

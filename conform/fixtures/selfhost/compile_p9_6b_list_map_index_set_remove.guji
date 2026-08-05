@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 6 P9-6b direct set/remove on List[Map] index.
+# Pins the shallow borrowed row view and the dynamic copy loops for both calls.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = ((guji_map_t*)"))
+            print(has_text($c, "list index out of bounds"))
+            print(has_text($c, ".len + 1"))
+            print(has_text($c, "strcmp("))
+            print(has_text($c, "guji_retain("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

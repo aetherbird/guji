@@ -1,0 +1,11 @@
+sub main(): Int {
+    $x = 1
+    if (match $x {
+        1 { "ok" }
+        _ { "no" }
+    }) == "ok" {
+        1
+    } else {
+        0
+    }
+}

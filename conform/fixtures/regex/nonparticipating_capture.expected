@@ -1,0 +1,4 @@
+positional-nonparticipating: none
+positional-empty: some:
+named-nonparticipating: none
+named-participating: some:b

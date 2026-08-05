@@ -1,0 +1,4 @@
+sub main(): Int {
+    print("before return")
+    return 5
+}

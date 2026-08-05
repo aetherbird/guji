@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P3b-2b-2b compiler codegen fixture.
+# Pins final `Ok(carrier?)` / `Some(carrier?)` lowering when the SUCCESS payload
+# is an owned Str: the operand carrier's `.ok` / `.val` string is RETAINED into a
+# rebuilt result carrier temp before the operand's slot is released (native's
+# ownership-transfer shape). A scalar payload would return the raw slot with no
+# retain; the retain + rebuilt `guji_res_str_int` / `guji_opt_str` carrier are the
+# Str-transfer signatures.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "(guji_res_str_int)\{0LL, gr"))
+            print(has_text($c, "(guji_opt_str)\{1LL, go"))
+            print(has_text($c, "guji_retain(gr"))
+            print(has_text($c, "guji_retain(go"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,7 @@
+# C08: guard lowering must preserve left-to-right order inside nested arithmetic.
+sub main(): Int {
+    match 1 {
+        1 if ((10 / 0) + (9223372036854775807 + 1)) == 0 { 1 }
+        _ { 0 }
+    }
+}

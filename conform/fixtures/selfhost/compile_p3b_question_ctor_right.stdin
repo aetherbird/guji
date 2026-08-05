@@ -1,0 +1,11 @@
+sub parse_right($s: Str): Result[Int, Str] {
+    Ok(100 - parse_int($s)?)
+}
+
+sub maybe_right($base: Int, $o: Option[Int]): Option[Int] {
+    Some($base + $o?)
+}
+
+sub main(): Int {
+    0
+}

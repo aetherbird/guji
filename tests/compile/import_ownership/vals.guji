@@ -1,0 +1,23 @@
+# RC1.5b-ii-c: cross-module ownership — every pub sub below hands an OWNED
+# (+1) heap value across the module boundary, per RFC-003 §5 rule 1. echo is
+# the alias-return escape: it returns its BORROWED parameter, so the frame
+# must retain before its scope releases run.
+pub sub greet($name: Str): Str {
+    "hello, " ~ $name
+}
+
+pub sub echo($s: Str): Str {
+    $s
+}
+
+pub sub tags($n: Int): List[Str] {
+    ["alpha", "beta"].map({ $_ ~ "-{ $n }" })
+}
+
+pub sub scores(): Map[Str, Int] {
+    { "a": 1, "b": 2 }.set("c", 3)
+}
+
+pub sub find($k: Str): Option[Str] {
+    if $k == "x" { Some("found-" ~ $k) } else { None }
+}

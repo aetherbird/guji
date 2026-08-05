@@ -1,0 +1,15 @@
+enum Tree {
+    Leaf($n: Int)
+    Node($l: Tree, $r: Tree)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf($n) { $n }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub main(): Int {
+    sum(Node(Leaf(3), Node(Leaf(1), Leaf(3))))
+}

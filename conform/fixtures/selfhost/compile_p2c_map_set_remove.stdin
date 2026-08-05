@@ -1,0 +1,10 @@
+sub main(): Int {
+    %m: Map[Str, Str] = {"a": "x", "b": "y"}
+    %r: Map[Str, Str] = %m.set("a", "z")
+    %d: Map[Str, Str] = remove(%m, "b")
+    if %r.has_key("a") {
+        if %d.has_key("b") { 9 } else { 3 }
+    } else {
+        0
+    }
+}

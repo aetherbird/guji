@@ -1,0 +1,28 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P2b-3b: `.each` lowers as an inline one-parameter side-effecting
+# loop over an owned source `guji_slice_t`. The element is bound as a borrow into
+# the owned array (scalar: a plain read; Str: a `const char*` read); the lambda body
+# lowers through the ordinary Unit-statement machinery; the source slice is released
+# after the loop. Yields Unit — it lives in statement position, not value position.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "for (gi"))
+            print(has_text($c, " = ((int64_t*)gl"))
+            print(has_text($c, " = ((const char**)gl"))
+            print(has_text($c, "guji_print("))
+            print(has_text($c, "guji_release((const void*)gl"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

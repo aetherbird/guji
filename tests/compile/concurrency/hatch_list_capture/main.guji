@@ -1,0 +1,44 @@
+# Section 17 hatch capture of a List[scalar] binding (H4c-rest, first slice).
+#
+# Before this fixture, a parent List binding referenced inside a hatch body was
+# rejected by codegen ("codegen supports scalar, Str, and Chan captures only")
+# even though the interpreter ran it — a native-vs-oracle gap on the §17 path.
+# The fix deep-copies the list into the task's own heap (copy-on-capture):
+# sliceFromList allocates a fresh counted array and memcpys the scalar elements,
+# so the parent and the task share no heap pointers (per-task heap isolation,
+# non-atomic RC). The task owns its copy (rc==1) and releases it at task exit,
+# so the sanitizer/leak gate stays clean.
+#
+# Deterministic: each hatch sends exactly one scalar over an unbuffered channel
+# and the parent recvs in a fixed order, so the observed output has no
+# scheduling freedom.
+sub main(): Int {
+    @nums = [4, 8, 15, 16, 23]
+    @flags = [true, false, true, true]
+    $sumCh: Chan[Int] = channel(0)
+    $trueCh: Chan[Int] = channel(0)
+
+    # Capture @nums (List[Int]) and reduce it inside the task.
+    hatch {
+        mut $sum = 0
+        for $n in @nums {
+            $sum = $sum + $n
+        }
+        $sumCh.send($sum)
+    }
+
+    # Capture @flags (List[Bool]) and count the true entries inside the task.
+    hatch {
+        mut $count = 0
+        for $f in @flags {
+            if $f {
+                $count = $count + 1
+            }
+        }
+        $trueCh.send($count)
+    }
+
+    print($sumCh.recv().unwrap())
+    print($trueCh.recv().unwrap())
+    0
+}

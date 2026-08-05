@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15 `contains` dynamic-receiver lowering (bound-var lists, both spellings).
+# Native's shape: materialize the receiver, scan with a flag temp that starts 0,
+# compare each element (`==` for scalars, `strcmp == 0` for Str), set the flag and
+# break on the first hit, then release the owned slice — and, for a Str needle,
+# release the owned needle temp AFTER the scan. This fixture checks those
+# generated-C landmarks together so the scan, the break, and both releases cannot
+# drift apart.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "for (gi4 = 0; gi4 < gl1.len; gi4 = guji_add(gi4, 1))"))
+            print(has_text($c, "if (((int64_t*)gl1.data)[gi4] == 5LL) \{ gb3 = 1; break; }"))
+            print(has_text($c, "if (strcmp(((const char**)gl11.data)[gi15], gt13) == 0) \{ gb14 = 1; break; }"))
+            print(has_text($c, "guji_release((const void*)gl1.data);"))
+            print(has_text($c, "guji_release(gt13);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

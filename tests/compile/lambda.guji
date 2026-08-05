@@ -1,0 +1,9 @@
+sub apply_twice($f, $x: Int): Int {
+    $f($f($x))
+}
+
+sub main(): Int {
+    $add10 = sub($n: Int): Int { $n + 10 }
+    print("result: { apply_twice($add10, 5) }")
+    0
+}

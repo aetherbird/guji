@@ -1,0 +1,18 @@
+# P8e-1: one hatch capturing Int/Bool/Float + three Chan handles.
+sub main(): Int {
+    $chInt: Chan[Int] = channel(0)
+    $chFloat: Chan[Float] = channel(0)
+    $chBool: Chan[Bool] = channel(0)
+    $a = 123
+    $b = true
+    $c = 2.5
+    hatch {
+        $chInt.send($a)
+        $chFloat.send($c)
+        $chBool.send($b)
+    }
+    print($chInt.recv().unwrap())
+    print($chFloat.recv().unwrap())
+    print($chBool.recv().unwrap())
+    0
+}

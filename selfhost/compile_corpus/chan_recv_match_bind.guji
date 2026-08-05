@@ -1,0 +1,108 @@
+# P8d-2c-3d-2: recv-derived collection Some/None match binds — bound
+# Option[List]/Option[Map] recv carriers matched with Some(@xs)/Some(%m)/None.
+# The bound carrier is a BORROWED scrutinee: the match releases nothing and the
+# local keeps scope-exit ownership, so one held carrier can be matched
+# repeatedly and a `mut` carrier rebinds with release-before-rebind. A List
+# binder is the borrowed slice form at `.val`; a Map binder is the by-value
+# struct form (negative listlen sentinel) reading `.val.keys`/`.vals`/`.len`
+# in place. A non-channel call producing Option[Map] matches as an OWNED
+# scrutinee (payload released after the chain). Match-bound MAP binders take
+# key reads only — `%m.count()` / two-var `for` are "undefined list" NATIVE
+# rejects, and selfhost declines the same shapes (shared boundary); LIST
+# binders take index/iteration/count. Fresh `match $ch.recv() {..}` stays a
+# native reject ("unsupported enum expression") — bound carriers only.
+sub lookup(): Option[Map[Str, Int]] {
+    Some({"z": 9})
+}
+
+sub main(): Int {
+    # Map[Str,Int]: Some key reads, then closed-and-drained None (None-first order).
+    $ints: Chan[Map[Str, Int]] = channel(2)
+    $ints.send({"a": 1, "b": 2})
+    $ints.close()
+    $opt = $ints.recv()
+    match $opt {
+        Some(%m) { print(%m{"a"} + %m{"b"}) }
+        None { print("none") }
+    }
+    $opt2 = $ints.recv()
+    match $opt2 {
+        None { print("closed") }
+        Some(%m) { print(%m{"a"}) }
+    }
+
+    # Map[Str,Str] heap values: match the SAME held carrier twice (statement
+    # form, then value-position producing a Str off the borrowed binder).
+    $words: Chan[Map[Str, Str]] = channel(1)
+    $words.send({"greet": "he" ~ "llo", "who": "world"})
+    $wopt = $words.recv()
+    match $wopt {
+        Some(%w) { print(%w{"greet"} ~ " " ~ %w{"who"}) }
+        None { print("none") }
+    }
+    $again = match $wopt {
+        Some(%w) { %w{"who"} ~ "!" }
+        None { "gone" }
+    }
+    print($again)
+
+    # Map[Str,List[Int]]: nested value read through the struct-form binder.
+    $rows: Chan[Map[Str, List[Int]]] = channel(1)
+    $rows.send({"xs": [3, 4], "ys": [10]})
+    $ropt = $rows.recv()
+    match $ropt {
+        Some(%r) { print(%r{"xs"}[1] + %r{"ys"}[0]) }
+        None { print("none") }
+    }
+
+    # mut carrier: rebind between matches (release-before-rebind on the held payload).
+    $strs: Chan[Map[Str, Str]] = channel(2)
+    $strs.send({"k": "v" ~ "1"})
+    $strs.send({"k": "w" ~ "2"})
+    mut $mopt = $strs.recv()
+    match $mopt {
+        Some(%m) { print(%m{"k"}) }
+        None { print("none") }
+    }
+    $mopt = $strs.recv()
+    match $mopt {
+        Some(%m) { print(%m{"k"}) }
+        None { print("none") }
+    }
+
+    # List[Int]/List[Str] binds: index reads, iteration, count, Some(_) wildcard.
+    $nums: Chan[List[Int]] = channel(1)
+    $nums.send([5, 6, 7])
+    $nopt = $nums.recv()
+    match $nopt {
+        Some(@xs) {
+            mut $sum = 0
+            for $x in @xs { $sum = $sum + $x }
+            print($sum + @xs[0])
+            print(@xs.count())
+        }
+        None { print("none") }
+    }
+    $names: Chan[List[Str]] = channel(1)
+    $names.send(["al" ~ "pha", "beta"])
+    $sopt = $names.recv()
+    match $sopt {
+        Some(@ws) { print(@ws[0] ~ "-" ~ @ws[1]) }
+        None { print("none") }
+    }
+    $flag: Chan[List[Int]] = channel(1)
+    $flag.send([1])
+    $fopt = $flag.recv()
+    match $fopt {
+        Some(_) { print("got") }
+        None { print("none") }
+    }
+
+    # Non-channel Option[Map] call producer: OWNED scrutinee, released after the chain.
+    match lookup() {
+        Some(%z) { print(%z{"z"}) }
+        None { print("none") }
+    }
+
+    0
+}

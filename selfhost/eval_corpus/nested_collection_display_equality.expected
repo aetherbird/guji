@@ -1,0 +1,9 @@
+Box(items: [1, 2], label: a, lookup: {"a": 1, "b": 2})
+true
+true
+box=Box(items: [1, 2], label: a, lookup: {"a": 1, "b": 2})
+Items([1, 2])
+Empty
+true
+true
+NestedMap({"a": [9]})

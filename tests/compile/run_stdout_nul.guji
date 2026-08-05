@@ -1,0 +1,24 @@
+# Platform slice 3 NUL proof: printf receives backslash-zero in its format
+# argument and emits a real NUL byte. We print the captured Proc.stdout directly
+# so the differential gate proves run's capture is counted/NUL-safe without using
+# the known pre-existing native split(s, "") bug.
+sub main(): Int {
+    match run("printf", ["a\0b"]) {
+        Ok($p) {
+            if $p.exit_code != 0 {
+                print("printf exit unexpected")
+                exit(1)
+            }
+            if $p.stderr != "" {
+                print("printf stderr unexpected")
+                exit(1)
+            }
+            print($p.stdout)
+        }
+        Err($e) {
+            print($e)
+            exit(1)
+        }
+    }
+    0
+}

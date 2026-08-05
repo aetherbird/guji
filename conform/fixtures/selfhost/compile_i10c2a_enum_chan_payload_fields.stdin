@@ -1,0 +1,21 @@
+# List/Map/user-enum channel fields must lower before Value adds I10c2b variants.
+enum Notice {
+    Quiet
+    Text($value: Str)
+}
+
+enum PayloadChannels {
+    Lists($ch: Chan[List[Int]])
+    Maps($ch: Chan[Map[Str, Str]])
+    Enums($ch: Chan[Notice])
+}
+
+sub main(): Int {
+    $lists: Chan[List[Int]] = channel(1)
+    $maps: Chan[Map[Str, Str]] = channel(1)
+    $enums: Chan[Notice] = channel(1)
+    print(Lists($lists))
+    print(Maps($maps))
+    print(Enums($enums))
+    0
+}

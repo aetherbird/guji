@@ -1,0 +1,54 @@
+# Result[Match, Str] value ownership (H4c-rest prerequisite, §11/§13).
+# The Ok arm carries a COUNTED heap pointer (a Match graph: text + capture-group
+# Strs), the Err arm a counted Str. Before this slice the native runtime never
+# retained the Ok Match on construct/return, so a returned Ok(match) was freed at
+# the producing frame's exit and read use-after-free in the caller (and once the
+# UAF was patched, leaked). This fixture pins both arms leak-free under LSan:
+#   * Ok(match) returned from a sub, bound, then matched (the heap graph survives
+#     the producer frame and is released exactly once at the consumer's scope);
+#   * Err(str) returned and matched;
+#   * a `mut` Result rebound across Ok->Ok->Err arms (the old Ok pointer must be
+#     released before the new payload lands, the final Err must not touch .ok);
+#   * a fresh Result bound each loop turn (released per iteration).
+# Expected output: aa-bb / none / x1-y1 / x2-y2 / x3-y3 / none / none / done
+
+sub classify($txt: Str): Result[Match, Str] {
+    match ($txt ~~ /(?<a>\w+)-(?<b>\w+)/) {
+        Some($m) { Ok($m) }
+        None { Err("none") }
+    }
+}
+
+sub main(): Int {
+    $good = classify("aa-bb")
+    print(match $good {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+
+    $bad = classify("zzz")
+    print(match $bad {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+
+    # Rebind a mut Result across Ok then Err arms: the field-aware match-carrier
+    # release frees the previous Ok's Match before the new payload is stored.
+    mut $r = classify("x1-y1")
+    print(match $r { Ok($m) { $m.text } Err($e) { $e } })
+    $r = classify("x2-y2")
+    print(match $r { Ok($m) { $m.text } Err($e) { $e } })
+    $r = classify("x3-y3")
+    print(match $r { Ok($m) { $m.text } Err($e) { $e } })
+
+    # A fresh Result bound each loop turn must be released per iteration.
+    mut $i = 0
+    while $i < 2 {
+        $loop = classify("no match here")
+        print(match $loop { Ok($m) { $m.text } Err($e) { $e } })
+        $i = $i + 1
+    }
+
+    print("done")
+    0
+}

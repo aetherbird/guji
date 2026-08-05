@@ -1,0 +1,22 @@
+# P9-11a stdin: nested Map-value enum for C-shape pin.
+enum Rec {
+    Buckets($b: Map[Str, List[Int]])
+    Grid($g: Map[Str, Map[Str, Int]])
+    Done
+}
+
+sub show($r: Rec): Int {
+    match $r {
+        Buckets($b) { $b{"evens"}[0] }
+        Grid($g) { $g{"left"}{"x"} }
+        Done { -1 }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Rec] = channel(2)
+    $ch.send(Buckets({"evens": [2, 4], "odds": [1]}))
+    $ch.send(Grid({"left": {"x": 10}}))
+    print(show($ch.recv().unwrap()))
+    0
+}

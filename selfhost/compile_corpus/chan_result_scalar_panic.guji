@@ -1,0 +1,14 @@
+# Panic twin: unwrap on a closed/drained Chan[Result] outer None.
+sub ok_int($n: Int): Result[Int, Str] { Ok($n) }
+
+sub main(): Int {
+    $ch: Chan[Result[Int, Str]] = channel(1)
+    $ch.send(ok_int(1))
+    $ch.close()
+    $got = $ch.recv().unwrap()
+    print($got.unwrap())
+    # Second recv is None — unwrap must panic with the fixed message.
+    $gone = $ch.recv().unwrap()
+    print($gone.unwrap())
+    0
+}

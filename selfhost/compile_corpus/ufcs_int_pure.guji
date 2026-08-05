@@ -1,0 +1,8 @@
+# Pure Int receiver UFCS should lower through the same direct-call ABI as add(4, 5).
+sub add($x: Int, $y: Int): Int {
+    $x + $y
+}
+
+sub main(): Int {
+    4.add(5)
+}

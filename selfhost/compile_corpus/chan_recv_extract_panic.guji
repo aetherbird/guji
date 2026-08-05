@@ -1,0 +1,12 @@
+# P8d-2c-3d-1: the expect(None) panic path for a fresh recv carrier. All three
+# engines exit 1; native and selfhost share the captured runtime, so the
+# `panic: <msg>` stderr must be byte-identical. The eagerly lowered message tmp
+# is consumed by guji_panic on this path (never returns), the same balance
+# g4_expect_do pins for bound carriers.
+sub main(): Int {
+    $ch: Chan[Int] = channel(1)
+    $ch.close()
+    $n = $ch.recv().expect("recv on a closed empty channel")
+    print($n)
+    0
+}

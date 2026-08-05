@@ -1,0 +1,55 @@
+# Enum body subs (spec 9): $self methods that match on the receiver, and
+# associated functions called as EnumName.assoc(...). Methods may return a
+# scalar or the enum itself; associated functions may construct the enum via
+# if/else. Intermediate enum results are bound before further method calls.
+enum Direction {
+    North
+    South
+    East
+    West
+
+    sub label($self): Str {
+        match $self {
+            North { "north" }
+            South { "south" }
+            East { "east" }
+            West { "west" }
+        }
+    }
+
+    sub opposite($self): Direction {
+        match $self {
+            North { South }
+            South { North }
+            East { West }
+            West { East }
+        }
+    }
+
+    sub turns_to($self, $other: Direction): Bool {
+        $self.label() == $other.label()
+    }
+
+    sub from_code($code: Int): Direction {
+        if $code == 0 { North }
+        else if $code == 1 { South }
+        else if $code == 2 { East }
+        else { West }
+    }
+}
+
+sub main(): Int {
+    $d = North
+    print($d.label())
+    $o = $d.opposite()
+    print($o.label())
+
+    $e = Direction.from_code(2)
+    print($e.label())
+    $eo = $e.opposite()
+    print($eo.label())
+
+    print("same: { $d.turns_to(North) }")
+    print("same: { $d.turns_to(South) }")
+    0
+}

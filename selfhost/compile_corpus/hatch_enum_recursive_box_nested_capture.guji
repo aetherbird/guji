@@ -1,0 +1,55 @@
+# P9-11a: hatch capture of recursive-box enums with nested List[Map] /
+# Map[Str,List] fields — clone helper already nested-detaches; admit predicate
+# now matches native.
+enum Chain {
+    End
+    Link($rows: List[Map[Str, Int]], $buckets: Map[Str, List[Int]], $next: Chain)
+}
+
+sub rowsum($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link($r, _, $n) {
+            mut $s = 0
+            for $row in $r {
+                $v = $row{"k"}
+                $s = $s + $v
+            }
+            $s + rowsum($n)
+        }
+    }
+}
+
+sub bucketsum($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link(_, $b, $n) {
+            $lst = $b{"k"}
+            mut $s = 0
+            for $x in $lst {
+                $s = $s + $x
+            }
+            $s + bucketsum($n)
+        }
+    }
+}
+
+sub main(): Unit {
+    @r1 = [{"k": 1}, {"k": 2}]
+    %b1 = {"k": [3, 4]}
+    @r2 = [{"k": 5}]
+    %b2 = {"k": [6]}
+    $c = Link(@r1, %b1, Link(@r2, %b2, End))
+    $row_ch: Chan[Int] = channel(0)
+    $bkt_ch: Chan[Int] = channel(0)
+
+    hatch {
+        $row_ch.send(rowsum($c))
+        $bkt_ch.send(bucketsum($c))
+    }
+
+    print("{ $row_ch.recv().unwrap() }")
+    print("{ $bkt_ch.recv().unwrap() }")
+    print("{ rowsum($c) }")
+    print("{ bucketsum($c) }")
+}

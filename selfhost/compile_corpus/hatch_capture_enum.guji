@@ -1,0 +1,73 @@
+# P8e-5: enum copy-on-capture for scalar, counted, and recursive payloads.
+enum Signal {
+    Code($n: Int)
+    Ratio($x: Float)
+}
+
+enum Packet {
+    Data($tag: Str, @nums: List[Int], %labels: Map[Str,Str])
+    Empty
+}
+
+enum Tree {
+    Leaf($name: Str, $value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub tree_sum($tree: Tree): Int {
+    match $tree {
+        Leaf(_, $value) { $value }
+        Node($left, $right) { tree_sum($left) + tree_sum($right) }
+    }
+}
+
+sub tree_names($tree: Tree): Str {
+    match $tree {
+        Leaf($name, _) { $name }
+        Node($left, $right) { tree_names($left) ~ tree_names($right) }
+    }
+}
+
+sub main(): Int {
+    $signal = Code(7)
+    $tag = "ta" ~ "g"
+    $label = "v" ~ "!"
+    $packet = Data($tag, [2, 3], {"k": $label})
+    $tree = Node(Leaf("l", 2), Leaf("r", 4))
+
+    $signal_ch: Chan[Int] = channel(0)
+    $packet_ch: Chan[Str] = channel(0)
+    $sum_ch: Chan[Int] = channel(0)
+    $name_ch: Chan[Str] = channel(0)
+
+    # A scalar-only enum is detached by one struct copy.
+    hatch {
+        match $signal {
+            Code($n) { $signal_ch.send($n) }
+            Ratio($x) { $signal_ch.send(0) }
+        }
+    }
+
+    # The active Str/List/Map fields each receive private task-heap storage.
+    hatch {
+        match $packet {
+            Data($t, @ns, %ls) {
+                $label_value = %ls{"k"}
+                $packet_ch.send("$t:{ @ns[0] + @ns[1] }:$label_value")
+            }
+            Empty { $packet_ch.send("empty") }
+        }
+    }
+
+    # Recursive boxes and their Str leaves are deep-cloned before spawn.
+    hatch {
+        $sum_ch.send(tree_sum($tree))
+        $name_ch.send(tree_names($tree))
+    }
+
+    print($signal_ch.recv().unwrap())
+    print($packet_ch.recv().unwrap())
+    print($sum_ch.recv().unwrap())
+    print($name_ch.recv().unwrap())
+    0
+}

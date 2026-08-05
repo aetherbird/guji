@@ -1,0 +1,41 @@
+# P8d-2c-3d-1: fresh receive-carrier extraction — `$ch.recv().unwrap()` /
+# `$ch.recv().expect(msg)` in both method and function spellings. The recv
+# carrier is a fresh temp, so scalar payloads read `.val` after the None guard
+# with no retain/release, while a Str payload is retained out of the carrier
+# and the carrier slot released (owned adoption; the sender's copy stays
+# live). `get().unwrap()/expect()` pins that the fresh path admits non-channel
+# Option producers too (native accepts both).
+sub main(): Int {
+    $ints: Chan[Int] = channel(4)
+    $ints.send(20)
+    $ints.send(11)
+    $ints.send(7)
+    $ints.send(4)
+    $a = $ints.recv().unwrap()
+    $b = $ints.recv().expect("ints drained early")
+    $c = unwrap($ints.recv())
+    $d = expect($ints.recv(), "ints drained early")
+    print($a + $b + $c + $d)
+
+    $floats: Chan[Float] = channel(1)
+    $floats.send(1.5)
+    print($floats.recv().unwrap() + 0.25)
+
+    $flags: Chan[Bool] = channel(1)
+    $flags.send(true)
+    print($flags.recv().unwrap())
+
+    $strs: Chan[Str] = channel(2)
+    $greet = "hi" ~ "!"
+    $strs.send($greet)
+    $strs.send("bye")
+    $s1 = $strs.recv().unwrap()
+    $s2 = $strs.recv().expect("strs drained early")
+    print($s1 ~ " " ~ $s2)
+    print($greet)
+
+    @xs: List[Int] = [7, 8, 9]
+    print(@xs.get(1).unwrap() + @xs.get(2).expect("index out of range"))
+
+    0
+}

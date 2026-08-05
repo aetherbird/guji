@@ -1,0 +1,24 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P9-0: statement-position match over Option[Regex] must emit the Regex
+# display wrap for the Some-arm binder (g6_match_payload_env on the stmt
+# path). Pins one /…/ concat pair and one Some payload retain.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, 'guji_concat("/", ') == 1)
+            print(count_of($c, " = guji_retain(go") == 1)
+            print(count_of($c, "(guji_opt_str)\{1LL") == 1)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

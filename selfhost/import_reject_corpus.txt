@@ -1,0 +1,4 @@
+# Exact load-time §16 rejection rows. Dependency modules live below the corpus
+# directory and are intentionally not standalone entry rows.
+module_import_cycle.guji
+module_import_missing.guji

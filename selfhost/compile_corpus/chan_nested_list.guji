@@ -1,0 +1,55 @@
+# P8d-2c-3c-3: Chan[List[List[Int|Str]]] — one nesting level of list rows.
+# The slot ABI stays guji_slice_t + guji_chan_drop_list; the KIND-tagged
+# guji_copy_arr send detach and the cascading releases recurse through rows.
+# Distinct binder names across sequential list-channel fors (native re-emits
+# the same C local). Early-return / re-entry drain shapes stay out of the
+# native-running corpus (NATIVE_BACKEND_GAPS.md M1/M2); they are proved
+# interp==selfhost + sanitizer-clean instead.
+sub main(): Int {
+    @src: List[List[Int]] = [[1, 2], [3]]
+    $ch: Chan[List[List[Int]]] = channel(2)
+    $ch.send(@src)
+    $ch.send([[40, 50, 60]])
+    $ch.close()
+    print(@src.count())
+    $a = $ch.recv()
+    $ac = match $a {
+        Some($xs) { $xs.count() }
+        None { 0 }
+    }
+    print($ac)
+    mut $picked = 0
+    for $rows in $ch {
+        @tagged: List[Int] = [$rows.count()]
+        $picked = $picked + $rows[0][2] + @tagged[0]
+    }
+    print($picked)
+    $done = $ch.recv()
+    print($done.is_none())
+
+    # send consumes its detached row graph even when the channel is closed.
+    $rejected = $ch.send([[9]])
+    print($rejected.is_err())
+
+    # Scope cleanup drops this buffered, never-received detached copy.
+    $left: Chan[List[List[Str]]] = channel(1)
+    $left.send([["un" ~ "delivered"], ["x", "y"]])
+
+    $words: Chan[List[List[Str]]] = channel(2)
+    $words.send([["al" ~ "pha", "beta"], ["gamma"]])
+    $words.close()
+    mut $seen = ""
+    for $wrows in $words {
+        $seen = $seen ~ $wrows[0][1] ~ $wrows[1][0]
+    }
+    print($seen)
+
+    $empty: Chan[List[List[Int]]] = channel(1)
+    $empty.close()
+    mut $drained = 0
+    for $erows in $empty {
+        $drained = $drained + 1
+    }
+    print($drained)
+    0
+}

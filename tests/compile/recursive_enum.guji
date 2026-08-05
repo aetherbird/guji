@@ -1,0 +1,66 @@
+# spec 10.1: recursive enum payloads compile natively via boxed (pointer)
+# storage. Tree exercises a union slot (Leaf Int vs boxed Node payload) plus a
+# boxed-only slot; IntList exercises nested recursive patterns through the box.
+enum Tree {
+    Leaf($value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+enum IntList {
+    Nil
+    Cons($head: Int, $tail: IntList)
+}
+
+sub sum_tree($t: Tree): Int {
+    match $t {
+        Leaf($v) { $v }
+        Node($l, $r) { sum_tree($l) + sum_tree($r) }
+    }
+}
+
+sub depth($t: Tree): Int {
+    match $t {
+        Leaf(_) { 1 }
+        Node($l, $r) {
+            $dl = depth($l)
+            $dr = depth($r)
+            if $dl > $dr { $dl + 1 } else { $dr + 1 }
+        }
+    }
+}
+
+sub describe($t: Tree): Str {
+    match $t {
+        Node(Leaf($a), $b) { "left leaf { $a }, right sums { sum_tree($b) }" }
+        Node($l, _) { "left node sums { sum_tree($l) }" }
+        Leaf($v) { "leaf { $v }" }
+    }
+}
+
+sub list_sum($xs: IntList): Int {
+    match $xs {
+        Nil { 0 }
+        Cons($h, $t) { $h + list_sum($t) }
+    }
+}
+
+sub starts_with_two($xs: IntList): Bool {
+    match $xs {
+        Cons($a, Cons($b, _)) { true }
+        _ { false }
+    }
+}
+
+sub main(): Int {
+    $t = Node(Node(Leaf(1), Leaf(2)), Node(Leaf(3), Leaf(4)))
+    print("sum: { sum_tree($t) }")
+    print("depth: { depth($t) }")
+    print(describe($t))
+    print(describe(Node(Leaf(7), Leaf(8))))
+    print(describe(Leaf(5)))
+    $xs = Cons(1, Cons(2, Cons(3, Nil)))
+    print("list sum: { list_sum($xs) }")
+    print("pair start: { starts_with_two($xs) }")
+    print("pair start: { starts_with_two(Cons(9, Nil)) }")
+    0
+}

@@ -1,0 +1,30 @@
+# Section 17 channel copy-on-send for List[scalar] values.
+#
+# Lists crossing a channel boundary must be detached message graphs: the sender's
+# backing array cannot be shared with the receiver's per-task heap. The buffered
+# `drop` send is intentionally left undrained so the channel elem_drop path also
+# releases an undelivered copied list under the sanitizer gate.
+
+sub main(): Unit {
+    $ints: Chan[List[Int]] = channel(2)
+    @xs = [2, 4, 8]
+    @drop = [99, 100]
+    $ints.send(@xs)
+    $ints.send(@drop)
+
+    @ys = $ints.recv().unwrap()
+    print(@ys[0] + @ys[1] + @ys[2])
+
+    $bools: Chan[List[Bool]] = channel(1)
+    @flags = [true, false, true, true]
+    $bools.send(@flags)
+    @got = $bools.recv().unwrap()
+
+    mut $count = 0
+    for $flag in @got {
+        if $flag {
+            $count = $count + 1
+        }
+    }
+    print($count)
+}

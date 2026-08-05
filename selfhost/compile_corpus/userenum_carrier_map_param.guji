@@ -1,0 +1,16 @@
+# Slice 4d: a Map[Str, Int] enum-carrier field, matched in a sub PARAMETER position.
+# The bound map field is rendered via print (struct-form guji_map_t display).
+enum Env {
+    Vars(%m: Map[Str, Int])
+}
+sub show($e: Env): Int {
+    match $e {
+        Vars(%m) {
+            print(%m)
+            0
+        }
+    }
+}
+sub main(): Int {
+    show(Vars({"a": 1, "b": 2}))
+}

@@ -1,0 +1,28 @@
+# P5b-2b(nested-map-collection-set-remove) POSITIVE pin: set/remove on
+# Map[Str, List[Int]] must compile, allocate source-len+1 for set, retain
+# list-row `.data` on the copy loop, and release a replaced row's `.data`
+# before moving the fresh value in. (Replaces the old NEGATIVE guard that
+# asserted collection-valued set/remove must decline.)
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "GUJI_KIND_ARR_SLICE"))
+            print(has_text($c, "_len + 1);"))
+            print(has_text($c, ".data);"))
+            print(has_text($c, "guji_release("))
+            print(has_text($c, "strcmp("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

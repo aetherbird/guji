@@ -1,0 +1,45 @@
+# A generic-class METHOD whose declared return type is the bare owning template
+# name (`: Pair`) instead of a concrete instantiation. After monomorphization the
+# annotation stays bare `Pair` (no type args to flatten), yet the body yields a
+# concrete spec. swapped() yields the SWAPPED instantiation (Pair__Int_Str ->
+# Pair__Str_Int), exercising on-demand registration of a spec that has no direct
+# construction site, plus the reverse spec's own swapped(). same() returns the
+# receiver's own spec, and rekey() builds it from a method parameter + a field.
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+
+    sub swapped($self): Pair {
+        Pair(first: $self.second, second: $self.first)
+    }
+    sub same($self): Pair {
+        Pair(first: $self.first, second: $self.second)
+    }
+    sub rekey($self, $k: A): Pair {
+        Pair(first: $k, second: $self.second)
+    }
+    sub show($self): Str {
+        "({ $self.first }, { $self.second })"
+    }
+}
+
+sub main(): Unit {
+    $p = Pair(first: 1, second: "one")
+    print($p.show())
+
+    # swapped: yields Pair__Str_Int, a spec with no direct construction site.
+    $q = $p.swapped()
+    print($q.show())
+
+    # swap back: exercises Pair__Str_Int.swapped() -> Pair__Int_Str.
+    $r = $q.swapped()
+    print($r.show())
+
+    # same instantiation returned from a bare-template annotation.
+    $s = $p.same()
+    print($s.show())
+
+    # constructor arg from a method parameter (A == Int) + a field.
+    $t = $p.rekey(99)
+    print($t.show())
+}

@@ -1,0 +1,22 @@
+# Phase 2 (Platform IO): read_file and Handle.slurp read VERBATIM. This is also
+# the P2f cat-shaped dogfood smoke: open a committed text file, slurp it, and
+# print the text. The input file io_read_file.input is committed beside this
+# fixture; the gate runs from the fixture directory so relative paths resolve
+# identically for both engines.
+sub main(): Int {
+    match read_file("io_read_file.input") {
+        Ok($s)  { print("[$s]") }
+        Err($e) { print("error: $e") }
+    }
+    $h = open("io_read_file.input").unwrap()
+    print("reader:[" ~ $h.slurp() ~ "]")
+    match "io_read_file.input".open() {
+        Ok($r)  { print("again:" ~ $r.slurp().trim()) }
+        Err($e) { print("unexpected:" ~ $e) }
+    }
+    match open("io_read_file.missing") {
+        Ok($r)  { print($r.slurp()) }
+        Err($e) { print($e) }
+    }
+    0
+}

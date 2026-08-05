@@ -1,0 +1,13 @@
+sub main(): Unit {
+    %base = {"a": "x", "b": "y"}
+    %added = %base.set("c", "z")
+    print(%added{"c"})
+    %replaced = %added.set("a", "q")
+    print(%replaced{"a"})
+    %removed = %replaced.remove("b")
+    print(%removed.has_key("b"))
+    @ks = %removed.keys()
+    print(@ks.join(","))
+    @vs = %removed.values()
+    print(@vs.join(""))
+}

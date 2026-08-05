@@ -1,0 +1,33 @@
+# gujiconform - selfhost slice 6 SC self-compilation regression fixture (2026-07-01).
+# Pins declaration-side registration of a CROSS-ENUM box edge: `Kind` (declared first)
+# boxes its `Ret` field (EB-1a — Ret reaches back to Kind by value), so codegen emits
+# `guji_alloc(GUJI_KIND_Ret, ...)` at the KFn construction site. Before the SC fix,
+# `g6e_fields_need_enum_box` had no CgBoxEnum arm, so NO predicate registered Ret:
+# the #define / clone+drop helpers / drop-table slot were all suppressed and cc
+# rejected the emitted C (`GUJI_KIND_Ret undeclared`) — this is the minimal shape of
+# the GUJI_KIND_CgRet self-compile break (CgKind.CgFn boxing CgRet). The pins prove
+# define + helpers + drop-table entry are emitted TOGETHER (positional lockstep).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "#define GUJI_KIND_Ret 14"))
+            print(has_text($c, "Ret* f0;"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_Ret, 0, sizeof(Ret))"))
+            print(has_text($c, "static Ret* guji_clone_Ret_box(const Ret* src);"))
+            print(has_text($c, "guji_release((const void*)p->f0);"))
+            print(has_text($c, "guji_drop_Ret, /* GUJI_KIND_Ret */"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

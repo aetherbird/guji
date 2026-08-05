@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 5 E4b-2d compiler codegen fixture.
+# A Map class field is native-rejected, so this interp-oracle fixture checks the
+# selfhost compiler's generated-C shape: by-value guji_map_t storage, both-array
+# RC in class helpers, and has_key lowering over the field's key array.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_map_t f0;"))
+            print(has_text($c, "guji_release((const void*)p->f0.keys);"))
+            print(has_text($c, "guji_release((const void*)p->f0.vals);"))
+            print(has_text($c, "strcmp(gv3.f0.keys"))
+            print(has_text($c, "Rec gv3 = "))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

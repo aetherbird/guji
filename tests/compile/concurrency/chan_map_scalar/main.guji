@@ -1,0 +1,33 @@
+# Section 17 channel copy-on-send for Map[Str, scalar] values.
+#
+# A Map crossing a channel boundary must be a fully detached message graph: both
+# the always-counted Str key array and the value array are deep-copied into a
+# fresh guji_map_t so the sender's per-task heap shares no pointers with the
+# receiver's. The buffered `drop` send is intentionally left undrained so the
+# channel elem_drop path (guji_chan_drop_map) also releases an undelivered copied
+# map under the sanitizer gate. Output is computed by key (order-independent) so
+# it does not depend on map iteration order.
+
+sub main(): Unit {
+    $ints: Chan[Map[Str, Int]] = channel(2)
+    %m = {"a": 2, "b": 4, "c": 8}
+    %drop = {"x": 99, "y": 100}
+    $ints.send(%m)
+    $ints.send(%drop)
+
+    %got = $ints.recv().unwrap()
+    print(%got{"a"} + %got{"b"} + %got{"c"})
+
+    $flags: Chan[Map[Str, Bool]] = channel(1)
+    %bits = {"p": true, "q": false, "r": true}
+    $flags.send(%bits)
+    %gotbits = $flags.recv().unwrap()
+
+    mut $count = 0
+    for $k, $v in %gotbits {
+        if $v {
+            $count = $count + 1
+        }
+    }
+    print($count)
+}

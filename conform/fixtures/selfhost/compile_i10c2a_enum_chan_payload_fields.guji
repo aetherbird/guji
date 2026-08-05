@@ -1,0 +1,17 @@
+# I10c2a bootstrap fixture: inspect C for List/Map/user-enum channel slots in
+# enum fields, including mixed-slot handle RC and each payload-specific drop ABI.
+import lexer
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(split($c, "sizeof(guji_slice_t), guji_chan_drop_list").count() > 1)
+            print(split($c, "sizeof(guji_map_t), guji_chan_drop_map").count() > 1)
+            print(split($c, "sizeof(Notice), guji_chan_drop_Notice").count() > 1)
+            print(split($c, ".p = guji_chan_retain").count() > 1)
+            print(split($c, "guji_chan_release((guji_chan_t*)p->f0.p)").count() > 1)
+            0
+        }
+    }
+}

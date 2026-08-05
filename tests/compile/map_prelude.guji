@@ -1,0 +1,27 @@
+sub main(): Int {
+    %m = { "c": 30, "a": 10, "b": 20 }
+    @ks = %m.keys()
+    @vs = %m.values()
+    mut $out = ""
+    for $k in @ks {
+        $out = $out ~ $k
+    }
+    $out = $out ~ "|"
+    mut $sum = 0
+    for $v in @vs {
+        $sum = $sum + $v
+    }
+    $out = $out ~ "{ $sum }|"
+    if %m.has_key("a") {
+        $out = $out ~ "yes|"
+    } else {
+        $out = $out ~ "no|"
+    }
+    if has_key(%m, "z") {
+        $out = $out ~ "yes"
+    } else {
+        $out = $out ~ "no"
+    }
+    print($out)
+    0
+}

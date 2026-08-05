@@ -1,0 +1,3 @@
+import leaf
+pub sub value(): Int { leaf::value() + 2 }
+pub sub leaf_value(): Int { leaf::value() }

@@ -1,0 +1,173 @@
+# Slice 6 P3b-2b-2c-4q: match-value binds/reassignments over OPTION and user
+# ENUM scrutinees whose arms end in hoistable `?` expressions. The ret-aware
+# match lowering was Result-scrutinee-only; the variant cond/env helpers and the
+# scrutinee cleanup are kind-generic, so Option/enum scrutinees reuse the same
+# arm chain. Covers fresh unannotated/annotated binds, multi-`?` arms, guarded
+# arms, reassignment, Bool results, owned Option[Str] and Str-field enum
+# scrutinees (released before a `?` Err early-return), and runtime Err
+# propagation from inside an arm.
+
+enum Grade {
+    Pass($score: Int)
+    Fail
+}
+
+enum Tagd {
+    Named($label: Str)
+    Anon
+}
+
+sub opt_lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n * 2) } else { None }
+}
+
+sub opt_name($s: Str): Option[Str] {
+    if $s == "no" { None } else { Some($s ~ ":n") }
+}
+
+sub grade_of($n: Int): Grade {
+    if $n >= 10 { Pass($n) } else { Fail }
+}
+
+sub mk_tag($s: Str): Tagd {
+    if $s == "anon" { Anon } else { Named($s ~ ":t") }
+}
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub opt_bind($n: Int, $q: Str): Result[Int, Str] {
+    $x = match opt_lookup($n) {
+        Some($v) { parse_int($q)? + $v }
+        None { 0 }
+    }
+    Ok($x + 1)
+}
+
+sub opt_multi($n: Int, $q: Str, $r: Str): Result[Int, Str] {
+    $x: Int = match opt_lookup($n) {
+        Some($v) { parse_int($q)? + parse_int($r)? + $v }
+        None { 7 }
+    }
+    Ok($x)
+}
+
+sub opt_str_bind($s: Str, $q: Str): Result[Str, Str] {
+    $x = match opt_name($s) {
+        Some($t) { tag($q)? ~ "/" ~ $t }
+        None { "none" }
+    }
+    Ok($x ~ "!")
+}
+
+sub enum_str_bind($s: Str, $q: Str): Result[Str, Str] {
+    $x = match mk_tag($s) {
+        Named($l) { tag($q)? ~ "/" ~ $l }
+        Anon { "anon" }
+    }
+    Ok($x)
+}
+
+sub enum_reassign($n: Int, $q: Str): Result[Int, Str] {
+    mut $x = 1
+    $x = match grade_of($n) {
+        Pass($sc) { parse_int($q)? + $sc }
+        Fail { 5 }
+    }
+    Ok($x * 2)
+}
+
+sub opt_guard($n: Int, $q: Str): Result[Int, Str] {
+    $x = match opt_lookup($n) {
+        Some($v) if $v > 10 { parse_int($q)? + $v }
+        Some($w) { $w }
+        None { 0 }
+    }
+    Ok($x)
+}
+
+sub opt_bool($n: Int, $q: Str): Result[Bool, Str] {
+    $x = match opt_lookup($n) {
+        Some($v) { parse_int($q)? > $v }
+        None { false }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    mut $n = 0
+    match opt_bind(4, "30") {
+        Ok($a) { print("opt ok { $a }") $n = $n + $a }
+        Err($e1) { print("opt err { $e1 }") }
+    }
+    match opt_bind(4, "zap") {
+        Ok($b) { print("opt bad { $b }") }
+        Err($e2) { print("opt err { $e2 }") }
+    }
+    match opt_bind(0 - 1, "30") {
+        Ok($c) { print("opt none { $c }") $n = $n + $c }
+        Err($e3) { print("opt none err { $e3 }") }
+    }
+    match opt_multi(3, "10", "20") {
+        Ok($d) { print("multi ok { $d }") $n = $n + $d }
+        Err($e4) { print("multi err { $e4 }") }
+    }
+    match opt_multi(3, "10", "boom") {
+        Ok($f) { print("multi bad { $f }") }
+        Err($e5) { print("multi err { $e5 }") }
+    }
+    match opt_str_bind("go", "hi") {
+        Ok($g) { print("optstr ok { $g }") }
+        Err($e6) { print("optstr err { $e6 }") }
+    }
+    match opt_str_bind("no", "hi") {
+        Ok($h) { print("optstr none { $h }") }
+        Err($e7) { print("optstr err { $e7 }") }
+    }
+    match opt_str_bind("go", "bad") {
+        Ok($i) { print("optstr bad { $i }") }
+        Err($e8) { print("optstr err { $e8 }") }
+    }
+    match enum_str_bind("x", "hi") {
+        Ok($j) { print("enumstr ok { $j }") }
+        Err($e9) { print("enumstr err { $e9 }") }
+    }
+    match enum_str_bind("anon", "hi") {
+        Ok($k) { print("enumstr anon { $k }") }
+        Err($ea) { print("enumstr err { $ea }") }
+    }
+    match enum_str_bind("x", "bad") {
+        Ok($l) { print("enumstr bad { $l }") }
+        Err($eb) { print("enumstr err { $eb }") }
+    }
+    match enum_reassign(12, "4") {
+        Ok($m) { print("reassign ok { $m }") $n = $n + $m }
+        Err($ec) { print("reassign err { $ec }") }
+    }
+    match enum_reassign(12, "boom") {
+        Ok($o) { print("reassign bad { $o }") }
+        Err($ed) { print("reassign err { $ed }") }
+    }
+    match enum_reassign(2, "4") {
+        Ok($p) { print("reassign fail { $p }") $n = $n + $p }
+        Err($ee) { print("reassign err { $ee }") }
+    }
+    match opt_guard(6, "5") {
+        Ok($q1) { print("guard ok { $q1 }") $n = $n + $q1 }
+        Err($ef) { print("guard err { $ef }") }
+    }
+    match opt_guard(3, "5") {
+        Ok($q2) { print("guard low { $q2 }") $n = $n + $q2 }
+        Err($eg) { print("guard err { $eg }") }
+    }
+    match opt_guard(6, "boom") {
+        Ok($q3) { print("guard bad { $q3 }") }
+        Err($eh) { print("guard err { $eh }") }
+    }
+    match opt_bool(2, "9") {
+        Ok($q4) { print("bool ok { $q4 }") if $q4 { $n = $n + 1 } }
+        Err($ei) { print("bool err { $ei }") }
+    }
+    if $n == 142 { 0 } else { 1 }
+}

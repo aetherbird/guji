@@ -1,0 +1,10 @@
+sub main(): Int {
+    @temps = [1.25, 2.5, -0.75]
+    @zero: List[Float] = []
+
+    # sum aggregates numeric Float lists in both method and ordinary forms.
+    print("method: { @temps.sum() }")
+    print("ordinary: { sum(@temps) }")
+    print("empty: { @zero.sum() }")
+    0
+}

@@ -1,0 +1,31 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P2b-3c-4: higher-order list methods over a List[List[Int]] receiver, plus `.map`
+# PRODUCING a List[List[Int]]. `.filter` keeps whole nested rows, so each kept row is
+# DEEP-COPIED (`guji_copy_arr`) into the owned result — a shallow struct copy would
+# dangle once the source slice is deep-dropped after the loop. `.map` producing a
+# nested list allocates an ARR_SLICE output and MOVES each freshly-built inner slice
+# into a slot (nulling the source temp so ownership is single). `.map`(scalar-return)
+# over the nested receiver lowers the borrowed-row read.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # nested output/result allocation (filter dst + map-producing-nested dst)
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_SLICE, sizeof(guji_slice_t)"))
+            # filter keep: deep-copy the borrowed nested row into the owned slot
+            print(has_text($c, ".len].data = guji_copy_arr((const void*)"))
+            # map producing nested: single-line move-null of the built inner slice temp
+            print(has_text($c, ".data = NULL; "))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

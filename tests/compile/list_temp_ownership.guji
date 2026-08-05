@@ -1,0 +1,40 @@
+# RC1.3b-ii-c: list temps from keys()/values(), transforms, list argument
+# copies, and nested map-return call arguments are reclaimed without changing
+# observable values.
+sub direct_keys(%base: Map[Str, Str]): List[Str] {
+    %base.set("c", "3").keys()
+}
+
+sub direct_values(%base: Map[Str, Str]): List[Str] {
+    %base.set("a", "A").values().reverse()
+}
+
+sub first(@xs: List[Str]): Str {
+    @xs[0]
+}
+
+sub echo(@xs: List[Str]): List[Str] {
+    @out = @xs.reverse()
+    @out
+}
+
+sub add_q(%m: Map[Str, Str]): Map[Str, Str] {
+    %m.set("q", "9")
+}
+
+sub count_keys(%m: Map[Str, Str]): Int {
+    @k = %m.keys()
+    @k.count()
+}
+
+sub main(): Unit {
+    %base = {"a": "1", "b": "2"}
+    @ks = direct_keys(%base)
+    print(@ks[2])
+    @vs = direct_values(%base)
+    print(@vs[0])
+    print(first(%base.keys()))
+    @echoed = echo(%base.values())
+    print(@echoed[1])
+    print(count_keys(add_q(%base)))
+}

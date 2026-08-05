@@ -1,0 +1,7 @@
+sub main() {
+    if true {
+        $x = 3
+    } else {
+        9
+    }
+}

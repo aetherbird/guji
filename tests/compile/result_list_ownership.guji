@@ -1,0 +1,68 @@
+# Result[List[scalar], Str] value construct + match-binding + RC ownership
+# (H4c-rest). A Result whose Ok arm is a counted List reduces to one ARR_*
+# storage pointer (`.ok.data`) plus a possible Err(Str): Ok(@xs) deep-copies the
+# source into a fresh owned slice, a binding/sub-return transfers that +1, a
+# match BORROWS the list, and a discarded or rebound carrier releases both the Ok
+# storage and the Err Str. The sanitizer gate (LSan/ASan) is the memory oracle;
+# the interpreter is the semantic oracle.
+
+sub nums($ok: Bool): Result[List[Int], Str] {
+    if $ok { Ok([10, 20, 30]) } else { Err("no-nums") }
+}
+
+sub words($ok: Bool): Result[List[Str], Str] {
+    if $ok { Ok(["alpha", "beta", "gamma"]) } else { Err("no-words") }
+}
+
+sub wrap(@xs: List[Int]): Result[List[Int], Str] {
+    Ok(@xs)
+}
+
+sub main(): Unit {
+    @local = [1, 2, 3, 4]
+
+    # Construct Ok(list) inside a sub, bind, match-borrow, read via sum.
+    print(match wrap(@local) {
+        Ok(@ys) { sum(@ys) }
+        Err($e) { 0 }
+    })
+
+    # Sub-returned Ok(list): the owned payload transfers to the caller.
+    print(match nums(true) {
+        Ok(@ys) { sum(@ys) }
+        Err($e) { -1 }
+    })
+
+    # Sub-returned Err(Str): the Ok slot is NULL; the Err Str is bound and printed
+    # (exercises the carrier-Str ownership on the Err side).
+    match nums(false) {
+        Ok(@ys) { print(sum(@ys)) }
+        Err($e) { print($e) }
+    }
+
+    # Str-element Ok payload: the fresh ARR_STR copy owns each element string, and
+    # releasing the carrier cascades those releases.
+    print(match words(true) {
+        Ok(@ss) { count(@ss) }
+        Err($e) { 0 }
+    })
+
+    match words(false) {
+        Ok(@ss) { print(count(@ss)) }
+        Err($e) { print($e) }
+    }
+
+    # Discarded carrier results: their fresh Ok storage / Err Str must be freed.
+    wrap(@local)
+    nums(false)
+
+    # mut rebind a carrier local across Ok and Err arms: each old payload is
+    # released before the new one is stored (self/alias rebinds cannot double-free).
+    mut $cur = nums(true)
+    $cur = nums(false)
+    $cur = wrap(@local)
+    print(match $cur {
+        Ok(@ys) { sum(@ys) }
+        Err($e) { -2 }
+    })
+}

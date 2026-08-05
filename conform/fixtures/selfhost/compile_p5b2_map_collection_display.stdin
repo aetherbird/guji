@@ -1,0 +1,19 @@
+sub list_map(): Map[Str, List[Int]] {
+    {"z": [3], "a": [1, 2]}
+}
+
+sub main(): Int {
+    %lists: Map[Str, List[Int]] = {"z": [3], "a": [1, 2]}
+    print(%lists)
+    print("interp={ %lists }")
+    print(list_map())
+
+    %maps: Map[Str, Map[Str, Bool]] = {"outer": {"yes": true}}
+    print(%maps)
+
+    %deep: Map[Str, List[Map[Str, List[Str]]]] = {
+        "root": [{"leaf": ["x"]}]
+    }
+    note(%deep)
+    0
+}

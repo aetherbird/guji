@@ -1,0 +1,28 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P6g-b-1: a Regex VALUE in display position is wrapped `/<pattern>/` (native's
+# guji_concat shape), and a `$p: Regex` parameter keeps its Regex marking — its
+# splice inserts the pattern RAW (`.pattern = gp<i>`), never re-escaped. The
+# stdin program displays 10 Regex values and splices a Regex param twice
+# (.replace + match); a re-escape of a param would show as
+# guji_regex_escape_literal(gp...) and is pinned to zero.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, 'guji_concat("/", ') == 10)
+            print(count_of($c, ', "/")') == 10)
+            print(count_of($c, ".pattern = gp") == 2)
+            print(count_of($c, "guji_regex_escape_literal(gp") == 0)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,12 @@
+sub wrap(%m: Map[Str, Int]): Result[Map[Str, Int], Str] {
+    Ok(%m)
+}
+sub main(): Unit {
+    %local = {"x": 3, "y": 4}
+    mut $cur = wrap(%local)
+    $cur = wrap(%local)
+    print(match $cur {
+        Ok(%m) { %m{"x"} + %m{"y"} }
+        Err($e) { 0 }
+    })
+}

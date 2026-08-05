@@ -1,0 +1,34 @@
+# gujiconform - selfhost slice 5 E5d-8j compiler codegen fixture.
+# Pins reading a CLASS-typed class field as a VALUE: the field read retains the
+# nested class's owned fields, the by-value struct is copied for the call argument
+# and the local binding, and each copy is released exactly once. This is the
+# `skip_seps($head.p)` / `$after = ...` shape from the compiler's own
+# `parse_type_list_items`. Native rejects nested-class fields, so this is
+# interp-oracle (the selfhost compiler exceeds native).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # field read retains the nested class's owned fields before the by-value copy
+            print(has_text($c, "guji_retain_Inner_fields(&gv1.f1)"))
+            # call-argument path: copy the class field by value, then release after the call
+            print(has_text($c, "gc2 = gv1.f1;"))
+            print(has_text($c, "gf_take(gc2)"))
+            print(has_text($c, "guji_release_Inner_fields(&gc2)"))
+            # local-binding path: bind the field read, read a scalar off the bound class
+            print(has_text($c, "gv5 = gv1.f1;"))
+            print(has_text($c, "gv5.f1"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

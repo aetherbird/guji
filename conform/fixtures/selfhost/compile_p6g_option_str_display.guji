@@ -1,0 +1,24 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P6g-a: raw Option[Str] interpolation uses the carrier display helper and
+# releases a distinct temporary view, leaving a bound carrier reusable.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, "guji_carrier_str_guji_opt_str") >= 4)
+            print(count_of($c, "guji_disp_puts(&b, \"Some(\")") == 1)
+            print(count_of($c, " = guji_carrier_str_guji_opt_str(&go") >= 3)
+            print(count_of($c, "guji_release(go") >= 3)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,14 @@
+enum Shape {
+    Circle($radius: Int)
+    Rect($width: Int, $height: Int)
+    Dot
+}
+
+sub main(): Int {
+    $s: Shape = Rect(3, 4)
+    match $s {
+        Circle($r) { $r }
+        Rect($w, $h) { $w + $h }
+        Dot { 0 }
+    }
+}

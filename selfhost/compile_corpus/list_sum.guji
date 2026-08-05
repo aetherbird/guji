@@ -1,0 +1,21 @@
+# §15.1 list `sum`, P2c slice: the numeric total of a List[Int] (result Int) or a
+# List[Float] (result Float), in both the function form `sum(@xs)` and the
+# data-first method form `@xs.sum()`. Int folds with `guji_add` (overflow panics
+# exactly as `+` would), Float with plain `+`; a single-element list returns that
+# element, and `sum` composes with `count` in an arithmetic result position. The
+# receiver is materialized to an owned slice and released after the fold, so no
+# element storage escapes.
+sub main(): Int {
+    @ns = [3, 5, 7, 2]
+    print("{ sum(@ns) }")
+    print("{ @ns.sum() }")
+
+    @one = [42]
+    print("{ sum(@one) }")
+
+    @fs = [1.5, 2.5, 4.0]
+    print("{ sum(@fs) }")
+    print("{ @fs.sum() }")
+
+    sum(@ns) + count(@ns)
+}

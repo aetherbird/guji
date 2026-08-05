@@ -1,0 +1,81 @@
+# A-collection-elements-borrowed-nested-record-list-metadata proof.
+#
+# A `List[Map[Str, List[Class|Enum]]]` (and the class mirror) now threads the
+# nested list element's nominal record type through a BORROWED row view. Before
+# this slice the outer list kept only `mapValT == tyList` / `mapElemT == tyEnum`
+# and lost the concrete enum/class name, so reading a value list out of a row map
+# obtained via `@rows[i]` or a `for %row in @rows` binder materialized a
+# `List[Enum]` whose element type was empty — `label(@ts[0])` then failed in
+# codegen with "expects enum Tag, got ". The direct read `%direct{"tags"}` already
+# worked (the map literal carries elemClass/elemEnum); only the borrowed row view
+# dropped it.
+#
+# This goes one level deeper than TestCompileProgramListMapRecordValueReads /
+# collapse_collection_elements_deep, whose row map VALUES are scalars or a single
+# class/enum: here the row map value is itself a List of class/enum records, and
+# the nominal metadata survives the borrowed view so element match (enum) and
+# field reads (class) lower correctly. No new per-shape `case ty…` arm — the names
+# ride the existing mapElemT companion fields and the runtime ARR_* tags own the
+# element graph's copy/drop. Counted Str payloads/fields (`~`) keep the per-value
+# retain/release balanced (LSan/ASan in the gate).
+
+enum Tag {
+    Named($label: Str)
+    Anon
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub label($t: Tag): Str {
+    match $t {
+        Named($s) { $s }
+        Anon { "anon" }
+    }
+}
+
+sub main(): Int {
+    @rows = [
+        {"tags": [Named("a" ~ "1"), Anon], "more": [Named("b" ~ "2")]},
+        {"tags": [Named("c" ~ "3")]}
+    ]
+
+    # 1. index borrowed row -> typed List[Enum]: count, element match, second key.
+    %r0 = @rows[0]
+    @t0 = %r0{"tags"}
+    print(@t0.count())
+    print(label(@t0[0]))
+    print(label(@t0[1]))
+    print(label(%r0{"more"}[0]))
+
+    # 2. loop-binder borrowed row: iterate the typed value list inside the body.
+    mut $total = 0
+    for %row in @rows {
+        @ts = %row{"tags"}
+        $total = $total + @ts.count()
+        for $t in @ts {
+            print(label($t))
+        }
+    }
+    print($total)
+
+    # class mirror: index + loop binder, field reads through the typed List[Class].
+    @people = [
+        {"team": [Person(name: "A" ~ "da", age: 36), Person(name: "B" ~ "ob", age: 28)]},
+        {"team": [Person(name: "C" ~ "y", age: 5)]}
+    ]
+    %p0 = @people[0]
+    @team0 = %p0{"team"}
+    print(@team0.count())
+    print(@team0[0].name)
+    print(@team0[1].age)
+    for %prow in @people {
+        @tm = %prow{"team"}
+        for $p in @tm {
+            print($p.name)
+        }
+    }
+    0
+}

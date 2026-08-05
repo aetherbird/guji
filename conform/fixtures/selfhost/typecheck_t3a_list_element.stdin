@@ -1,0 +1,5 @@
+# T3a: a list literal whose later element disagrees with the first is rejected.
+sub main(): Int {
+    @xs = [1, "x"]
+    0
+}

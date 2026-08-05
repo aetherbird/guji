@@ -1,0 +1,12 @@
+sub main(): Int {
+    $ints: Chan[Int] = channel(1)
+    $ints.close()
+    for $n in $ints { print($n) }
+    $bools: Chan[Bool] = channel(1)
+    $bools.close()
+    for $b in $bools { print($b) }
+    $floats: Chan[Float] = channel(1)
+    $floats.close()
+    for $f in $floats { print($f) }
+    0
+}

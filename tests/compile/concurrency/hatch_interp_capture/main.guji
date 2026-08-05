@@ -1,0 +1,23 @@
+# Section 17 hatch capture via string interpolation (H4c-rest).
+#
+# Before this fixture, a parent binding used ONLY inside a hatch body string
+# interpolation ("{ $x }" or the $x/@x/%x sigil forms) was missed by hatch
+# capture analysis: the interpolation body was opaque to the free-var walker,
+# so the child task referenced an undefined binding and the native build failed
+# while the interpreter accepted it (a compiler-vs-oracle divergence). The fix
+# descends into interpolation, so each binding below is captured (Str
+# deep-copied, scalar by value) into the task env.
+#
+# Deterministic: one unbuffered channel, one hatch, one recv, so the observable
+# output has no scheduling freedom.
+sub main(): Int {
+    $ch: Chan[Str] = channel(0)
+    $who = "world"        # captured via the $who sigil form
+    $n = 7                # scalar captured via a { $n } brace expression
+    $tag = "GUJI"         # captured via a { $tag.lower() } method chain
+    hatch {
+        $ch.send("hello $who n={ $n } [{ $tag.lower() }]")
+    }
+    print($ch.recv().unwrap())
+    0
+}

@@ -1,0 +1,43 @@
+# P2c-11: whole-list display (§15.4) — print/note of a list value, list
+# interpolation "{ @xs }", list-producing calls, inline list literals, and
+# nested rows all render through the runtime guji_list_str recursion exactly as
+# native and the interpreter display them. Str elements render unquoted; a heap
+# (runtime-built) Str element proves the display path's retain/release balances.
+
+sub tail_nums(): List[Int] {
+    [7, 8, 9]
+}
+
+sub main(): Int {
+    @xs = [3, 1, 2]
+    print(@xs)
+    note(@xs)
+    print("nums: { @xs }")
+
+    $w = "wo" ~ "rld"
+    @ss = ["hello", $w]
+    print(@ss)
+    print("strs: { @ss }")
+
+    @fs = [1.5, 2.0]
+    print(@fs)
+    @bs = [true, false]
+    print(@bs)
+
+    @rows = [[1, 2], [3]]
+    print(@rows)
+    print(@rows[0])
+    print("rows: { @rows }")
+
+    print(sort(@xs))
+    print(@xs.reverse())
+    print(tail_nums())
+    print([9, 8])
+    print("inline: { [4, 5] }")
+
+    %m: Map[Str, Int] = {"b": 2, "a": 1}
+    print(keys(%m))
+    print("m: { %m }")
+
+    @xs.count() + @ss.count() + @rows.count() + 36
+}

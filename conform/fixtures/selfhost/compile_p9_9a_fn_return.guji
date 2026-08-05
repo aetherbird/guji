@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static guji_fn_t gf_make_double(void)"))
+            print(has_text($c, "static guji_fn_t gf_make_checker(void)"))
+            print(has_text($c, ".fn = (void*)gf_lambda_"))
+            print(has_text($c, ".env = NULL"))
+            print(has_text($c, "guji_fn_t gfv"))
+            print(has_text($c, "((int64_t (*) (void*, const char*))"))
+            print(has_text($c, "= gf_make_checker();"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

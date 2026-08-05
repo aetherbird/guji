@@ -1,0 +1,19 @@
+# §12 scalar interpolation: bare sigils and braced expressions share display
+# semantics; escaped markers remain literal; nested calls evaluate exactly once.
+
+sub twice($n: Int): Int { $n * 2 }
+sub add_one($n: Int): Int { $n + 1 }
+
+sub main(): Int {
+    $n = 7
+    $f = 1.5
+    $name = "ada"
+    $ok = false
+
+    print("bare $n/$f/$name/$ok")
+    print("expr={ $n + 5 } call={ add_one(twice($n)) } bool={ !$ok } unit={ () }")
+    print("escaped \$n \@items \%ages \{literal} lone $ @ %")
+    print("unknown \\r stays; braces \{x} and backslash \\")
+    print('raw $n { add_one($n) }')
+    0
+}

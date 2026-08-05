@@ -1,0 +1,88 @@
+# Result[List[Map[Str, scalar|Str]], Str] value construct + match-binding + RC
+# ownership (H4c-rest). The Ok-arm mirror of the Option[List[Map]] value family:
+# a List[Map] Ok payload still reduces to ONE counted storage pointer (`.ok.data`)
+# plus a possible Err(Str). Ok(@rows) materializes a fresh owned outer ARR_MAP that
+# retains each row map's keys/vals arrays, a binding/sub-return transfers that +1, a
+# match BORROWS it (reads per-row map values via iteration and row indexing), and a
+# discarded or rebound carrier releases both the Ok storage (the outer ARR_MAP drop
+# cascades into every row map, releasing both its keys and vals arrays, and, for
+# Str-valued maps, each Str element) and the Err Str. The sanitizer gate (LSan/ASan)
+# is the memory oracle; the interpreter is the semantic oracle.
+
+sub sum_maps(@ms: List[Map[Str, Int]]): Int {
+    mut $t = 0
+    for %row in @ms {
+        $t = $t + %row.values().sum()
+    }
+    $t
+}
+
+sub count_maps(@ms: List[Map[Str, Str]]): Int {
+    @ms.count()
+}
+
+sub grid($ok: Bool): Result[List[Map[Str, Int]], Str] {
+    if $ok { Ok([{"a": 1, "b": 2}, {"c": 3}]) } else { Err("no-grid") }
+}
+
+sub words($ok: Bool): Result[List[Map[Str, Str]], Str] {
+    if $ok { Ok([{"x": "alpha", "y": "beta"}, {"z": "gamma"}]) } else { Err("no-words") }
+}
+
+sub wrap_maps(@ms: List[Map[Str, Int]]): Result[List[Map[Str, Int]], Str] {
+    Ok(@ms)
+}
+
+sub main(): Unit {
+    @local = [{"d": 10, "e": 20}, {"f": 30}]
+
+    # Construct Ok(List[Map]) inside a sub, match-borrow, read via per-row iteration.
+    print(match wrap_maps(@local) {
+        Ok(@rows) { sum_maps(@rows) }
+        Err($e) { 0 }
+    })
+
+    # Sub-returned Ok payload transfers to the caller. Matched twice — borrows never
+    # consume it; the second reads via row indexing + map key.
+    $g = grid(true)
+    print(match $g {
+        Ok(@rows) { sum_maps(@rows) }
+        Err($e) { -1 }
+    })
+    print(match $g {
+        Ok(@rows) { @rows[1]{"c"} }
+        Err($e) { -1 }
+    })
+
+    # Sub-returned Err(Str): the Ok slot is NULL; the Err Str is bound and printed.
+    match grid(false) {
+        Ok(@rows) { print(sum_maps(@rows)) }
+        Err($e) { print($e) }
+    }
+
+    # Str-valued rows: the fresh outer ARR_MAP retains each row map's Str vals
+    # array, and releasing the carrier cascades through both levels.
+    print(match words(true) {
+        Ok(@rows) { count_maps(@rows) }
+        Err($e) { 0 }
+    })
+
+    match words(false) {
+        Ok(@rows) { print(count_maps(@rows)) }
+        Err($e) { print($e) }
+    }
+
+    # Discarded carrier results: their fresh Ok List[Map] storage / Err Str must be freed.
+    wrap_maps(@local)
+    grid(false)
+
+    # mut rebind a carrier local across Ok and Err arms: each old List[Map] payload
+    # is released before the new one is stored (self/alias rebinds cannot double-free).
+    mut $cur = grid(true)
+    $cur = grid(false)
+    $cur = wrap_maps(@local)
+    print(match $cur {
+        Ok(@rows) { sum_maps(@rows) }
+        Err($e) { -2 }
+    })
+}

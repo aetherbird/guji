@@ -1,0 +1,181 @@
+# Slice 6 P3b-2b-2c-4i: `?` inside `while` loops nested in guard/arm bodies,
+# and the owned-scrutinee cleanup threaded through NESTED guards.
+# The retkind-aware loop walker (g5_lower_loop_stmts) now runs with the arm's
+# `$extra_cleanup`, so a `?` failing inside a loop within a statement-match arm
+# over an owned scrutinee releases that scrutinee temp before releasing the full
+# env and returning. The guard-if chain (g5_lower_if_guard_extra/g5_guard_tail_extra)
+# threads the same cleanup, fixing a leak where a `?` or `return` inside a NESTED
+# `if` within such an arm skipped the scrutinee release. The loop walker also
+# dispatches statement-position `if` guards with the real return carrier, so an
+# `if` inside a `while` body may `?`-bind or early-`return`.
+
+enum Item { Tagged($v: Str), Empty }
+
+sub mk($s: Str): Item {
+    if $s == "" { Empty } else { Tagged("t:" ~ $s) }
+}
+
+sub tag_s($s: Str): Result[Str, Str] {
+    if $s == "" { Err("empty") } else { Ok("g:" ~ $s) }
+}
+
+# `?` reassign inside a while loop inside an if GUARD body.
+sub loop_in_guard($b: Bool, $a: Str): Result[Int, Str] {
+    mut $acc = 0
+    if $b {
+        mut $i = 0
+        while $i < 2 {
+            $acc = parse_int($a)? + $acc
+            $i = $i + 1
+        }
+    }
+    Ok($acc + 1)
+}
+
+# `?` inside a while loop inside a statement-match arm over a BORROWED enum
+# param scrutinee (no extra cleanup).
+sub loop_in_arm($m: Item, $a: Str): Result[Int, Str] {
+    mut $acc = 0
+    match $m {
+        Tagged($t) {
+            mut $i = 0
+            while $i < 3 {
+                $acc = parse_int($a)? + $acc
+                $i = $i + 1
+            }
+            print("borrowed { $t }")
+        }
+        Empty { $acc = 9 }
+    }
+    Ok($acc)
+}
+
+# `?` inside a while loop inside a statement-match arm over an OWNED fresh enum
+# scrutinee: the in-loop Err early-return must release the scrutinee temp.
+sub loop_in_owned_arm($s: Str, $a: Str): Result[Int, Str] {
+    mut $acc = 0
+    match mk($s) {
+        Tagged($t) {
+            mut $i = 0
+            while $i < 2 {
+                $acc = parse_int($a)? + $acc
+                $i = $i + 1
+            }
+            print("owned { $t }")
+        }
+        Empty { $acc = 3 }
+    }
+    Ok($acc)
+}
+
+# Owned Str payload bound via `?` inside a guard-body loop: released once per
+# iteration on success; the Err early-return releases the accumulated $out.
+sub str_loop($b: Bool, $a: Str): Result[Str, Str] {
+    mut $out = "o"
+    if $b {
+        mut $i = 0
+        while $i < 2 {
+            $t = tag_s($a)?
+            $out = $out ~ "." ~ $t
+            $i = $i + 1
+        }
+    }
+    Ok($out ~ "!")
+}
+
+# `?` inside a NESTED if guard within an owned-scrutinee arm: the early Err
+# return must release the scrutinee (the pre-4i leak).
+sub nested_if_arm($s: Str, $a: Str, $b: Bool): Result[Int, Str] {
+    mut $acc = 0
+    match mk($s) {
+        Tagged($t) {
+            if $b {
+                $acc = parse_int($a)?
+            }
+            print("nif { $t }")
+        }
+        Empty { $acc = 3 }
+    }
+    Ok($acc)
+}
+
+# Plain `return` inside a nested if guard within an owned-scrutinee arm: the
+# return path must also release the scrutinee.
+sub ret_in_arm_if($s: Str, $b: Bool): Result[Int, Str] {
+    mut $acc = 0
+    match mk($s) {
+        Tagged($t) {
+            if $b {
+                return Ok(77)
+            }
+            print("ret { $t }")
+            $acc = 5
+        }
+        Empty { $acc = 3 }
+    }
+    Ok($acc)
+}
+
+# Statement-position if guards INSIDE a while body: `?` bind in one, early
+# `return` in another — both under the enclosing function's return carrier.
+sub if_in_while($a: Str, $n: Int): Result[Int, Str] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < $n {
+        if $i == 2 {
+            $v = parse_int($a)?
+            $acc = $acc + $v
+        }
+        if $acc > 100 {
+            return Ok(999)
+        }
+        $i = $i + 1
+    }
+    Ok($acc)
+}
+
+# Doubly nested while inside a guard body, `?` in the innermost loop.
+sub deep_loop($b: Bool, $a: Str): Result[Int, Str] {
+    mut $acc = 0
+    if $b {
+        mut $i = 0
+        while $i < 2 {
+            mut $j = 0
+            while $j < 2 {
+                $acc = parse_int($a)? + $acc
+                $j = $j + 1
+            }
+            $i = $i + 1
+        }
+    }
+    Ok($acc)
+}
+
+sub main(): Int {
+    match loop_in_guard(true, "5") { Ok($a1) { print("lg ok { $a1 }") } Err($e1) { print("lg err { $e1 }") } }
+    match loop_in_guard(true, "z") { Ok($a2) { print("lgz ok { $a2 }") } Err($e2) { print("lgz err { $e2 }") } }
+    match loop_in_guard(false, "z") { Ok($a3) { print("lgf ok { $a3 }") } Err($e3) { print("lgf err { $e3 }") } }
+    match loop_in_arm(Tagged("m"), "4") { Ok($b1) { print("la ok { $b1 }") } Err($e4) { print("la err { $e4 }") } }
+    match loop_in_arm(Tagged("m"), "q") { Ok($b2) { print("laq ok { $b2 }") } Err($e5) { print("laq err { $e5 }") } }
+    match loop_in_arm(Empty, "q") { Ok($b3) { print("lae ok { $b3 }") } Err($e6) { print("lae err { $e6 }") } }
+    match loop_in_owned_arm("x", "6") { Ok($c1) { print("lo ok { $c1 }") } Err($e7) { print("lo err { $e7 }") } }
+    match loop_in_owned_arm("x", "q") { Ok($c2) { print("loq ok { $c2 }") } Err($e8) { print("loq err { $e8 }") } }
+    match loop_in_owned_arm("", "q") { Ok($c3) { print("loe ok { $c3 }") } Err($e9) { print("loe err { $e9 }") } }
+    match str_loop(true, "ab") { Ok($d1) { print("sl ok { $d1 }") } Err($ea) { print("sl err { $ea }") } }
+    match str_loop(true, "") { Ok($d2) { print("sle ok { $d2 }") } Err($eb) { print("sle err { $eb }") } }
+    match str_loop(false, "") { Ok($d3) { print("slf ok { $d3 }") } Err($ec) { print("slf err { $ec }") } }
+    match nested_if_arm("x", "7", true) { Ok($f1) { print("ni ok { $f1 }") } Err($ed) { print("ni err { $ed }") } }
+    match nested_if_arm("x", "q", true) { Ok($f2) { print("niq ok { $f2 }") } Err($ee) { print("niq err { $ee }") } }
+    match nested_if_arm("x", "q", false) { Ok($f3) { print("nif ok { $f3 }") } Err($ef) { print("nif err { $ef }") } }
+    match nested_if_arm("", "q", true) { Ok($f4) { print("nie ok { $f4 }") } Err($eg) { print("nie err { $eg }") } }
+    match ret_in_arm_if("x", true) { Ok($g1) { print("ri ok { $g1 }") } Err($eh) { print("ri err { $eh }") } }
+    match ret_in_arm_if("x", false) { Ok($g2) { print("rif ok { $g2 }") } Err($ei) { print("rif err { $ei }") } }
+    match ret_in_arm_if("", true) { Ok($g3) { print("rie ok { $g3 }") } Err($ej) { print("rie err { $ej }") } }
+    match if_in_while("50", 4) { Ok($h1) { print("iw ok { $h1 }") } Err($ek) { print("iw err { $ek }") } }
+    match if_in_while("q", 4) { Ok($h2) { print("iwq ok { $h2 }") } Err($el) { print("iwq err { $el }") } }
+    match if_in_while("200", 4) { Ok($h3) { print("iwr ok { $h3 }") } Err($em) { print("iwr err { $em }") } }
+    match if_in_while("q", 2) { Ok($h4) { print("iws ok { $h4 }") } Err($en) { print("iws err { $en }") } }
+    match deep_loop(true, "3") { Ok($j1) { print("dl ok { $j1 }") } Err($eo) { print("dl err { $eo }") } }
+    match deep_loop(true, "q") { Ok($j2) { print("dlq ok { $j2 }") } Err($ep) { print("dlq err { $ep }") } }
+    64
+}

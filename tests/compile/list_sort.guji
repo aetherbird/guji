@@ -1,0 +1,17 @@
+sub main(): Int {
+    @nums = [5, 1, 3, 1]
+    @ordered = @nums.sort()
+    for $n in @ordered {
+        print($n)
+    }
+
+    @words = ["b", "a", "c"]
+    print(sort(@words).join(""))
+
+    @ranked = [12, 22, 11, 21].sort_by(sub($n) { $n % 10 })
+    for $n in @ranked {
+        print($n)
+    }
+
+    0
+}

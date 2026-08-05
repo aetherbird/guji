@@ -1,0 +1,7 @@
+# O4a: semicolon is an item separator, not pattern layout (§2.7, §10.1, §20).
+sub main(): Int {
+    match () {
+        (;) { 0 }
+        _ { 1 }
+    }
+}

@@ -1,0 +1,7 @@
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    match $o {
+        Some($v) { $v + 1 }
+        None { 99 }
+    }
+}

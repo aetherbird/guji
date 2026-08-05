@@ -1,0 +1,17 @@
+# gujiconform parser fixture for selfhost slice 6 P4b-2: the §8.3 private-field
+# shorthand `$!name` in expression position folds into a single ident expression
+# `Name(value="$!name")`, mirroring the Go parser's SIGIL BANG IDENT primary.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,27 @@
+# C08a: a right-hand `?` must not be hoisted before an effectful left operand.
+sub left_value(): Int {
+    print("left")
+    10
+}
+
+sub right_value($ok: Bool): Result[Int, Str] {
+    print("right")
+    if $ok { Ok(3) } else { Err("bad") }
+}
+
+sub calc($ok: Bool): Result[Int, Str] {
+    Ok(left_value() + right_value($ok)?)
+}
+
+sub show($ok: Bool): Unit {
+    match calc($ok) {
+        Ok($n) { print("ok { $n }") }
+        Err($e) { print("err { $e }") }
+    }
+}
+
+sub main(): Int {
+    show(true)
+    show(false)
+    0
+}

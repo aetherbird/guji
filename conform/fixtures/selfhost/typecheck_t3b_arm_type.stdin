@@ -1,0 +1,7 @@
+# T3b: all non-diverging match arms must return a compatible type.
+sub main(): Int {
+    match Some(1) {
+        Some($n) { $n }
+        None { "none" }
+    }
+}

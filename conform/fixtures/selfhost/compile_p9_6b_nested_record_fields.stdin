@@ -1,0 +1,13 @@
+enum Payload {
+    Rows($rows: List[List[Str]])
+    Table($table: Map[Str, Map[Str, Int]])
+}
+
+sub main(): Int {
+    @items = [
+        Rows([["a" ~ "b", "c"]]),
+        Table({"outer": {"inner": 3}}),
+    ]
+    print(@items.count())
+    0
+}

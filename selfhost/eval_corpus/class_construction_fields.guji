@@ -1,0 +1,33 @@
+# §8.1/§8.2: scalar public fields survive construction and both tail and
+# explicit-return boundaries. The first read is directly from a constructor
+# temporary, so the evaluator cannot rely on an intervening local binding.
+class Parcel {
+    has $!seal: Str
+    has $.id: Int
+    has $.label: Str
+    has $.ready: Bool
+    has $.weight: Float
+}
+
+sub make($id: Int): Parcel {
+    Parcel(seal: "wax", id: $id, label: "box", ready: true, weight: 1.5)
+}
+
+sub id_tail($p: Parcel): Int { $p.id }
+sub label_return($p: Parcel): Str { return $p.label }
+sub ready_tail($p: Parcel): Bool { $p.ready }
+sub weight_return($p: Parcel): Float { return $p.weight }
+
+sub main(): Int {
+    print(Parcel(seal: "tmp", id: 7, label: "direct", ready: false, weight: 2.5).id)
+    $p = make(42)
+    print($p.id)
+    print($p.label)
+    print($p.ready)
+    print($p.weight)
+    print(id_tail($p))
+    print(label_return($p))
+    print(ready_tail($p))
+    print(weight_return($p))
+    0
+}

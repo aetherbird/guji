@@ -1,0 +1,30 @@
+# P9-11b-2a: Str twin — pin the `: Unit` Chan[Str]-param sub shape: the Str
+# param arrives borrowed, is retained, copy-on-send detaches it into the
+# message slot, and the trailing `()` returns the Unit zero.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_forward(guji_chan_t* gp0, const char* gp1) \{"))
+            # Borrowed Str param retained, then copy-on-send detach.
+            print(has_text($c, "= guji_retain(gp1);"))
+            print(has_text($c, "= guji_str_copy("))
+            print(has_text($c, ".tag = guji_chan_send("))
+            # Hatch body statement call with the caller-side channel retain.
+            print(count_of($c, "gf_forward(guji_chan_retain(") == 1)
+            print(has_text($c, "return 0LL;"))
+            0
+        }
+    }
+}

@@ -1,0 +1,26 @@
+# P9-10b-3b-2b (§9, §3.3): a bare nullary variant of a GENERIC enum also binds
+# against the first collected concrete spec (`Empty` -> `Box__Int` once
+# `Wrap(42)` collected it — native concreteEnumKeyForReceiver), so a bound
+# local holds a materialized spec value and method calls dispatch on it.
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub describe($self): Str {
+        match $self {
+            Wrap($v) { "wrap({ $v })" }
+            Empty { "empty" }
+        }
+    }
+}
+
+sub main(): Unit {
+    $w = Wrap(42)
+    print($w.describe())
+    $e = Empty
+    print($e.describe())
+    match $e {
+        Wrap($v) { print("wrap({ $v })") }
+        Empty { print("matched-empty") }
+    }
+}

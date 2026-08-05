@@ -1,0 +1,27 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # §9 instance method keeps the `$self` (Light) receiver.
+            print(has_text($c, "static const char* gf_Light_name(Light gp0)"))
+            # §7.5 associated functions take NO receiver.
+            print(has_text($c, "static Light gf_Light_from_code(int64_t gp0)"))
+            print(has_text($c, "static Light gf_Light_blend(int64_t gp0, int64_t gp1)"))
+            # EnumName.assoc(args) call site: no receiver argument.
+            print(has_text($c, "gf_Light_from_code(0LL)"))
+            # Associated-to-associated call inside a body (blend -> from_code).
+            print(has_text($c, "gf_Light_from_code(guji_add(gp0, gp1))"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

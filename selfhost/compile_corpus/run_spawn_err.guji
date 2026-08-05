@@ -1,0 +1,10 @@
+# selfhost slice 5 E5d-8aa — THREE-WAY run() spawn failure.
+# A command that cannot be executed yields Err("cannot run command: <cmd>").
+# The Err slot is an owned Str, so matching and printing it exercises Result
+# cleanup on the failure path.
+sub main(): Int {
+    match run("/definitely_missing_guji_e5d8aa", []) {
+        Ok($p) { print($p.stdout) $p.exit_code }
+        Err($e) { print($e) return 11 }
+    }
+}

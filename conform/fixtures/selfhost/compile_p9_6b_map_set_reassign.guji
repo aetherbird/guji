@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 6 P9-6b map set/remove reassignment.
+# Pins release of the old two-array binding before stealing the lowered
+# set/remove result's keys/vals (and nulling the temp so ownership transfers).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_release((const void*)"))
+            print(has_text($c, "_keys = (const char**)"))
+            print(has_text($c, ".keys = NULL;"))
+            print(has_text($c, ".vals = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

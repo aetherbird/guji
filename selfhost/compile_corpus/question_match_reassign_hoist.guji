@@ -1,0 +1,114 @@
+# Slice 6 P3b-2b-2c-4n: existing mutable scalar/Str locals reassigned from a
+# match-value over a Result scrutinee whose arms contain final `?` hoists.
+# Covers Int/Str/Float/Bool, Err propagation inside an arm, Err-arm fall-through,
+# multi-`?` fixpoint hoists, and old Str local release before assignment.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub parse_price($s: Str): Result[Int, Str] {
+    parse_int($s)
+}
+
+sub flag_ok($s: Str): Result[Bool, Str] {
+    if $s == "bad" { Err("nobool") } else { Ok($s == "yes") }
+}
+
+sub half($s: Str): Result[Float, Str] {
+    if $s == "bad" { Err("nofloat") } else { Ok(1.25) }
+}
+
+sub match_reassign_int($s: Str, $q: Str): Result[Int, Str] {
+    mut $x = 3
+    $x = match parse_price($s) {
+        Ok($v) { parse_int($q)? + $v }
+        Err($e) { 8 }
+    }
+    Ok($x + 1)
+}
+
+sub match_reassign_multi($s: Str, $q: Str, $r: Str): Result[Int, Str] {
+    mut $x = 0
+    $x = match parse_price($s) {
+        Ok($v) { parse_int($q)? + parse_int($r)? + $v }
+        Err($e) { 5 }
+    }
+    Ok($x)
+}
+
+sub match_reassign_str($s: Str, $q: Str): Result[Str, Str] {
+    mut $x = "old" ~ $s
+    $x = match tag($s) {
+        Ok($t) { tag($q)? ~ "/" ~ $t }
+        Err($e) { "none:" ~ $e }
+    }
+    Ok($x ~ "!")
+}
+
+sub match_reassign_float($s: Str, $q: Str): Result[Float, Str] {
+    mut $x = 0.25
+    $x = match parse_price($s) {
+        Ok($v) { half($q)? * 2.0 }
+        Err($e) { 0.5 }
+    }
+    Ok($x)
+}
+
+sub match_reassign_bool($s: Str, $q: Str): Result[Bool, Str] {
+    mut $x = false
+    $x = match parse_price($s) {
+        Ok($v) { flag_ok($q)? }
+        Err($e) { true }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    mut $n = 0
+    match match_reassign_int("7", "30") {
+        Ok($a) { print("int ok { $a }") $n = $n + $a }
+        Err($e1) { print("int err { $e1 }") }
+    }
+    match match_reassign_int("7", "zap") {
+        Ok($b) { print("int bad { $b }") }
+        Err($e2) { print("int err { $e2 }") }
+    }
+    match match_reassign_int("nope", "30") {
+        Ok($c) { print("int errarm { $c }") $n = $n + $c }
+        Err($e3) { print("int errarm err { $e3 }") }
+    }
+    match match_reassign_multi("1", "2", "3") {
+        Ok($d) { print("multi ok { $d }") $n = $n + $d }
+        Err($e4) { print("multi err { $e4 }") }
+    }
+    match match_reassign_multi("1", "2", "boom") {
+        Ok($f) { print("multi bad { $f }") }
+        Err($e5) { print("multi err { $e5 }") }
+    }
+    match match_reassign_str("go", "hi") {
+        Ok($g) { print("str ok { $g }") }
+        Err($e6) { print("str err { $e6 }") }
+    }
+    match match_reassign_str("bad", "hi") {
+        Ok($h) { print("str errarm { $h }") }
+        Err($e7) { print("str err { $e7 }") }
+    }
+    match match_reassign_str("go", "bad") {
+        Ok($i) { print("str bad { $i }") }
+        Err($e8) { print("str err { $e8 }") }
+    }
+    match match_reassign_float("2", "1.5") {
+        Ok($j) { print("float ok { $j }") }
+        Err($e9) { print("float err { $e9 }") }
+    }
+    match match_reassign_bool("2", "yes") {
+        Ok($k) { print("bool ok { $k }") }
+        Err($ea) { print("bool err { $ea }") }
+    }
+    match match_reassign_bool("2", "bad") {
+        Ok($l) { print("bool bad { $l }") }
+        Err($eb) { print("bool err { $eb }") }
+    }
+    $n
+}

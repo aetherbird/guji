@@ -1,0 +1,28 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_value_or__Map_Str_int_Str_Int_Int(guji_map_t gp0, const char* gp1, int64_t gp2)"))
+            print(has_text($c, "static const char* gf_value_or__Map_Str_str_Str_Str_Str(guji_map_t gp0, const char* gp1, const char* gp2)"))
+            print(has_text($c, "static int64_t gf_value_or__Map_Str_bool_Str_Bool_Bool(guji_map_t gp0, const char* gp1, int64_t gp2)"))
+            print(has_text($c, "static double gf_value_or__Map_Str_float_Str_Float_Float(guji_map_t gp0, const char* gp1, double gp2)"))
+            print(has_text($c, "static guji_map_t gf_single__Str_Int_Map_Str_int(const char* gp0, int64_t gp1)"))
+            print(has_text($c, "static guji_map_t gf_transitive__Str_Int_Map_Str_int(const char* gp0, int64_t gp1)"))
+            print(has_text($c, "gf_single__Str_Int_Map_Str_int(gt0, gp1)"))
+            print(has_text($c, ".keys = gv"))
+            print(has_text($c, ".vals = (void*)gv"))
+            print(has_text($c, "gf_value_or("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

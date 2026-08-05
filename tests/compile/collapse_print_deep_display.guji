@@ -1,0 +1,18 @@
+# A-collapse-print proof: printing a List[Map[Str, List[Map[Str, List[Int]]]]]
+# and its Map[Str, List[Map[Str, List[Int]]]] mirror forces display to recurse
+# across List -> Map -> List -> Map -> List using runtime ARR_* KIND tags.
+# No compile-time per-category print arm names this whole shape.
+sub main(): Int {
+    @records = [
+        {"left": [{"scores": [1, 2]}, {"scores": [3]}]},
+        {"right": [{"scores": []}]}
+    ]
+    print(@records)
+
+    %inverse = {
+        "outer": [{"inner": [4, 5]}],
+        "blank": [{"inner": []}]
+    }
+    print(%inverse)
+    0
+}

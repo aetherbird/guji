@@ -1,0 +1,58 @@
+# Generic class/enum instances as generic-sub params and returns.
+
+class Box[T] {
+  has $.value: T
+}
+
+enum EBox[T] {
+  Wrap($v: T)
+}
+
+sub wrap[T]($v: T): Box[T] {
+  Box(value: $v)
+}
+
+sub wrap_enum[T]($v: T): EBox[T] {
+  Wrap($v)
+}
+
+sub identity_box[T]($b: Box[T], $v: T): Box[T] {
+  $b
+}
+
+sub identity_ebox[T]($b: EBox[T], $v: T): EBox[T] {
+  $b
+}
+
+sub get_or_default[T]($b: Box[T], $default: T): T {
+  $b.value
+}
+
+sub main(): Int {
+  $bi = wrap(5)
+  print("{ $bi.value }")
+
+  $bs = wrap("hello")
+  print("{ $bs.value }")
+
+  $ei = wrap_enum(7)
+  print("{ match $ei { Wrap($vi) { $vi } } }")
+
+  $es = wrap_enum("world")
+  print("{ match $es { Wrap($vs) { $vs } } }")
+
+  $b2 = identity_box($bi, 99)
+  print("{ $b2.value }")
+
+  $s2 = identity_box($bs, "x")
+  print("{ $s2.value }")
+
+  $e2 = identity_ebox($ei, 99)
+  print("{ match $e2 { Wrap($v2) { $v2 } } }")
+
+  print("{ get_or_default($bi, 0) }")
+  $s_def = get_or_default($bs, "")
+  print("{ $s_def }")
+
+  0
+}

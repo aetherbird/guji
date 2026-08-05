@@ -1,0 +1,57 @@
+#[
+  §2.6/§3.1: a decimal Float literal denotes the directly rounded IEEE-754
+  value, including when it crosses a generic Map return boundary. This is the
+  shared semantic row for the two accepted-surface generic_map_return_subs
+  fixtures; 3.14 specifically catches repeated-division double rounding in D.
+]#
+
+sub single[T]($k: Str, $v: T): Map[Str, T] {
+    {$k: $v}
+}
+
+sub double[T]($k1: Str, $v1: T, $k2: Str, $v2: T): Map[Str, T] {
+    {$k1: $v1, $k2: $v2}
+}
+
+sub transitive[T]($k: Str, $v: T): Map[Str, T] {
+    %base = single($k, $v)
+    %base.set($k, $v)
+}
+
+sub map_count(%m: Map[Str, Int]): Int {
+    %m.keys().count()
+}
+
+sub main(): Int {
+    %m = single("x", 42)
+    print(%m{"x"})
+
+    %two = double("a", 1, "b", 2)
+    print(%two{"b"})
+
+    %t = transitive("k", 7)
+    print(%t{"k"})
+
+    %labels = single("name", "ada")
+    print(%labels{"name"})
+
+    %flags = single("ok", true)
+    print(%flags{"ok"})
+
+    %ratios = single("pi", 3.14)
+    print(%ratios{"pi"})
+
+    # Direct decimal, precision-edge, exponent, subnormal, and separator forms
+    # prove that D parses the literal once instead of reconstructing it through
+    # a sequence of rounded arithmetic operations.
+    print(0.1)
+    print(1.0000000000000002)
+    print(2.2250738585072014e-308)
+    print(5e-324)
+    print(1_234.5)
+
+    $count = map_count(double("x", 10, "y", 20))
+    print($count)
+
+    0
+}

@@ -1,0 +1,31 @@
+enum Toks {
+    TEnd
+    TMore($n: Int, $rest: Toks)
+}
+
+sub reverse($xs: Toks): Toks {
+    mut $cur = $xs
+    mut $out = TEnd
+    mut $going = true
+    while $going {
+        match $cur {
+            TEnd { $going = false }
+            TMore($n, $rest) {
+                $out = TMore($n, $out)
+                $cur = $rest
+            }
+        }
+    }
+    $out
+}
+
+sub sum($xs: Toks): Int {
+    match $xs {
+        TEnd { 0 }
+        TMore($n, $rest) { $n * 10 + sum($rest) }
+    }
+}
+
+sub main(): Int {
+    sum(reverse(TMore(1, TMore(2, TMore(3, TEnd)))))
+}

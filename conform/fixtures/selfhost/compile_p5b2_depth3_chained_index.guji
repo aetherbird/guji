@@ -1,0 +1,25 @@
+# P5b-2b: depth-3 Map/List index chains lower recursively and detach each
+# collection row by retaining its same-heap backing arrays before releasing its
+# owned intermediate receiver.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_retain((const void*)gmv"))
+            print(has_text($c, "guji_retain(gmv"))
+            print(has_text($c, "guji_retain(gl"))
+            print(has_text($c, "guji_release((const void*)gmv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

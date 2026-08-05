@@ -1,0 +1,27 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # A Str capture is laid out as the LEADING env field (Str-first, so
+            # guji_drop_env releases exactly the leading pointer slots).
+            print(has_text($c, "const char* cap0;"))
+            # The env allocation count = the number of Str captures (1 here);
+            # pure-scalar captures use count 0 (compile_p1cb_lambda_capture).
+            print(has_text($c, "guji_alloc(GUJI_KIND_ENV, 1, sizeof(genv_lambda_"))
+            # The body reads the captured Str borrowed through the env.
+            print(has_text($c, "genv->cap0"))
+            print(has_text($c, "static int64_t gf_lambda_"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,7 @@
+root=alpha : beta
+left=alpha
+right=beta
+ordered-left=true
+ordered-right=true
+regex=2048
+full-input=true

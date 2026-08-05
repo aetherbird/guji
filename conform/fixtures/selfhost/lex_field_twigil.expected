@@ -1,0 +1,44 @@
+KEYWORD "class" @1:1
+UPPER "P" @1:7
+PUNCT "{" @1:9
+NEWLINE @1:10
+KEYWORD "has" @2:1
+OP "$" @2:5
+OP "." @2:6
+IDENT "a" @2:7
+OP ":" @2:8
+UPPER "Int" @2:10
+NEWLINE @2:13
+KEYWORD "has" @3:1
+OP "$" @3:5
+OP "!" @3:6
+IDENT "b" @3:7
+OP ":" @3:8
+UPPER "Str" @3:10
+NEWLINE @3:13
+KEYWORD "has" @4:1
+OP "@" @4:5
+OP "." @4:6
+IDENT "c" @4:7
+OP ":" @4:8
+UPPER "List" @4:10
+PUNCT "[" @4:14
+UPPER "Int" @4:15
+PUNCT "]" @4:18
+NEWLINE @4:19
+KEYWORD "has" @5:1
+OP "%" @5:5
+OP "!" @5:6
+IDENT "d" @5:7
+OP ":" @5:8
+UPPER "Map" @5:10
+PUNCT "[" @5:13
+UPPER "Str" @5:14
+PUNCT "," @5:17
+UPPER "Int" @5:19
+PUNCT "]" @5:22
+NEWLINE @5:23
+PUNCT "}" @6:1
+NEWLINE @6:2
+EOF @7:1
+

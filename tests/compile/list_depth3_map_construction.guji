@@ -1,0 +1,26 @@
+# Depth-3 List[List[Map[Str,T]]] construction/read support. This used to stop
+# at List[List[List[T]]] because the nested list row lost the map value shape.
+sub main(): Int {
+    @cube = [[{"a": 1}, {"b": 2}], [{"c": 3}]]
+    print(@cube[0][1]{"b"})
+    mut $sum = 0
+    for @plane in @cube {
+        for %cell in @plane {
+            for $k, $v in %cell {
+                $sum = $sum + $v
+            }
+        }
+    }
+    print($sum)
+
+    @words = [[{"x": "a" ~ "b"}], [{"y": "c"}]]
+    print(@words[0][0]{"x"})
+
+    mut %m = {"z": 4}
+    @srcrow = [%m]
+    @copy = [@srcrow]
+    %m = {"z": 9}
+    print(@copy[0][0]{"z"})
+    print(%m{"z"})
+    0
+}

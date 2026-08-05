@@ -1,0 +1,9 @@
+sub inc($x: Int): Int {
+    $x + 1
+}
+sub dbl($x: Int): Int {
+    inc($x) + inc($x)
+}
+sub main(): Int {
+    dbl(10)
+}

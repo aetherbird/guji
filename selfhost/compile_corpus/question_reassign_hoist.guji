@@ -1,0 +1,103 @@
+# Slice 6 P3b-2b-2c-4: existing-name REASSIGNMENT whose RHS holds a hoistable `?`.
+# `mut $x = ...; $x = f($s)? + 1` lifts the carrier guard/early-return into a
+# synthetic scalar/Str bind (the same value-position hoist the fresh-bind path
+# uses), then lowers the rebuilt RHS through the ordinary reassign path. Covers
+# direct (`$x = f()?`) and expression (`$x = f()? + 1`) forms across Int/Float/
+# Bool/Str payloads plus an Option `?`, with both success (Ok/Some) and
+# early-return (Err/None) arms. The `?` guard fires before the old binding is
+# released/overwritten, matching native's left-to-right order.
+sub tag($s: Str): Result[Str, Str] {
+    $n = parse_int($s)?
+    Ok("t{ $n }")
+}
+
+sub even($s: Str): Result[Bool, Str] {
+    $n = parse_int($s)?
+    Ok($n % 2 == 0)
+}
+
+# Int, expression form.
+sub reassign_int_expr($s: Str): Result[Int, Str] {
+    mut $x = 0
+    $x = parse_int($s)? + 1
+    Ok($x)
+}
+
+# Int, direct form.
+sub reassign_int_direct($s: Str): Result[Int, Str] {
+    mut $x = 100
+    $x = parse_int($s)?
+    Ok($x)
+}
+
+# Option `?`, expression form.
+sub reassign_opt($o: Option[Int]): Option[Int] {
+    mut $x = 0
+    $x = $o? + 2
+    Some($x)
+}
+
+# Float, expression form.
+sub reassign_float($o: Option[Float]): Option[Float] {
+    mut $x = 0.0
+    $x = $o? + 1.0
+    Some($x)
+}
+
+# Bool, direct form.
+sub reassign_bool($s: Str): Result[Bool, Str] {
+    mut $x = false
+    $x = even($s)?
+    Ok($x)
+}
+
+# Str, expression form (release-old + concat, ownership must balance).
+sub reassign_str($s: Str): Result[Str, Str] {
+    mut $x = "start"
+    $x = tag($s)? ~ "!"
+    Ok($x)
+}
+
+sub main(): Int {
+    match reassign_int_expr("40") {
+        Ok($a) { print("int expr ok { $a }") }
+        Err($e1) { print("int expr err { $e1 }") }
+    }
+    match reassign_int_expr("bad") {
+        Ok($b) { print("int expr ok { $b }") }
+        Err($e2) { print("int expr err { $e2 }") }
+    }
+    match reassign_int_direct("7") {
+        Ok($c) { print("int direct ok { $c }") }
+        Err($e3) { print("int direct err { $e3 }") }
+    }
+    match reassign_opt(Some(5)) {
+        Some($d) { print("opt some { $d }") }
+        None { print("opt none") }
+    }
+    match reassign_opt(None) {
+        Some($f) { print("opt some { $f }") }
+        None { print("opt none") }
+    }
+    match reassign_float(Some(9.0)) {
+        Some($g) { print("float some { $g }") }
+        None { print("float none") }
+    }
+    match reassign_bool("4") {
+        Ok($h) { print("bool ok { $h }") }
+        Err($e4) { print("bool err { $e4 }") }
+    }
+    match reassign_bool("3") {
+        Ok($i) { print("bool ok { $i }") }
+        Err($e5) { print("bool err { $e5 }") }
+    }
+    match reassign_str("5") {
+        Ok($j) { print("str ok { $j }") }
+        Err($e6) { print("str err { $e6 }") }
+    }
+    match reassign_str("bad") {
+        Ok($k) { print("str ok { $k }") }
+        Err($e7) { print("str err { $e7 }") }
+    }
+    51
+}

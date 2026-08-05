@@ -1,0 +1,14 @@
+sub oki($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+sub oks($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("pay" ~ "load") } else { Err("bad") }
+}
+sub main(): Int {
+    $r: Result[Int, Str] = oki(5)
+    $s: Result[Str, Str] = oks(1)
+    mut $c = 0
+    if $r.expect("no int") == 5 { $c = $c + 1 }
+    print($s.expect("no" ~ " str"))
+    $c
+}

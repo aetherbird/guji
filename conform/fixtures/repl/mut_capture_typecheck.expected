@@ -1,0 +1,5 @@
+guji REPL (v0) — type :quit to exit
+> 1
+> 1:19: cannot capture mut binding $x in a closure; bind it immutably first (§7.4)
+> 1
+> 

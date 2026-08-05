@@ -1,0 +1,77 @@
+# O4: strict operands are evaluated exactly once in the normative order.
+class Pair {
+    has $.first: Int
+    has $.second: Int
+}
+
+class Ops {
+    sub pair($left: Int, $right: Int): Int {
+        $left * 10 + $right
+    }
+}
+
+sub mark($tag: Int, $value: Int): Int {
+    print($tag)
+    $value
+}
+
+sub mark_key($tag: Int, $value: Str): Str {
+    print($tag)
+    $value
+}
+
+sub pair($left: Int, $right: Int): Int {
+    $left * 10 + $right
+}
+
+sub values(): List[Int] {
+    print(401)
+    [4, 5, 6]
+}
+
+sub returned_map(): Map[Str, Int] {
+    {
+        mark_key(801, "a"): mark(802, 1),
+        mark_key(803, "b"): mark(804, 2)
+    }
+}
+
+sub main(): Int {
+    # Binary operands: written left, then written right.
+    print(mark(101, 9) - mark(102, 4))
+    # Grouping follows precedence, while evaluation remains written left to right.
+    print(mark(111, 2) + mark(112, 3) * mark(113, 4))
+
+    # Ordinary arguments and a method receiver: written left to right.
+    print(pair(mark(201, 1), mark(202, 2)))
+    print(mark(301, 3).pair(mark(302, 4)))
+
+    # The indexed value is evaluated before the index.
+    print(values()[mark(402, 1)])
+
+    # Named class initializers deliberately use field declaration order.
+    $p = Pair(second: mark(502, 2), first: mark(501, 1))
+    print($p.first)
+    print($p.second)
+
+    # Associated functions use ordinary argument order.
+    print(Ops.pair(mark(601, 5), mark(602, 6)))
+
+    # Interpolation markers are processed left to right.
+    print("ordered { mark(701, 7) } then { mark(702, 8) }")
+
+    # Map entries evaluate key then value before advancing to the next entry.
+    print(returned_map())
+    %items: Map[Str, Int] = {
+        mark_key(811, "c"): mark(812, 3),
+        mark_key(813, "d"): mark(814, 4)
+    }
+    print(%items)
+    mut %again: Map[Str, Int] = {"old": 0}
+    %again = {
+        mark_key(821, "e"): mark(822, 5),
+        mark_key(823, "f"): mark(824, 6)
+    }
+    print(%again)
+    0
+}

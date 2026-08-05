@@ -1,0 +1,8 @@
+sub words(): List[Str] {
+    ["red", "green", "blue"]
+}
+
+sub main(): Int {
+    print(words()[2])
+    0
+}

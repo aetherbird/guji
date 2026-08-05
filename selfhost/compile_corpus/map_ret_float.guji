@@ -1,0 +1,6 @@
+sub mk(): Map[Str, Float] {
+    {"a": 1.5, "b": 2.25}
+}
+sub main(): Unit {
+    print(mk())
+}

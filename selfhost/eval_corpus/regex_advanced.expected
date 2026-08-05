@@ -1,0 +1,12 @@
+flags:true:true:true:true
+ascii:true:false
+refs:true:true
+looks:true:true:true:true
+prune:false:false
+unicode:true:true:true:true
+str-splice:true:false
+regex-splice:ab:!:hidden
+atom:true
+bad-backref:invalid backreference
+bad-lookbehind:lookbehind requires bounded width
+bad-prop:unknown Unicode property "Not_A_Property"

@@ -1,0 +1,13 @@
+# T3a: a well-typed program exercising calls, list/map literals, indexing,
+# Option construction, and a UFCS callback — all accepted.
+sub dbl($n: Int): Int { $n * 2 }
+
+sub main(): Int {
+    @xs = [1, 2, 3]
+    $first: Int = @xs[0]
+    @doubled = @xs.map(dbl)
+    @m = {"a": 1, "b": 2}
+    $v: Int = @m["a"]
+    $opt: Option[Int] = Some($first)
+    dbl($v)
+}

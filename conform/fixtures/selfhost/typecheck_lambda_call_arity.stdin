@@ -1,0 +1,5 @@
+# A local function value keeps its inferred arity at the call site.
+sub main(): Int {
+    $f = sub($n: Int): Int { $n + 1 }
+    $f()
+}

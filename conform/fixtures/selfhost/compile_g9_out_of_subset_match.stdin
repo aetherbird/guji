@@ -1,0 +1,7 @@
+sub main(): Int {
+    print(match 1 {
+        1 { {"a": 1} }
+        _ { {"b": 2} }
+    })
+    0
+}

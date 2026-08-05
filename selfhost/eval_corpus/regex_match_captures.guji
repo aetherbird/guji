@@ -1,0 +1,37 @@
+# §13.3 (I7b): Match snapshots preserve whole text, positional/named groups,
+# non-participation versus an empty match, runtime misses, and structural state.
+sub show($capture: Option[Str]): Str {
+    match $capture {
+        Some($s) { "some:" ~ $s }
+        None { "none" }
+    }
+}
+
+# A Match parameter has no literal-pattern refinement, so absent names and
+# computed out-of-range positions are specified runtime None cases (§13.4).
+sub absent_name($m: Match): Str { show($m<absent>) }
+sub at_index($m: Match, $i: Int): Str { show($m[$i]) }
+
+sub main(): Int {
+    $m = ("abc" ~~ /(?<first>a)(x)?(?<empty>)(b)c/).unwrap()
+    print($m.text)
+    print(show($m[0]))
+    print(show($m[1]))
+    print(show($m[2]))
+    print(show($m[3]))
+    print(show($m[4]))
+    print(show($m<first>))
+    print(show($m<empty>))
+    print(at_index($m, -1))
+    print(at_index($m, 9))
+    print(absent_name($m))
+
+    $same = ("abc" ~~ /(?<first>a)(x)?(?<empty>)(b)c/).unwrap()
+    $unnamed = ("abc" ~~ /(a)(x)?()(b)c/).unwrap()
+    $participating = ("abc" ~~ /(?<first>a)(x*)(?<empty>)(b)c/).unwrap()
+    print($m == $same)
+    print($m == $unnamed)
+    print($unnamed == $m)
+    print($m == $participating)
+    0
+}

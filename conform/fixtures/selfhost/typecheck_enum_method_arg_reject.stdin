@@ -1,0 +1,22 @@
+# P5b-2b(enum-method-args): a §9 enum INSTANCE method call with a wrong-type
+# argument is REJECTED by the self-hosted checker. Enum method signatures are now
+# registered under a qualified key and arg-checked (the enum twin of TClass's
+# baked-in methods), so `$d.needs_int("hello")` mismatches Int and rejects with
+# native's wording. Before this slice the call resolved to TUnknown and accepted.
+enum Direction {
+    North
+    South
+
+    sub label($self): Str {
+        match $self { North { "north" } South { "south" } }
+    }
+    sub needs_int($self, $n: Int): Str {
+        $self.label()
+    }
+}
+
+sub main(): Int {
+    $d = North
+    print($d.needs_int("hello"))
+    0
+}

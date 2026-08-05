@@ -1,0 +1,9 @@
+alpha
+beta
+fresh
+one
+two
+three
+gamma
+cannot write file: io_missing_dir/out
+cannot append file: io_missing_dir/out

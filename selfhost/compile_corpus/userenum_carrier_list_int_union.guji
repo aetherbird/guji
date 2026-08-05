@@ -1,0 +1,15 @@
+# Slice 4d: a List[Int] carrier MIXED with an Int carrier at the same position ->
+# a native union slot (`.l` / `.i`). Constructs the list variant.
+enum Tagged {
+    Many(@xs: List[Int])
+    One($n: Int)
+}
+sub run($t: Tagged): Int {
+    match $t {
+        Many(@xs) { @xs[1] }
+        One($n) { $n }
+    }
+}
+sub main(): Int {
+    run(Many([10, 20, 30]))
+}

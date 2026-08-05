@@ -1,0 +1,19 @@
+enum Piece {
+    PText($s: Str)
+    PNum($n: Int)
+}
+
+sub mk($n: Int): Result[Piece, Str] {
+    if $n > 0 { Err("bad") } else { Ok(PText("ok")) }
+}
+
+sub run($n: Int): Int {
+    match mk($n) {
+        Ok($p) { 4 }
+        Err($e) { print($e) 9 }
+    }
+}
+
+sub main(): Int {
+    return run(0) + run(5)
+}

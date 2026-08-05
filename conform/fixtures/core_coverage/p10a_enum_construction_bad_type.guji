@@ -1,0 +1,9 @@
+# A payload constructor argument must match the declared variant field type.
+enum Shape {
+    Circle($radius: Int)
+}
+
+sub main(): Int {
+    $shape = Circle("large")
+    0
+}

@@ -1,0 +1,34 @@
+# P5b-2b: collection-valued maps display through the runtime's recursive
+# ARR_SLICE / ARR_MAP walkers. Exercise bindings, interpolation, returned maps,
+# indexed List[Map] values, direct literals, and a deeply mixed Str leaf.
+
+sub list_map(): Map[Str, List[Int]] {
+    {"z": [3], "a": [1, 2]}
+}
+
+sub nested_map(): Map[Str, Map[Str, Bool]] {
+    {"outer": {"yes": true, "no": false}}
+}
+
+sub main(): Int {
+    %lists: Map[Str, List[Int]] = {"z": [3], "a": [1, 2]}
+    print(%lists)
+    print("interp={ %lists }")
+    print(list_map())
+
+    %maps: Map[Str, Map[Str, Bool]] = nested_map()
+    print(%maps)
+
+    @rows: List[Map[Str, List[Int]]] = [%lists]
+    print(@rows[0])
+
+    print({"b": [2], "a": [1]})
+
+    %deep: Map[Str, List[Map[Str, List[Str]]]] = {
+        "root": [
+            {"right": ["x", "y"], "left": ["z"]}
+        ]
+    }
+    note(%deep)
+    0
+}

@@ -1,0 +1,23 @@
+# Section 17 hatch capture of a Map[Str, Str] binding.
+#
+# Both the keys and the values are counted Str slots, so the deep copy into the
+# task heap must guji_str_copy every key AND every value. Copying only the outer
+# arrays (retaining the parent's Str pointers) would share heap graph across
+# per-task non-atomic heaps. This fixture mutates the parent-side source bindings
+# after spawn so the task must observe its fully detached map copy, and the
+# sanitizer gate must see every copied key/value string released exactly once.
+sub main(): Int {
+    mut $color = "red"
+    mut $name = "ada"
+    %m = {"x": $color, "y": "green", "z": $name}
+    $ch: Chan[Str] = channel(0)
+
+    hatch {
+        $ch.send(%m{"x"} ~ "/" ~ %m{"y"} ~ "/" ~ %m{"z"})
+    }
+
+    $color = "black"
+    $name = "grace"
+    print($ch.recv().unwrap())
+    0
+}

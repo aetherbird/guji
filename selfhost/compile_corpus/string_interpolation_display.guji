@@ -1,0 +1,17 @@
+# EB-3a: double-quoted `{ expr }` interpolation must lower to display strings,
+# not remain a literal template in generated C. This covers scalar locals,
+# scalar/Str class fields, and an escaped literal brace block that must stay text.
+
+class Box {
+    has $.n: Int
+    has $.ok: Bool
+    has $.name: Str
+}
+
+sub main(): Int {
+    $n = 5
+    $b = Box(n: 7, ok: true, name: "Ada")
+    print("v{ $n }:{ $b.n }:{ $b.ok }:{ $b.name }")
+    print("literal \{not an expression}")
+    0
+}

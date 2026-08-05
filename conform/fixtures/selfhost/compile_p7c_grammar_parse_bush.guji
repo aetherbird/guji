@@ -1,0 +1,26 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P7c-2b-2a pins the direct parse/capture ownership surface in emitted C.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, "guji_bush_t* val;") == 1)
+            print(count_of($c, "gp_Pair_TOP(") == 4)
+            print(count_of($c, "== (int64_t)strlen(") == 2)
+            print(count_of($c, "guji_bush_cap(") == 1)
+            print(count_of($c, "guji_retain((const void*)go") == 1)
+            print(count_of($c, "->text;") == 2)
+            print(count_of($c, "guji_release((const void*)gbu") == 2)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

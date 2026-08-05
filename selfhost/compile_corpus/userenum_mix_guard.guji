@@ -1,0 +1,13 @@
+enum Num {
+    AsInt($n: Int)
+    AsFloat($n: Float)
+}
+
+sub main(): Int {
+    $x: Num = AsInt(15)
+    match $x {
+        AsInt($n) if $n > 10 { $n - 5 }
+        AsInt($n) { $n }
+        AsFloat($f) { 0 }
+    }
+}

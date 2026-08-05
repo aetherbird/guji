@@ -1,0 +1,18 @@
+sub main(): Int {
+    $ch: Chan[Str] = channel(1)
+    $ch.send("queued");
+    $ch.close()
+    $first = $ch.recv()
+    if $first.is_some() {
+        print($first.unwrap())
+    } else {
+        print("none")
+    }
+    $second = $ch.recv()
+    if $second.is_some() {
+        print($second.unwrap())
+    } else {
+        print("drained")
+    }
+    0
+}

@@ -1,0 +1,19 @@
+# Float sub params and returns (spec 5.1, 7.1)
+sub area($r: Float): Float {
+    3.14159 * $r * $r
+}
+
+sub half($x: Float): Float {
+    $x / 2.0
+}
+
+sub main(): Unit {
+    print(area(2.0))
+    print(half(10.0))
+    $v = 1.5
+    print($v.double())
+}
+
+sub double($x: Float): Float {
+    $x * 2.0
+}

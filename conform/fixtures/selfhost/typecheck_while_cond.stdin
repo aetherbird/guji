@@ -1,0 +1,8 @@
+# §6.3: the while condition must be Bool — a Str condition is a type error.
+sub main(): Int {
+    mut $i = 0
+    while "go" {
+        $i = $i + 1
+    }
+    0
+}

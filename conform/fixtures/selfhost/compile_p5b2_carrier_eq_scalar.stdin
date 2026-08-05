@@ -1,0 +1,13 @@
+sub mk($n: Int): Result[Int, Str] {
+    if $n < 0 { Err("neg") } else { Ok($n) }
+}
+
+sub main(): Unit {
+    $a: Option[Int] = Some(1)
+    $b: Option[Int] = Some(1)
+    print("{ $a == $b }")
+    $s: Option[Str] = Some("x")
+    $t: Option[Str] = Some("x")
+    print("{ $s == $t }")
+    print("{ mk(1) == mk(-1) }")
+}

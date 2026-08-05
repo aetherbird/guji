@@ -1,0 +1,18 @@
+# Slice 4d: a Map[Str, Int] carrier MIXED with an Int carrier at the same position
+# -> a native union slot (`.m` / `.i`). Constructs the map variant and prints it.
+enum Tagged {
+    Dict(%m: Map[Str, Int])
+    One($n: Int)
+}
+sub run($t: Tagged): Int {
+    match $t {
+        Dict(%m) {
+            print(%m)
+            0
+        }
+        One($n) { $n }
+    }
+}
+sub main(): Int {
+    run(Dict({"k": 5, "v": 6}))
+}

@@ -1,0 +1,10 @@
+# gujiconform -- Phase 2 (Platform IO pass): `stdin` is the always-open
+# standard-input handle (Section 15.4), a Handle value (not a function). It is
+# read with the same `slurp` verb as a file handle: stdin.slurp() returns ALL of
+# stdin VERBATIM (line terminators intact, no chomp). `stdin` references share a
+# single underlying stream, so a second slurp after the input is consumed yields
+# "". The expected output is derived from the spec, never captured from native.
+sub main() {
+    print("first:[" ~ stdin.slurp() ~ "]")
+    print("second:[" ~ stdin.slurp() ~ "]")
+}

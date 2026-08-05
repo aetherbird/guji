@@ -1,0 +1,23 @@
+class Scan {
+    has $.text: Str
+    has $.next: Int
+}
+
+sub mk($v: Str, $n: Int): Result[Scan, Str] {
+    if $n < 0 {
+        Err("neg")
+    } else {
+        Ok(Scan(text: $v, next: $n))
+    }
+}
+
+sub describe($v: Str, $n: Int): Int {
+    match mk($v, $n) {
+        Ok($s) { print($s.text) $s.next }
+        Err($e) { print($e) 9 }
+    }
+}
+
+sub main(): Int {
+    return describe("hi", 3)
+}

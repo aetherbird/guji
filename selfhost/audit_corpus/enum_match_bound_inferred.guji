@@ -1,0 +1,14 @@
+# DECLINE-AUDIT seed (slice 4b). match-over-enum where the scrutinee is an
+# INFERRED bound binding ($x = A(7), no type annotation). Both oracles accept
+# (interp runs, `guji build` builds). This used to DECLINE (rc 4) because an
+# inferred enum binding was never registered as a CgEnum carrier in the codegen
+# env; F2a fixed it, so this must stay COVERED.
+enum N { A($v: Int), B }
+
+sub main(): Int {
+    $x = A(7)
+    match $x {
+        A($v) { $v }
+        B { 0 }
+    }
+}

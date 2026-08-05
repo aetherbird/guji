@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 `is_some($o)` / `$o.is_some()` and `is_none($o)` / `$o.is_none()`
+# lowering over a bound `Option[T]` local. Native lowers both to a pure carrier tag
+# test that normalizes to 0/1 — `(opt.tag != 0 ? 1LL : 0LL)` for is_some,
+# `(opt.tag == 0 ? 1LL : 0LL)` for is_none — a BORROW of the receiver (it touches no
+# payload, so it emits no retain/release; the binding's own scope-exit cleanup still
+# frees a Str Some payload). This fixture checks those generated-C landmarks.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # is_some (method + function form) -> `.tag != 0LL ? 1LL : 0LL` on the local.
+            print(has_text($c, "gv0.tag != 0LL ? 1LL : 0LL"))
+            # is_none (function form) over the Str option local.
+            print(has_text($c, "gv1.tag == 0LL ? 1LL : 0LL"))
+            # the tag test itself performs NO retain/release of the payload.
+            # the Str binding's own scope-exit cleanup is the ONLY release of gv1.val.
+            print(has_text($c, "guji_release(gv1.val); gv1.val = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

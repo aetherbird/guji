@@ -1,0 +1,14 @@
+# I10f2 §17.6 lifecycle: hatch exit while main stays runnable must not spuriously
+# deadlock, and a later blocked select must still wake when another hatch sends.
+sub main(): Int {
+    hatch {
+        ()
+    }
+    select {
+        else { print("runnable") }
+    }
+    $ch: Chan[Int] = channel()
+    hatch { $ch.send(11) }
+    select { $v = $ch.recv() { print("wake { $v.unwrap() }") } }
+    0
+}

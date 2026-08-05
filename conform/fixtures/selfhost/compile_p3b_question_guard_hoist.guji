@@ -1,0 +1,33 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4e compiler codegen fixture.
+# Pins `?` binds/reassignments INSIDE guard bodies: the statement-level hoist
+# machinery dispatches inside statement-position `if` branches, so the carrier
+# guard's early return exits the function (releasing the env in scope) while a
+# successful payload bind joins the branch and is released at branch exit.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Direct `?` bind inside a guard: payload bound from the carrier temp.
+            print(has_text($c, "gv7 = gr6.ok;"))
+            # The carrier guard's early Err return from within the branch.
+            print(has_text($c, 'return (guji_res_int_str){1LL, 0LL, gr6.err};'))
+            # Outer mut reassigned from a hoisted `?` payload inside the guard.
+            print(has_text($c, "gv0 = guji_add(gv8, 2LL);"))
+            # Owned Str payload transferred from the carrier inside the guard.
+            print(has_text($c, "gv4 = gr3.ok;"))
+            # Fall-through branch exit releases the block-local Str payload.
+            print(has_text($c, "guji_release(gv4);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

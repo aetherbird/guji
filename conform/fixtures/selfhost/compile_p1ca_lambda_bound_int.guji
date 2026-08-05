@@ -1,0 +1,23 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_lambda_"))
+            print(has_text($c, "void* g_env, int64_t gp0"))
+            print(has_text($c, "guji_fn_t gv"))
+            print(has_text($c, ".fn = (void*)gf_lambda_"))
+            print(has_text($c, "((int64_t (*) (void*, int64_t))gv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

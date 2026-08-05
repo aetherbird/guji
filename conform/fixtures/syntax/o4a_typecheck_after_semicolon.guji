@@ -1,0 +1,5 @@
+# O4a: the statement after a semicolon remains an independently checked item.
+sub main(): Int {
+    $ok: Int = 1; $bad: Str = 2
+    0
+}

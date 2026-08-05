@@ -1,0 +1,6 @@
+# Spec 15.1: min over an empty numeric list is an exact runtime failure.
+sub main(): Int {
+    @empty: List[Int] = []
+    print("before-min")
+    @empty.min()
+}

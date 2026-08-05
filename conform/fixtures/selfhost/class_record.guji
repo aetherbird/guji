@@ -1,0 +1,16 @@
+# gujiconform parser fixture for E2 class records. The expected output is
+# human-authored from §8/§20: a class declaration plus named constructor args.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

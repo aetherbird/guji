@@ -1,0 +1,6 @@
+class P {
+has $.a: Int
+has $!b: Str
+has @.c: List[Int]
+has %!d: Map[Str, Int]
+}

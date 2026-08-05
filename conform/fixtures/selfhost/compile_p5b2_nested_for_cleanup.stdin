@@ -1,0 +1,22 @@
+sub check($n: Int): Result[Int, Str] {
+    if $n < 0 { Err("neg") } else { Ok($n) }
+}
+
+sub scan($cut: Int): Result[Int, Str] {
+    mut $sum = 0
+    for $a in [1, $cut] {
+        for $k, $v in {"x": 2, "y": $cut} {
+            $w = check($v)?
+            $sum = $sum + $a + $w
+        }
+    }
+    Ok($sum)
+}
+
+sub main(): Int {
+    match scan(3) {
+        Ok($n) { print($n) }
+        Err($e) { print($e) }
+    }
+    0
+}

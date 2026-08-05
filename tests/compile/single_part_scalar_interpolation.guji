@@ -1,0 +1,18 @@
+# RC1.6a: single-part scalar interpolation creates display conversion temps
+# that native code must release after read-only use, or transfer to Str owners.
+sub show($n: Int): Str {
+    "$n"
+}
+
+sub main(): Int {
+    $n = 42
+    $f = 1.5
+    print("$n")
+    print("$f")
+    print("{ $n + 1 }")
+    print("{ $f + 0.25 }")
+    $bound = "$n"
+    print($bound)
+    print(show(7))
+    0
+}

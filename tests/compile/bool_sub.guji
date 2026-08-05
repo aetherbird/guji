@@ -1,0 +1,19 @@
+sub is_positive($n: Int): Bool {
+    $n > 0
+}
+
+sub echo($b: Bool): Str {
+    if $b { "yes" } else { "no" }
+}
+
+sub greet($name: Str): Str {
+    "hi " ~ $name
+}
+
+sub main(): Int {
+    if is_positive(3) {
+        print(greet("ada"))
+    }
+    print(echo(is_positive(-1)))
+    0
+}

@@ -1,0 +1,54 @@
+# Section 17 native channel send/recv for recursive-box enums whose boxed
+# variants ALSO carry flat List/Map payload fields (H4c-rest slice).
+#
+# Each Link node stores a List[Int], a Map[Str, Str], AND a boxed Chain child.
+# Sending Chain over a channel must deep-clone the whole boxed graph: the
+# generated guji_clone_<E>_value now detaches the flat List and Map fields in
+# every boxed node (fresh counted arrays + per-Str copies), not just the boxed
+# child pointer, so the receiver shares no list-/map-storage pointers with the
+# sender's per-task heap. The source binding is rebound to End after send; the
+# received message must still decode the original chain and release cleanly under
+# ASan/LSan.
+enum Chain {
+    End
+    Link($vals: List[Int], $tags: Map[Str, Str], $next: Chain)
+}
+
+sub total($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link($v, _, $n) {
+            mut $s = 0
+            for $x in $v {
+                $s = $s + $x
+            }
+            $s + total($n)
+        }
+    }
+}
+
+sub tags($c: Chain): Str {
+    match $c {
+        End { "" }
+        Link(_, $t, $n) {
+            $head = $t{"k"}
+            $head ~ tags($n)
+        }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Chain] = channel(1)
+    @a = [1, 2]
+    %ta = {"k": "x"}
+    @b = [3, 4]
+    %tb = {"k": "y"}
+    mut $c = Link(@a, %ta, Link(@b, %tb, End))
+    $ch.send($c)
+    $c = End
+
+    $got = $ch.recv().unwrap()
+    print("{ total($got) }")
+    print(tags($got))
+    print("{ total($c) }")
+}

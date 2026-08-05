@@ -1,0 +1,9 @@
+sub positive($n: Int): Option[Bool] {
+    if $n == 0 { None } else { Some($n > 0) }
+}
+sub main(): Int {
+    match positive(7) {
+        Some($v) { if $v { 3 } else { 4 } }
+        None { 5 }
+    }
+}

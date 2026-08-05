@@ -1,0 +1,28 @@
+# §17.5 native `select` recv arm over Chan[Option[Str]] (a COUNTED Str payload).
+# The buffered Some carries a FRESH (heap, rc==1) Str — concatenation, not an
+# immortal literal — so the arm's Option[Option[Str]] binding adopts the detached
+# message and must release the inner Str exactly once at arm exit (LSan-clean).
+sub main(): Int {
+    $a: Chan[Option[Str]] = channel(1)
+    $b: Chan[Option[Str]] = channel(1)
+    $some: Option[Str] = Some("x" ~ "y")
+    $a.send($some)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            match $inner {
+                Some($s) { print("a " ~ $s) }
+                None { print("a none") }
+            }
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            match $inner {
+                Some($s) { print("b " ~ $s) }
+                None { print("b none") }
+            }
+        }
+        else { print("idle") }
+    }
+    0
+}

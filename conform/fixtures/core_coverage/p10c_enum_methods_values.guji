@@ -1,0 +1,26 @@
+# P10c: instance/associated enum dispatch plus display and structural equality.
+enum Signal {
+    Off
+    Level($value: Int)
+
+    sub at($value: Int): Signal { Level($value) }
+
+    sub label($self): Str {
+        match $self {
+            Off { "off" }
+            Level($number) { "level={ $number }" }
+        }
+    }
+}
+
+sub main(): Int {
+    $a = Signal.at(3)
+    $b = Level(3)
+    print(Off)
+    print($a)
+    print($a.label())
+    print($a == $b)
+    print($a != Level(4))
+    print(Off == Off)
+    0
+}

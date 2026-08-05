@@ -1,0 +1,4 @@
+mut $x = 1
+$f = sub(): Int { $x }
+$x
+:quit

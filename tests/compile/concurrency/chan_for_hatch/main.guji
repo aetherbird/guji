@@ -1,0 +1,18 @@
+# §17.4 native channel `for`: a producer task sends on an unbuffered channel then
+# closes it; main drains with `for` until close. Matches the spec §17.3/§17.4
+# example. main prints only after the loop ends, so output is deterministic.
+sub main(): Int {
+    $jobs: Chan[Int] = channel()
+    hatch {
+        for $n in [1, 2, 3] { $jobs.send($n) }
+        $jobs.close()
+    }
+    mut $sum = 0
+    mut $count = 0
+    for $job in $jobs {
+        $sum = $sum + $job
+        $count = $count + 1
+    }
+    print("{ $count } { $sum }")
+    0
+}

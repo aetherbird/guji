@@ -1,0 +1,20 @@
+# unwrap on None is an unrecoverable error (spec 11.2): both the interpreter and
+# the native binary must abort with the same non-zero exit code after printing the
+# line that precedes the failing unwrap. Locks the carrier unwrap-on-None panic
+# path in codegen against the interpreter oracle.
+sub present(): Option[Int] {
+    Some(42)
+}
+
+sub missing(): Option[Int] {
+    None
+}
+
+sub main(): Int {
+    $ok = present().unwrap()
+    print("present: $ok")
+    print("looking up missing")
+    $bad = missing().unwrap()
+    print("unreachable: $bad")
+    0
+}

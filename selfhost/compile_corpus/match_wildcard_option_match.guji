@@ -1,0 +1,16 @@
+sub choose($s: Str): Option[Match] {
+    $found = $s ~~ /(?<word>\w+)-(?<tail>\w+)/
+    $chosen = match $found {
+        Some($m) if $m.text == "never" { $found }
+        _ { $s ~~ /(?<word>\w+)/ }
+    }
+    $chosen
+}
+
+sub main(): Int {
+    match choose("aa-bb") {
+        Some($m) { print($m.text) }
+        None { print("none") }
+    }
+    0
+}

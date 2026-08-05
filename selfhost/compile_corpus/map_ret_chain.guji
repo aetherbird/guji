@@ -1,0 +1,9 @@
+sub mk(): Map[Str, Int] {
+    {"k": 7}
+}
+sub via(): Map[Str, Int] {
+    mk()
+}
+sub main(): Unit {
+    print(via())
+}

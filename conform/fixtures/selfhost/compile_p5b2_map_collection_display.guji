@@ -1,0 +1,31 @@
+# P5b-2b: collection-valued map display must pass the value array's ARR_SLICE /
+# ARR_MAP kind and the innermost scalar leaf to the runtime recursive renderer.
+# Keep this lowering in display positions; the existing List[Map] probe guard
+# separately proves maps are not classified as Str values.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Map[Str,List[Int]] binding/interpolation/call display.
+            print(has_text($c, "GUJI_KIND_ARR_SLICE, GUJI_LEAF_INT);"))
+            # Map[Str,Map[Str,Bool]] display preserves the Bool leaf.
+            print(has_text($c, "GUJI_KIND_ARR_MAP, GUJI_LEAF_BOOL);"))
+            # The deeply mixed Str leaf uses ARR_SLICE at the outer map and the
+            # runtime follows nested ARR_MAP/ARR_SLICE headers recursively.
+            print(split($c, "GUJI_KIND_ARR_SLICE, GUJI_LEAF_INT);").count() > 3)
+            # All five display sites route through the display-only map helper.
+            print(split($c, " = guji_map_str((const char**").count() > 5)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

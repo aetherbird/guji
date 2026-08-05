@@ -1,0 +1,17 @@
+# gujiconform — P7c-2a. PEG production-body AST (§14.1) shared by the
+# maintained evaluator and compiler. Renders parsed bodies for the Email example:
+# rule TOP gets implicit WS between terms; token bodies do not.
+import lexer
+
+sub main(): Int {
+    match lexer::grammar_pegs_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,17 @@
+# P4c-2: class method calls on a TEMPORARY receiver — a constructor value
+# (`Counter(n: 7).value()`) and a method-call chain (`$c.bumped().value()`),
+# not a bound local. Both lower the receiver into a class temp, then call the
+# method on that temp by the native ABI.
+class Counter {
+    has $.n: Int
+
+    sub bumped($self): Counter { Counter(n: $self.n + 1) }
+    sub value($self): Int { $self.n }
+}
+
+sub main(): Int {
+    $c = Counter(n: 5)
+    print("{ Counter(n: 7).value() }")
+    print("{ $c.bumped().value() }")
+    0
+}

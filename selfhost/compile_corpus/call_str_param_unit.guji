@@ -1,0 +1,9 @@
+# Str params are borrowed by the callee; the caller releases each arg after return.
+sub say($s: Str): Unit {
+    print($s)
+}
+
+sub main(): Unit {
+    say("left")
+    say("right")
+}

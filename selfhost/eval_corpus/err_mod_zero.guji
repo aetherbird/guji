@@ -1,0 +1,7 @@
+# §5.1 integer modulo by zero is a runtime panic.
+sub main(): Int {
+    print(1)
+    $z = 0
+    print(10 % $z)
+    0
+}

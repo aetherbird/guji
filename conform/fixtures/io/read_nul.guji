@@ -1,0 +1,15 @@
+# gujiconform -- D1: a Str read from input preserves embedded NUL bytes through
+# every consuming op, identically in both engines. stdin holds "a\0b\nc\0d" (two
+# interior NUL bytes). slurp keeps all bytes; lines() splits on '\n' only (so the
+# NULs stay inside their line); interpolation echoes the verbatim bytes. Before
+# the fix, native lowered these through strlen-based C helpers and truncated at
+# the first \0; the interpreter (length-counted) did not. Expected output is the
+# spec/interpreter answer, never captured from native.
+sub main(): Int {
+    $s = stdin.slurp()
+    @ls = lines($s)
+    $n = count(@ls)
+    print("lines=$n")
+    print("raw=[$s]")
+    0
+}

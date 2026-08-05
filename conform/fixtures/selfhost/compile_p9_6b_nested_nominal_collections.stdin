@@ -1,0 +1,22 @@
+enum Tag {
+    Named($label: Str)
+    Anon
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    @rows = [
+        {"tags": [Named("a" ~ "1"), Anon], "more": [Named("b" ~ "2")]},
+        {"tags": [Named("c" ~ "3")]}
+    ]
+    %first = @rows[0]
+    print(%first.keys().count())
+    %direct = {"team": [Person(name: "B" ~ "ob", age: 28)]}
+    @team = %direct{"team"}
+    print(@team[0].name)
+    0
+}

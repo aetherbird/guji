@@ -1,0 +1,54 @@
+# P5b-2b(c-enum-value): generic enum VALUE inference. Unannotated binds whose
+# value is a generic-enum variant constructor with scalar-LITERAL args create
+# and select the concrete spec (Wrap(42) -> Box__Int, Wrap("guji") -> Box__Str,
+# disambiguated by argument kinds when several specs own the variant); an
+# annotated bind (`$bf: Box[Float]`) creates its spec with no signature mention;
+# a constructor whose arg is a bound NAME (`Wrap($k)`) selects an existing spec
+# through the same kind-matching (it creates none itself — literal-args only).
+# Matches cover statement position and match-value binds. Distinct binder names
+# per match (native oracle-limit: one binder name across sibling matches at
+# different payload types is rejected).
+
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+}
+
+sub main(): Int {
+    $bi = Wrap(42)
+    match $bi {
+        Wrap($v) { print("{ $v }") }
+        Empty { print("empty-int") }
+    }
+
+    $bs = Wrap("guji")
+    match $bs {
+        Wrap($s) { print($s) }
+        Empty { print("empty-str") }
+    }
+
+    $bf: Box[Float] = Wrap(2.5)
+    $f = match $bf {
+        Wrap($x) { $x }
+        Empty { 0.0 }
+    }
+    print("{ $f }")
+
+    # The payload of an UNANNOTATED generic bind stays type T in the oracle
+    # checker (using it where a concrete type is required — e.g. an if
+    # condition — is a native REJECT), so the Bool case only displays it.
+    $bb = Wrap(true)
+    match $bb {
+        Wrap($w) { print("{ $w }") }
+        Empty { print("empty-bool") }
+    }
+
+    $k = 7
+    $bk = Wrap($k)
+    match $bk {
+        Wrap($m) { print("{ $m }") }
+        Empty { print("empty-k") }
+    }
+
+    0
+}

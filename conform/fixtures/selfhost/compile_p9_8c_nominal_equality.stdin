@@ -1,0 +1,25 @@
+class Card {
+    has $.id: Int
+    has $.name: Str
+    has $.tags: List[Str]
+}
+
+enum Chain {
+    End($n: Int)
+    Link($next: Chain)
+    Empty
+}
+
+enum Tagged {
+    Present($card: Card)
+    Missing
+}
+
+sub main(): Int {
+    $a = Card(id: 1, name: "x", tags: ["a", "b"])
+    $b = Card(id: 1, name: "x", tags: ["a", "b"])
+    print($a == $b)
+    print(Present($a) != Present($b))
+    print(Link(End(1)) == Link(End(1)))
+    0
+}

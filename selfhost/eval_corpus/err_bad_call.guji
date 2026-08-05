@@ -1,0 +1,6 @@
+# §18's checked execution boundary still reports a deterministic runtime panic
+# when a syntactically non-callable scalar reaches evaluation.
+sub main(): Int {
+    print(1)
+    7()
+}

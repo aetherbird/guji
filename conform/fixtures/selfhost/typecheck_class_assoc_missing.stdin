@@ -1,0 +1,8 @@
+# P4b-1: a known class type rejects a missing associated function.
+class Counter {
+    has $.n: Int
+}
+
+sub main(): Int {
+    Counter.missing()
+}

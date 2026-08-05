@@ -1,0 +1,58 @@
+# D4/D5 (spec §11): Option/Result values compare structurally — same tag, then
+# the active payload slot compares structurally. Native previously emitted C `==`
+# on the tagged carrier struct, which does not compile. This fixture broadens the
+# option_eq_nested / result_eq divergence probes to scalar, Str, List, Map,
+# nested-collection, and nested-carrier (Option[Option]) payloads, plus the full
+# Result Ok/Err matrix. Expected output is the interpreter/spec answer.
+
+sub mk($n: Int): Result[Int, Str] {
+    if $n < 0 { Err("neg") } else { Ok($n) }
+}
+
+sub okList($n: Int): Result[List[Int], Str] {
+    if $n < 0 { Err("neg") } else { Ok([$n, $n]) }
+}
+
+sub main(): Unit {
+    # Option scalar
+    $i_a: Option[Int] = Some(5)
+    $i_b: Option[Int] = Some(5)
+    $i_c: Option[Int] = Some(6)
+    $i_none: Option[Int] = None
+    print("opt_int_eq: { $i_a == $i_b }")
+    print("opt_int_neq: { $i_a == $i_c }")
+    print("opt_int_tag: { $i_a == $i_none }")
+    print("opt_int_none_eq: { $i_none == $i_none }")
+
+    # Option Str
+    $s_a: Option[Str] = Some("hi")
+    $s_b: Option[Str] = Some("hi")
+    $s_c: Option[Str] = Some("ho")
+    print("opt_str_eq: { $s_a == $s_b }")
+    print("opt_str_neq: { $s_a != $s_c }")
+
+    # Option[List[Int]] — the D4 probe
+    $l_a: Option[List[Int]] = Some([1, 2, 3])
+    $l_b: Option[List[Int]] = Some([1, 2, 3])
+    $l_c: Option[List[Int]] = Some([1, 2, 4])
+    print("opt_list_eq: { $l_a == $l_b }")
+    print("opt_list_neq: { $l_a == $l_c }")
+
+    # Option[Map[Str, Int]] — insertion-order-independent structural equality
+    $m_a: Option[Map[Str, Int]] = Some({"a": 1, "b": 2})
+    $m_b: Option[Map[Str, Int]] = Some({"b": 2, "a": 1})
+    $m_c: Option[Map[Str, Int]] = Some({"a": 1, "b": 3})
+    print("opt_map_eq: { $m_a == $m_b }")
+    print("opt_map_neq: { $m_a == $m_c }")
+
+    # Result[Int, Str] — the D5 probe
+    print("res_ok_eq: { mk(5) == mk(5) }")
+    print("res_ok_vs_err: { mk(5) == mk(-1) }")
+    print("res_err_eq: { mk(-1) == mk(-2) }")
+    print("res_ok_neq: { mk(5) == mk(6) }")
+
+    # Result[List[Int], Str]
+    print("res_list_ok_eq: { okList(3) == okList(3) }")
+    print("res_list_ok_neq: { okList(3) == okList(4) }")
+    print("res_list_err_eq: { okList(-1) == okList(-2) }")
+}

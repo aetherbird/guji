@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Option `filter` carrier-producing lowering over a bound Option local
+# with an inline single-expression predicate lambda. The result carrier is
+# Option[T] — the SAME payload kind. A fresh Option temp is zeroed and filled
+# only under the Some+predicate guard: the outer `.tag != 0) {` binds the borrowed
+# payload, then a nested predicate `if` sets `.tag = 1; go<...>.val = <src>.val`
+# carrying the SOURCE payload directly (`.val = gv`), and for a Str payload the
+# fresh carrier co-owns it via `guji_retain(go<...>.val)` folded into the same
+# keep block — so the produced Option and the source share the heap Str with a
+# balanced refcount (LeakSan-clean).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag != 0) \{"))
+            print(has_text($c, ".tag = 1; go"))
+            print(has_text($c, ".val = gv"))
+            print(has_text($c, "guji_retain(go"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

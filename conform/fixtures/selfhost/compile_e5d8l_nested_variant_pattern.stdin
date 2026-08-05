@@ -1,0 +1,18 @@
+enum IntList {
+    INil
+    ICons($h: Int, $t: IntList)
+}
+
+sub score($xs: IntList): Int {
+    match $xs {
+        ICons($h, INil) { $h + 10 }
+        ICons($h, ICons($n, $rest)) { $h + $n + 20 }
+        INil { 0 }
+    }
+}
+
+sub main(): Int {
+    $one = ICons(5, INil)
+    $two = ICons(2, ICons(3, INil))
+    score($one) + score($two)
+}

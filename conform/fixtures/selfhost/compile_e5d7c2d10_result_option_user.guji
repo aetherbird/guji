@@ -1,0 +1,26 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-10 compiler codegen fixture.
+# Result[Option[user], Str] carriers are NATIVE-REJECTED, so this pins generated-C
+# shape while selfhost/result_class_diff.sh covers end-to-end interp behavior.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_opt_Binding;"))
+            print(has_text($c, "} guji_res_opt_Binding_str;"))
+            print(has_text($c, "guji_opt_Binding ok;"))
+            print(has_text($c, "(guji_opt_Binding)\{0LL, (Binding)\{0}}"))
+            print(has_text($c, "guji_release_Binding_fields(&gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

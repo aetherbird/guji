@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 5 E5d-7c-2b-2 compiler codegen fixture.
+# Pins statement-position `if cond { ...; return N }` lowering: the selfhost
+# compiler emits a C `if (...)` guard whose body releases the owned `@argv` slice
+# and then `return 2LL;` inline (the early return), plus the fall-through
+# `return 0LL;` after the guard.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "return 2LL;"))
+            print(has_text($c, "return 0LL;"))
+            print(has_text($c, "guji_note("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

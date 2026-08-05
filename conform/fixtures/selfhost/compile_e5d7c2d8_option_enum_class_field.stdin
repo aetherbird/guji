@@ -1,0 +1,33 @@
+enum Piece {
+    PNone
+    PText($s: Str)
+}
+
+class Wrap {
+    has $.node: Option[Piece]
+    has $.label: Str
+}
+
+sub score($w: Wrap): Int {
+    match $w.node {
+        None { 1 }
+        Some($p) {
+            match $p {
+                PNone { 2 }
+                PText($s) { 3 }
+            }
+        }
+    }
+}
+
+sub copy_wrap($w: Wrap): Wrap {
+    Wrap(node: $w.node, label: $w.label ~ "!")
+}
+
+sub main(): Int {
+    $a = Wrap(node: Some(PText("h" ~ "i")), label: "a")
+    $b = Wrap(node: None, label: "b")
+    $c = Wrap(node: Some(PNone), label: "c")
+    $d = copy_wrap($a)
+    return score($a) + score($b) * 10 + score($c) * 20 + score($d) * 50
+}

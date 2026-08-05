@@ -1,0 +1,8 @@
+sub main(): Int {
+    print(fact(5))
+    sum(10, 20)
+}
+sub fact($n: Int): Int {
+    if $n <= 1 { 1 } else { $n * fact($n - 1) }
+}
+sub sum($a: Int, $b: Int): Int { $a + $b }

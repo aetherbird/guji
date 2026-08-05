@@ -1,0 +1,58 @@
+# P5b-2b(a): generic subs monomorphized over CONCRETE user class and enum type
+# arguments. `T` binds to a class/enum tag from the argument VALUE (a
+# constructor, a fieldless variant, or a class/enum-typed local); the spec is
+# named with the bare tag and NO lowercasing (native gf_identity__Point_Point /
+# gf_identity__Color_Color / gf_describe__Point_Str / gf_describe__Color_Str).
+# Class/enum params and returns flatten through the ordinary class/enum sub
+# codegen, so the spec body needs no new lowering — only the pre-pass's
+# argument-kind inference and the `__`-tag naming gain class/enum arms.
+
+class Point {
+  has $.x: Int
+  has $.y: Int
+}
+
+enum Color {
+  Red
+  Green
+  Blue
+}
+
+# T binds to a class or enum tag; identity returns the same T (class/enum return).
+sub identity[T]($v: T): T { $v }
+
+# T binds to a class/enum tag but the return is a concrete scalar (Str), proving
+# the return tag is independent of the bound type argument.
+sub describe[T]($v: T): Str { "got it" }
+
+sub main(): Int {
+  # Class instantiation from a constructor: gf_identity__Point_Point.
+  $p = identity(Point(x: 3, y: 4))
+  print("{ $p.x }")
+  print("{ $p.y }")
+
+  # A second Point reuses the same specialization (no second spec emitted).
+  $p2 = identity(Point(x: 10, y: 20))
+  print("{ $p2.x }")
+
+  # Passing a class-typed LOCAL (not a constructor) through the same spec.
+  $p3 = identity($p)
+  print("{ $p3.y }")
+
+  # Enum instantiation from a fieldless variant: gf_identity__Color_Color.
+  $c = identity(Green)
+  print("{ match $c { Red { 0 } Green { 1 } Blue { 2 } } }")
+
+  # Passing an enum-typed LOCAL through the same spec.
+  $c2 = identity($c)
+  print("{ match $c2 { Red { 0 } Green { 1 } Blue { 2 } } }")
+
+  # Scalar-return generic over a class arg: gf_describe__Point_Str.
+  print(describe(Point(x: 1, y: 1)))
+  # Scalar-return generic over an enum arg: gf_describe__Color_Str.
+  print(describe(Blue))
+  # Scalar-return generic over a class LOCAL.
+  print(describe($p))
+
+  0
+}

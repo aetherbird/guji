@@ -1,0 +1,28 @@
+import lexer
+
+# P6e-replace-a: plain `.replace` and data-first `replace` route through the
+# template runtime, carry static capture names/counts, and release both owned
+# subject/template temporaries after the call. Splices remain a later slice.
+sub main(): Int {
+    match lexer::compile_program_c('sub main(): Int { $t = "!" $a = "a1".replace(/(?<d>\d+)/, "x" ~ $t) $b = replace("x-y", /(x)-(y)/, "yx") print("$a|$b") 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_replace_engine/).is_some() && ($c ~~ /guji_regex_replace_engine_parts/).is_none() && ($c ~~ /guji_release\(gt[0-9]+\);/).is_some() {
+                print("replace-template")
+            } else {
+                print("replace-shape")
+            }
+        }
+        Err($e) { print("replace-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { $n = "a" print("a".replace(/<{ $n }>/, "x")) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_replace_engine_parts/).is_some() {
+                print("splice-ok")
+            } else {
+                print("splice-shape")
+            }
+        }
+        Err($e) { print("splice-declined") }
+    }
+    0
+}

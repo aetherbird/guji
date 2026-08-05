@@ -1,0 +1,43 @@
+# RC1.5b-ii probe: borrowed parameters that outlive their call.
+# Case A: callee returns its own parameter (Str / List / Map / carrier / Func).
+sub id_str($s: Str): Str { $s }
+sub id_list(@xs: List[Int]): List[Int] { @xs }
+sub id_list_s(@xs: List[Str]): List[Str] { @xs }
+sub id_map(%m: Map[Str, Int]): Map[Str, Int] { %m }
+sub id_opt($o: Option[Str]): Option[Str] { $o }
+sub id_func($f: Func): Func { $f }
+
+sub main(): Unit {
+    $s = "alpha".upper()
+    $t = id_str($s)
+    print($t)
+    print($s)
+
+    @xs = [1, 2, 3].map({ $_ * 2 })
+    @ys = id_list(@xs)
+    print("{ @ys[0] } { @xs[2] }")
+
+    @ss = "a,b,c".split(",")
+    @tt = id_list_s(@ss)
+    print("{ @tt[1] } { @ss[0] }")
+
+    %m = {"k": 1}.set("j", 2)
+    %n = id_map(%m)
+    $mj = %n{"j"}
+    $mk = %m{"k"}
+    print("{ $mj } { $mk }")
+
+    $o: Option[Str] = Some("pay" ~ "load")
+    $p = id_opt($o)
+    match $p {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+    match $o {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+
+    $h = id_func(sub($n: Int): Int { $n + 1 })
+    print("{ $h(0) } { $h(99) }")
+}

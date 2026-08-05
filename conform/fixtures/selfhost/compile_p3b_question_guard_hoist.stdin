@@ -1,0 +1,31 @@
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok("tag:" ~ $s) }
+}
+
+sub guard_bind($s: Str): Result[Int, Str] {
+    if $s != "" {
+        $n = parse_int($s)?
+        return Ok($n + 1)
+    }
+    Err("empty")
+}
+
+sub guard_reassign($s: Str): Result[Int, Str] {
+    mut $t = 5
+    if $s != "" {
+        $t = parse_int($s)? + 2
+    }
+    Ok($t + 1)
+}
+
+sub guard_str_falls($s: Str, $b: Bool): Result[Int, Str] {
+    mut $n = 0
+    if $b {
+        $x = tag($s)?
+        print("got { $x }")
+        $n = 1
+    }
+    Ok($n)
+}
+
+sub main(): Int { 0 }

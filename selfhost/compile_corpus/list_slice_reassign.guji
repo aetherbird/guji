@@ -1,0 +1,15 @@
+# P9-6b-13: heap-backed List locals may be rebound without changing aliases.
+# Int and Str exercise scalar and counted element arrays; every RHS is a fresh
+# owned List value whose storage must move into the mutable binding.
+sub main(): Unit {
+    mut @nums = [1, 2, 3].reverse()
+    @nums_keep = @nums
+    @nums = @nums.map({ $_ + 10 })
+    @nums = @nums.filter({ $_ > 11 })
+    print("{ @nums.sum() } { @nums_keep.sum() }")
+
+    mut @words = "a,b,c".split(",")
+    @words_keep = @words
+    @words = @words.reverse()
+    print("{ @words[0] } { @words_keep[0] } { @words_keep[2] }")
+}

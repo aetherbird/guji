@@ -1,0 +1,73 @@
+# §6.3 for: list and map iteration agree in the canonical interpreter and
+# compiler. Lists bind one loop
+# variable; maps bind key then value and iterate keys in sorted order;
+# reassignments to outer `mut` bindings persist across iterations; a `return`
+# inside the body short-circuits the whole loop; the loop value is Unit.
+sub list_sum(@xs: List[Int]): Int {
+    mut $total = 0
+    for $x in @xs {
+        $total = $total + $x
+    }
+    $total
+}
+
+sub map_value_sum(%m: Map[Str, Int]): Int {
+    mut $total = 0
+    for $k, $v in %m {
+        $total = $total + $v
+    }
+    $total
+}
+
+sub first_over(@xs: List[Int], $limit: Int): Int {
+    for $x in @xs {
+        if $x > $limit {
+            return $x
+        }
+    }
+    0 - 1
+}
+
+sub pair_count(@as: List[Int], @bs: List[Int]): Int {
+    mut $count = 0
+    for $a in @as {
+        for $b in @bs {
+            $count = $count + $a * $b
+        }
+    }
+    $count
+}
+
+sub main(): Int {
+    print(list_sum([1, 2, 3, 4]))
+    print(map_value_sum({"b": 2, "a": 1, "c": 3}))
+
+    # Pin the shared deterministic key order across all four map consumers:
+    # display, keys(), values(), and for iteration.
+    %ordered = {"delta": 4, "alpha": 1, "echo": 5, "charlie": 3, "bravo": 2}
+    print(%ordered)
+    print(%ordered.keys())
+    print(%ordered.values())
+    mut $visited = ""
+    for $key, $value in %ordered {
+        $visited = $visited ~ $key ~ ":" ~ "{ $value }" ~ "|"
+    }
+    print($visited)
+
+    # Build enough entries to overflow the old recursive insertion sort at an
+    # ordinary 8 MiB process stack. The stress gate runs this row at that limit.
+    mut %deep: Map[Str, Int] = {}
+    for $i in 1..5000 {
+        %deep = %deep.set("key-{ $i }", $i)
+    }
+    mut $deep_count = 0
+    for $key, $value in %deep {
+        $deep_count = $deep_count + 1
+    }
+    print($deep_count)
+
+    print(first_over([1, 5, 9, 2], 4))
+    print(first_over([1, 2, 3], 100))
+    print(pair_count([1, 2], [3, 4]))
+    0
+}

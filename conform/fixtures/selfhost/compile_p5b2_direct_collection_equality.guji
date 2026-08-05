@@ -1,0 +1,28 @@
+# P5b-2b: direct List/Map equality uses the generic runtime recursion and saves
+# the Bool result before releasing both owned operand values. The nested
+# List[Map[List[Str]]] case proves the recursive leaf classifier reaches Str
+# through alternating collection kinds.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_list_equal((const void*)"))
+            print(has_text($c, "guji_map_equal((const char**)"))
+            print(has_text($c, "GUJI_KIND_ARR_MAP"))
+            print(has_text($c, "GUJI_LEAF_INT"))
+            print(has_text($c, "guji_release((const void*)gl"))
+            print(has_text($c, "guji_release((const void*)gmv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

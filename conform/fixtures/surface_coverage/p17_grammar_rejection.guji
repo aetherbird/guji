@@ -1,0 +1,5 @@
+# Spec 14.1: a grammar cannot reference an undeclared production.
+grammar G {
+    rule TOP { <missing> }
+}
+sub main(): Int { 0 }

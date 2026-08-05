@@ -1,0 +1,38 @@
+# P5b-2b(a-list-empty): an annotated EMPTY list-literal binding (`@e: List[T] = []`)
+# lowers to native's one-slot stack backing array `<cn>_data[1] = {0}` with
+# `<cn>_len = 0` — no heap alloc, no release. Verifies the selfhost compiler emits
+# that shape for Int/Str/Float/Bool empties, copies an empty list into a len-0
+# slice when passing it to a monomorphized generic sub, and (NEGATIVE) never
+# heap-allocates or releases the empty Str list's stack backing.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # one-slot stack backing arrays, one per scalar element kind
+            print(has_text($c, "int64_t gv0_data[1] = \{0};"))
+            print(has_text($c, "const char* gv1_data[1] = \{0};"))
+            print(has_text($c, "double gv2_data[1] = \{0};"))
+            print(has_text($c, "int64_t gv3_data[1] = \{0};"))
+            # each empty list's length is set to 0
+            print(has_text($c, "gv0_len = 0;"))
+            # the empty Int list flows into a monomorphized generic sub as a len-0 slice copy
+            print(has_text($c, "static int64_t gf_take__List_int_Int(guji_slice_t gp0)"))
+            print(has_text($c, "gl8.data = guji_arr_alloc(GUJI_KIND_ARR_SCALAR, sizeof(int64_t), gv0_len);"))
+            # NEGATIVE: the empty Str list is stack-only — no heap Str array is
+            # allocated, and its backing is never released
+            print(has_text($c, "GUJI_KIND_ARR_STR"))
+            print(has_text($c, "guji_release((const void*)gv1_data)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,42 @@
+# Native Float support (spec 5.1): literals, arithmetic (% is fmod, ** is pow),
+# unary minus, comparisons, and IEEE-754 semantics -- Float ops never panic, so
+# division by zero yields +Inf/-Inf/NaN and NaN compares unequal to itself.
+# Display parity is the hard part: the interpreter prints Go's shortest-%g form
+# (0.30000000000000004, 1e+06, 1e-05, -0), which the C runtime's guji_float_str
+# must reproduce digit for digit.
+sub main(): Unit {
+    $a = 1.5
+    $b = 0.25
+    print($a + $b)
+    print($a - $b)
+    print($a * $b)
+    print($a / $b)
+    print(7.5 % 2.0)
+    print(-7.5 % 2.0)
+    print(2.0 ** 10.0)
+    print(-$a)
+    print(0.1 + 0.2)
+    print(1.0 / 0.0)
+    print(-1.0 / 0.0)
+    print(0.0 / 0.0)
+    print((0.0 / 0.0) == (0.0 / 0.0))
+    print(100000.0)
+    print(1000000.0)
+    print(0.0001)
+    print(0.00001)
+    print(123456789.0)
+    print(0.0)
+    print(-0.0)
+    print($a < $b)
+    print($a >= $b)
+    print($a == 1.5)
+    print($a != $b)
+    mut $sum = 0.0
+    for $i in 1..4 {
+        $sum = $sum + 0.75
+    }
+    print($sum)
+    print("sum is $sum, twice { $sum * 2.0 }")
+    $c = if $a > 1.0 { $a * 2.0 } else { 0.0 }
+    print($c)
+}

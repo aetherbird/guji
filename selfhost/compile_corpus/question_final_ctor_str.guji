@@ -1,0 +1,71 @@
+# Slice 6 P3b-2b-2b: final carrier constructors can wrap a `?` whose SUCCESS
+# payload is an owned Str. The operand carrier owns its Some/Ok string, so the
+# rebuilt result carrier retains it before the operand slot is released
+# (native's transfer shape). Covers Option[Str] and Result[Str,_] over call,
+# bound-local, and borrowed-param operands, both arms, and explicit `return`.
+sub tag($s: Str): Result[Str, Int] {
+    if $s == "" { Err(9) } else { Ok("tag-" ~ $s) }
+}
+
+# Ok(<call>?) — operand is a fresh owned Result[Str,Int] call carrier.
+sub pass_result_str($s: Str): Result[Str, Int] {
+    Ok(tag($s)?)
+}
+
+# explicit `return Ok(<call>?)`.
+sub return_result_str($s: Str): Result[Str, Int] {
+    return Ok(tag($s)?)
+}
+
+# Ok(<bound-local>?) — operand is a bound Result[Str,Int] local (retained by the
+# value read, released by scope cleanup; the ? path adds its own retain/release).
+sub via_local($s: Str): Result[Str, Int] {
+    $r = tag($s)
+    Ok($r?)
+}
+
+sub res_str_str($s: Str): Result[Str, Str] {
+    if $s == "" { Err("empty-" ~ $s) } else { Ok("y-" ~ $s) }
+}
+
+# Ok(<call>?) where the ERR type is ALSO an owned Str (Result[Str,Str]): the Err
+# arm's err retain/release is kind-driven and must not leak on the None path.
+sub wrap_ss($s: Str): Result[Str, Str] {
+    Ok(res_str_str($s)?)
+}
+
+sub find_str($n: Int): Option[Str] {
+    if $n > 0 { Some("v-{ $n }") } else { None }
+}
+
+# Some(<call>?) — operand is a fresh owned Option[Str] call carrier.
+sub pass_option_str($n: Int): Option[Str] {
+    Some(find_str($n)?)
+}
+
+# Some(<borrowed-param>?) — operand is a borrowed Option[Str] parameter.
+sub pass_opt_param($o: Option[Str]): Option[Str] {
+    Some($o?)
+}
+
+sub opt_of($n: Int): Option[Str] {
+    if $n > 0 { Some("p-{ $n }") } else { None }
+}
+
+sub main(): Int {
+    # Result[Str,Int], Ok/Err arms, call + explicit-return + bound-local.
+    match pass_result_str("a") { Ok($v) { print($v) } Err($e0) { print("e0") } }
+    match pass_result_str("") { Ok($v) { print("ok " ~ $v) } Err($e1) { print("err1") } }
+    match return_result_str("b") { Ok($v) { print($v) } Err($e2) { print("e2") } }
+    match via_local("z") { Ok($v) { print($v) } Err($e3) { print("e3") } }
+    match via_local("") { Ok($v) { print("ok " ~ $v) } Err($e4) { print("err4") } }
+    # Result[Str,Str] — owned err.
+    match wrap_ss("q") { Ok($v) { print($v) } Err($es) { print("er " ~ $es) } }
+    match wrap_ss("") { Ok($v) { print("ok " ~ $v) } Err($es2) { print("er " ~ $es2) } }
+    # Option[Str], Some/None arms, call + borrowed-param.
+    match pass_option_str(3) { Some($v) { print($v) } None { print("none3") } }
+    match pass_option_str(0) { Some($v) { print("some " ~ $v) } None { print("none0") } }
+    match pass_opt_param(opt_of(5)) { Some($v) { print($v) } None { print("nonep5") } }
+    match pass_opt_param(opt_of(0)) { Some($v) { print("some " ~ $v) } None { print("nonep0") } }
+    0
+}

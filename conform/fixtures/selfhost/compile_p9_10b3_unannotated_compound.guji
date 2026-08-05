@@ -1,0 +1,21 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static guji_opt_int gf_make_opt(void)"))
+            print(has_text($c, "static Point gf_make_point(void)"))
+            print(has_text($c, "static Status gf_make_on(void)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

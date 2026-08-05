@@ -1,0 +1,10 @@
+# §15 higher-order list filter over a Str list: exercises the retain-on-keep
+# ownership path. Each kept element is a borrow into the owned source array, so
+# it is retained before storage; the destination owns +1 and the source slice is
+# released after the loop (ASan/UBSan/LSan-clean, three-way with native/interp).
+sub main(): Int {
+    @xs = ["apple", "fig", "banana", "fig", "cherry"]
+    @nf = @xs.filter(sub($s: Str): Bool { $s != "fig" })
+    print("{ @nf[0] },{ @nf[1] },{ @nf[2] }")
+    @nf.count()
+}

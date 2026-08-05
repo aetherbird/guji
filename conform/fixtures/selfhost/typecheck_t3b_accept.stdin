@@ -1,0 +1,8 @@
+# T3b: an exhaustive Option match binds the Some payload and returns a common type.
+sub main(): Int {
+    $o = Some(5)
+    match $o {
+        Some($n) { $n + 1 }
+        None { 0 }
+    }
+}

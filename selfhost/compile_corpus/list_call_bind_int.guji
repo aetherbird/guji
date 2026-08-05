@@ -1,0 +1,8 @@
+# selfhost slice 5 E5d-7c-2: bind a List[Int] from a user-sub CALL (slice-backed),
+# index a scalar element AS the return value -- exercises the materialize-before-
+# cleanup path so the heap array is not read after release.
+sub mkn(): List[Int] { [10, 20, 30] }
+sub main(): Int {
+    @ns = mkn()
+    @ns[1]
+}

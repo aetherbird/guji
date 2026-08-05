@@ -1,0 +1,49 @@
+# P9-11a: recursive-box enum channels whose Link fields carry nested
+# List[List]/Map[Str,Map] graphs — guji_clone_<E>_value already nested-detaches;
+# the admit predicate now matches native enumHatchCopyable.
+enum Chain {
+    End
+    Link($grid: List[List[Int]], $nest: Map[Str, Map[Str, Int]], $next: Chain)
+}
+
+sub gridsum($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link($g, _, $n) {
+            mut $s = 0
+            for $row in $g {
+                for $x in $row {
+                    $s = $s + $x
+                }
+            }
+            $s + gridsum($n)
+        }
+    }
+}
+
+sub nestsum($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link(_, $m, $n) {
+            $inner = $m{"a"}
+            $v = $inner{"b"}
+            $v + nestsum($n)
+        }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Chain] = channel(1)
+    @g1 = [[1, 2], [3]]
+    %n1 = {"a": {"b": 10}}
+    @g2 = [[4]]
+    %n2 = {"a": {"b": 20}}
+    mut $c = Link(@g1, %n1, Link(@g2, %n2, End))
+    $ch.send($c)
+    $c = End
+
+    $got = $ch.recv().unwrap()
+    print("{ gridsum($got) }")
+    print("{ nestsum($got) }")
+    print("{ gridsum($c) }")
+}

@@ -1,0 +1,23 @@
+# Section 17 hatch capture of a List[Str] binding.
+#
+# A List[Str] crossing a hatch boundary must deep-copy each string element into
+# the task heap. Retaining the parent list slots would share non-atomic RC heap
+# pointers across tasks; copying only the outer array would still be wrong. This
+# fixture mutates the parent-side source bindings after spawn so the task must
+# observe its detached list copy and the sanitizer gate must see balanced drops.
+sub main(): Int {
+    mut $left = "red"
+    mut $right = "blue"
+    @words = [$left, "green", $right]
+    $ch: Chan[Str] = channel(0)
+
+    hatch {
+        $msg = @words[0] ~ "/" ~ @words[2]
+        $ch.send($msg)
+    }
+
+    $left = "black"
+    $right = "white"
+    print($ch.recv().unwrap())
+    0
+}

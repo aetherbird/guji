@@ -1,0 +1,6 @@
+# Guji-canonical channel map values are recursive; this historical Go-backend
+# oracle limit is covered by the exact deep-collection channel row.
+sub main(): Int {
+    $ch: Chan[Map[Str, Map[Str, Map[Str, Int]]]] = channel(1)
+    0
+}

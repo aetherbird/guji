@@ -1,0 +1,142 @@
+# I10g2b: compiler-accepted Option/Result collection payloads cross channels
+# without flattening nested List/Map structure. The row covers recv, carrier
+# `for`, recv/send select arms, source alias safety, and counted Str teardown.
+sub row_result($ok: Bool): Result[List[Map[Str, Str]], Str] {
+    if $ok {
+        Ok([{"name": "gu" ~ "ji"}, {"name": "lang"}])
+    } else {
+        Err("ba" ~ "d-row")
+    }
+}
+
+sub map_result(): Result[Map[Str, List[Int]], Str] {
+    Ok({"left": [4, 5], "right": [6]})
+}
+
+sub list_error(@error: List[Str]): Result[Int, List[Str]] {
+    Err(@error)
+}
+
+sub map_error(%error: Map[Str, List[Str]]): Result[Int, Map[Str, List[Str]]] {
+    Err(%error)
+}
+
+sub send_list_error($out: Chan[Result[Int, List[Str]]]): Unit {
+    @error_words: List[Str] = ["list" ~ "-error"]
+    $task_error = list_error(@error_words)
+    $out.send($task_error)
+    ()
+}
+
+sub send_map_error($out: Chan[Result[Int, Map[Str, List[Str]]]]): Unit {
+    %error_details: Map[Str, List[Str]] = {"kind": ["map" ~ "-error"]}
+    $task_error = map_error(%error_details)
+    $out.send($task_error)
+    ()
+}
+
+sub main(): Int {
+    $lists: Chan[Option[List[List[Int]]]] = channel(2)
+    $some_rows: Option[List[List[Int]]] = Some([[2, 3], [7]])
+    $none_rows: Option[List[List[Int]]] = None
+    $lists.send($some_rows)
+    $lists.send($none_rows)
+    $lists.close()
+    $outer_rows = $lists.recv()
+    $inner_rows = $outer_rows.unwrap()
+    print(match $inner_rows {
+        Some(@rows) { @rows[0][1] + @rows[1][0] }
+        None { 0 }
+    })
+    for $item in $lists {
+        print(match $item { Some(_) { "some" } None { "none" } })
+    }
+    print(match $some_rows { Some(@rows) { @rows[0][0] } None { 0 } })
+
+    $maps: Chan[Option[Map[Str, Map[Str, Int]]]] = channel(1)
+    $some_map: Option[Map[Str, Map[Str, Int]]] = Some({"outer": {"x": 8, "y": 9}})
+    $maps.send($some_map)
+    select {
+        $got = $maps.recv() {
+            $inner = $got.unwrap()
+            %outer = $inner.unwrap()
+            %nested = %outer{"outer"}
+            print(%nested{"x"} + %nested{"y"})
+        }
+        else { print("wrong map else") }
+    }
+
+    $rows: Chan[Result[List[Map[Str, Str]], Str]] = channel(2)
+    $rows.send(row_result(true))
+    $rows.send(row_result(false))
+    $rows.close()
+    for $result in $rows {
+        print(match $result {
+            Ok(@items) { %first = @items[0]; %second = @items[1]; %first{"name"} ~ "/" ~ %second{"name"} }
+            Err($e) { $e }
+        })
+    }
+
+    $results: Chan[Result[Map[Str, List[Int]], Str]] = channel(1)
+    $map_ok = map_result()
+    select {
+        $sent = $results.send($map_ok) { print($sent.is_ok()) }
+        else { print("wrong send else") }
+    }
+    select {
+        $got = $results.recv() {
+            $inner = $got.unwrap()
+            print(match $inner {
+                Ok(%values) { %values{"left"}[1] + %values{"right"}[0] }
+                Err($e) { 0 }
+            })
+        }
+        else { print("wrong result else") }
+    }
+
+    # Owned Result error arms obey the same copy-on-send contract as Ok arms.
+    # The done signal follows the sender sub's return, so its source carrier and
+    # collection locals have been released before main receives the message.
+    $error_lists: Chan[Result[Int, List[Str]]] = channel(1)
+    $list_done: Chan[Unit] = channel()
+    hatch {
+        send_list_error($error_lists)
+        $list_done.send(())
+    }
+    $list_done.recv()
+    $received_list_error = $error_lists.recv().unwrap()
+    print(match $received_list_error {
+        Ok($n) { "wrong-list-ok" }
+        Err(@words) { @words[0] }
+    })
+
+    $error_maps: Chan[Result[Int, Map[Str, List[Str]]]] = channel(1)
+    $map_done: Chan[Unit] = channel()
+    hatch {
+        send_map_error($error_maps)
+        $map_done.send(())
+    }
+    $map_done.recv()
+    $received_map_error = $error_maps.recv().unwrap()
+    print(match $received_map_error {
+        Ok($n) { "wrong-map-ok" }
+        Err(%details) { %details{"kind"}[0] }
+    })
+
+    # A buffered Option payload covers its distinct carrier drop hook.
+    $drop: Chan[Option[List[Str]]] = channel(1)
+    $drop_value: Option[List[Str]] = Some(["lea" ~ "k-check"])
+    $drop.send($drop_value)
+
+    # Leave a Result error graph buffered so channel teardown exercises the
+    # generated Err-list drop helper rather than only the receive-adoption path.
+    $drop_error: Chan[Result[Int, List[Str]]] = channel(1)
+    $drop_error_value = list_error(["drop" ~ "-error"])
+    $drop_error.send($drop_error_value)
+
+    # This carrier exists only in a local channel annotation: no sub signature
+    # can accidentally supply its typedef or drop-helper inventory.
+    $local_only: Chan[Result[Bool, Map[Str, List[Str]]]] = channel(1)
+    $local_only.close()
+    0
+}

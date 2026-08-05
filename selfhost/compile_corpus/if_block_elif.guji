@@ -1,0 +1,12 @@
+sub main(): Int {
+    $n = 2
+    if $n == 1 {
+        $a = 100
+        $a
+    } else if $n == 2 {
+        $b = 200
+        $b + 1
+    } else {
+        0
+    }
+}

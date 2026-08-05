@@ -1,0 +1,34 @@
+# gujiconform - selfhost slice 5 E5d-8h compiler codegen fixture.
+# Pins an enum variant carrying a user-CLASS field embedded BY VALUE (the class
+# analogue of a nested-enum variant field) -- the shape the compiler's own
+# `enum LexStep { LSEmit($tok: Token, ...) ... }` needs. Before E5d-8h `g6e_field_kind`
+# mis-classified a class-named variant field as `CgEnum`, so construction declined;
+# now it resolves to `CgClass`, the class is a by-value struct member, and the enum's
+# retain/release helpers RECURSE into the class's own guji_<op>_<Class>_fields helper.
+# Class + enum typedefs are now emitted in SOURCE order, so the by-value class member
+# is COMPLETE before the enum struct uses it.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # the class typedef (emitted before the enum, source order)
+            print(has_text($c, "struct Tok "))
+            # the enum struct embeds the class BY VALUE
+            print(has_text($c, "\tTok f0;"))
+            # retain/release of the enum RECURSE into the class fields helper
+            print(has_text($c, "guji_release_Tok_fields(&p->f0);"))
+            print(has_text($c, "guji_retain_Tok_fields(&p->f0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

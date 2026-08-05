@@ -1,0 +1,31 @@
+# P5b-2b-nested-for-cleanup: a `?` early return inside a nested `for` releases
+# the INNER loop's own storage (map order array + owned map temp) first, then
+# the enclosing loop's iterator slice, then returns; fall-through paths release
+# only each loop's own storage (the inner fall-through must not touch the outer
+# iterator, and the outer iterator is released exactly twice in the whole sub:
+# once on the early-return chain and once after the loop).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub count_text($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_release((const void*)go7);\n\tguji_release((const void*)gmv6.keys);\n\tgmv6.keys = NULL;\n\tguji_release((const void*)gmv6.vals);\n\tgmv6.vals = NULL;\n\tguji_release((const void*)gl1.data);\n\tgl1.data = NULL;\n\t\treturn (guji_res_int_str)\{1LL"))
+            print(count_text($c, "guji_release((const void*)gl1.data);"))
+            print(count_text($c, "guji_release((const void*)go7);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

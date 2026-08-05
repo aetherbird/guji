@@ -1,0 +1,7 @@
+# A closure cannot capture a mutable binding, even for a read.
+sub main(): Int {
+    mut $value = 1
+    $read = sub(): Int { $value }
+    print($read())
+    0
+}

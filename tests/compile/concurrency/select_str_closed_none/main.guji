@@ -1,0 +1,16 @@
+# §17.5 native `select` Str recv arm over a CLOSED+drained channel: the arm is
+# ready and binds None (res == 0), so no Str is adopted and the release is a no-op.
+sub main(): Int {
+    $a: Chan[Str] = channel(1)
+    $a.close()
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($s) { print($s) }
+                None { print("closed") }
+            }
+        }
+        else { print("idle") }
+    }
+    0
+}

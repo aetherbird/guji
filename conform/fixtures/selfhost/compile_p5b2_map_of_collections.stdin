@@ -1,0 +1,7 @@
+sub main(): Int {
+    %ml: Map[Str, List[Int]] = {"a": [1, 2], "b": [3]}
+    %mm = {"s": {"t": "u"}}
+    @ks = %ml.keys()
+    print("{ @ks.count() }")
+    @ks.count()
+}

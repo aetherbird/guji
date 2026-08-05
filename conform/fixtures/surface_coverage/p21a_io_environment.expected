@@ -1,0 +1,13 @@
+args=3:alpha||sp ace
+stdin=[line one
+line two
+]
+stdin-again=[]
+raw-stdout
+file=alpha|beta
+handle=handle-data
+cannot read file: conform/fixtures/.work/p21a_io_environment/missing/file.txt
+cannot write file: conform/fixtures/.work/p21a_io_environment/missing/file.txt
+cannot append file: conform/fixtures/.work/p21a_io_environment/missing/file.txt
+cannot open file: conform/fixtures/.work/p21a_io_environment/missing/file.txt
+cannot create file: conform/fixtures/.work/p21a_io_environment/missing/file.txt

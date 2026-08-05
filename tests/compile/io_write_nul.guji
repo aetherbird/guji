@@ -1,0 +1,19 @@
+# D1 follow-up differential fixture: the WRITE path ($h.write / stdout.write)
+# must preserve embedded NUL bytes, exactly like the interpreter. The dogfood
+# `cat` tool (stdout.write(stdin.slurp())) surfaced that native guji_write used
+# fputs (strlen-based), so it truncated any Str at its first \0 byte, while the
+# interpreter writes a length-counted Go string. This fixture reads the committed
+# io_write_nul.input  ("alpha\0beta\0gamma\n"), writes the raw bytes verbatim to
+# stdout via stdout.write (NO added newline), then prints an end marker -- so any
+# first-NUL truncation in the native write path diverges the gate.
+sub main(): Int {
+    match read_file("io_write_nul.input") {
+        Ok($s)  { stdout.write($s) }
+        Err($e) { print("write_nul err: $e") }
+    }
+    # A second write of a string literal that itself ends before its buffer would
+    # if it were strlen-scanned: prove the literal path is count-correct too.
+    stdout.write("|tail")
+    print("|END")
+    0
+}

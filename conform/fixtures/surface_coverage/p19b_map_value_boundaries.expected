@@ -1,0 +1,4 @@
+value={"left": [a], "right": [b, c]}
+equal=true
+source={"left": [a], "right": [b, c]}
+nested=[b, c]

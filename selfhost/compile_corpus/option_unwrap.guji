@@ -1,0 +1,71 @@
+# §15.5 Option `unwrap` and `expect`, function form `unwrap($o)` / `expect($o,$m)`
+# and method form `$o.unwrap()` / `$o.expect($m)`, over bound `Option[T]` locals
+# for every scalar/Str payload kind. Native lowers each to a panic GUARD plus the
+# borrowed `Some` payload:
+#   if (opt.tag == 0) { guji_panic("unwrap on None"); }   value = opt.val
+# with `expect` swapping the fixed message for the user's Str. Scalar payloads read
+# `opt.val` directly; a Str payload retains it into an owned tmp (released by the
+# sink), so the carrier binding's scope-exit cleanup stays the ONLY release of the
+# Some payload. This fixture unwraps ONLY `Some` values, so no guard fires — the
+# panic paths are covered by option_unwrap_none_panic / option_expect_none_panic.
+# Native `guji build` supports all of it, so this is a THREE-WAY case
+# (interp == native == selfhost). Exit code is 127 iff every positive lands.
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mkf($n: Int): Option[Float] {
+    if $n > 0 { Some(2.5) } else { None }
+}
+sub mkb($n: Int): Option[Bool] {
+    if $n > 0 { Some(false) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    # A heap-built Some payload: a wrong retain/release shows under ASan.
+    if $n > 0 { Some("pay" ~ "load" ~ "{ $n }") } else { None }
+}
+
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $sf: Option[Float] = mkf(1)
+    $sb: Option[Bool] = mkb(1)
+    $ss: Option[Str] = mks(7)
+
+    mut $code = 0
+
+    # Int: both spellings of both helpers in comparison operands; unwrap/expect
+    # yield the Some payload.
+    if unwrap($si) == 5 { $code = $code + 1 }
+    if $si.unwrap() == 5 { $code = $code + 2 }
+    if $si.expect("nope") == 5 { $code = $code + 4 }
+    if expect($si, "nope") == 5 { $code = $code + 8 }
+    print("{ unwrap($si) },{ $si.expect('x') }")
+
+    # Float: interpolation + arithmetic value positions.
+    print("{ $sf.unwrap() }|{ unwrap($sf) + 0.25 }|{ expect($sf, 'x') }")
+
+    # Bool: condition positions. Some(false) unwraps to the PAYLOAD (false) — a
+    # tag-polarity or wrong-slot bug would flip this and add 1000/2000/4000.
+    if unwrap($sb) { $code = $code + 1000 }
+    if $sb.expect("x") { $code = $code + 2000 }
+    if $sb.unwrap() { $code = $code + 4000 } else { $code = $code + 16 }
+
+    # Str: heap Some payload, method + function forms, sink/interp/concat slots.
+    # unwrap/expect retain the payload into an owned tmp released by the sink; the
+    # concat form threads the owned tmp through `~`.
+    print(unwrap($ss))
+    print($ss.unwrap())
+    print($ss.expect("msg" ~ "!"))
+    print(expect($ss, "m") ~ "-tail")
+    print("{ unwrap($ss) }?")
+
+    # find-produced Option, unwrapped through both helpers.
+    @xs = [10, 20, 30]
+    $hit: Option[Int] = @xs.find(sub($n: Int): Bool { $n == 20 })
+    if $hit.unwrap() == 20 { $code = $code + 32 }
+    if unwrap($hit) == 20 { $code = $code + 64 }
+
+    # Return-arithmetic position (a proven rvalue-state slot): 127 - 5 + 5 = 127.
+    $result = $code - 5 + unwrap($si)
+    if $result == 127 { 0 } else { 1 }
+}

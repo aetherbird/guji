@@ -1,0 +1,4 @@
+# Spec 18: main may return only Unit or Int.
+sub main(): Str {
+    "invalid"
+}

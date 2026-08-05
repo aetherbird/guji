@@ -1,0 +1,4 @@
+sub main(): Unit {
+  $x = 5
+  print("done\n")
+}

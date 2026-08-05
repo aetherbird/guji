@@ -1,0 +1,7 @@
+is_empty: false
+contains: true
+trim_upper: GUJI
+has_key: true
+is_some: true
+unwrap: true
+unwrap_or: true

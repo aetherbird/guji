@@ -1,0 +1,10 @@
+# E3: every declared field must be supplied in named-arg construction.
+class Token {
+    has $.kind: Str
+    has $.text: Str
+}
+
+sub main(): Int {
+    $t = Token(kind: "id")
+    0
+}

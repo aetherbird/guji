@@ -1,0 +1,12 @@
+# gujiconform -- Platform slice 2 (write IO): create($path) returns a write-only
+# Handle, creates or truncates the file, and `$h.write($s)` writes raw text with
+# no added newline. The program reads the file back and prints it so both engines
+# must agree through observable stdout.
+sub main() {
+    $path = "conform/fixtures/io/create.generated"
+    create($path).unwrap().write("stale")
+    $h = create($path).unwrap()
+    $h.write("one\n")
+    write($h, "two")
+    print(read_file($path).unwrap())
+}

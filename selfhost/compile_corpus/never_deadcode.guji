@@ -1,0 +1,17 @@
+# P9-10b-3b-2a: §11.2 Never propagates through scalar expression contexts.
+# Every diverging expression is in an untaken branch; the row proves that the
+# selfhost code generator still emits valid C for unary/binary operands, call
+# arguments, indexes, and field receivers.
+sub add($a: Int, $b: Int): Int { $a + $b }
+
+sub main(): Int {
+    $x = 42
+    $a = if true { $x } else { 1 + panic("dead binary") }
+    $b = if true { $x } else { -panic("dead unary") }
+    $c = if true { $x } else { add(1, panic("dead arg")) }
+    $d = if true { $x } else { [1, 2][panic("dead index")] }
+    $e = if true { $x } else { panic("dead object")[0] }
+    $f = if true { $x } else { panic("dead field").nope }
+    print("ok $a $b $c $d $e $f")
+    0
+}

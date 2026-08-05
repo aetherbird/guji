@@ -1,0 +1,73 @@
+# Result[Map[Str, List[scalar|Str]], Str] value construct + match-binding + RC
+# ownership (H4c-rest). The Ok map owns two counted arrays (`.ok.keys` and
+# `.ok.vals`); `.ok.vals` is ARR_SLICE, so release cascades into each value
+# list's storage and Str-list elements. Ok(%m) materializes a fresh owned map,
+# binding/sub-return transfers that +1, match BORROWS it, Err(Str) remains on
+# the carrier-Str path, and discarded or rebound carriers release the active arm.
+
+sub sum_map(%m: Map[Str, List[Int]]): Int {
+    %m{"a"}.sum() + %m{"b"}.sum()
+}
+
+sub count_map(%m: Map[Str, List[Str]]): Int {
+    %m{"x"}.count() + %m{"y"}.count()
+}
+
+sub wrap_ints($ok: Bool, %m: Map[Str, List[Int]]): Result[Map[Str, List[Int]], Str] {
+    if $ok { Ok(%m) } else { Err("no-grid") }
+}
+
+sub wrap_words($ok: Bool, %m: Map[Str, List[Str]]): Result[Map[Str, List[Str]], Str] {
+    if $ok { Ok(%m) } else { Err("no-words") }
+}
+
+sub main(): Unit {
+    %grid = {"a": [1, 2], "b": [3, 4, 5]}
+    $a = wrap_ints(true, %grid)
+    print(match $a {
+        Ok(%m) { sum_map(%m) }
+        Err($e) { 0 }
+    })
+
+    # The same carrier can be matched again because matching borrows the Ok map.
+    print(match $a {
+        Ok(%m) { %m{"a"}[1] }
+        Err($e) { -1 }
+    })
+
+    %words = {"x": ["alpha", "beta"], "y": ["gamma"]}
+    $w = wrap_words(true, %words)
+    print(match $w {
+        Ok(%m) { count_map(%m) }
+        Err($e) { 0 }
+    })
+
+    match wrap_ints(false, %grid) {
+        Ok(%m) { print(sum_map(%m)) }
+        Err($e) { print($e) }
+    }
+
+    $r = wrap_ints(true, {"a": [10, 20], "b": [30]})
+    print(match $r {
+        Ok(%m) { sum_map(%m) }
+        Err($e) { 0 }
+    })
+
+    match wrap_words(false, %words) {
+        Ok(%m) { print(count_map(%m)) }
+        Err($e) { print($e) }
+    }
+
+    # Discarded carrier results must release fresh Ok map arrays / Err Str.
+    wrap_ints(true, %grid)
+    wrap_words(false, %words)
+
+    # mut rebind releases old Ok Map[Str,List] arrays and Err(Str) before store.
+    mut $cur = wrap_ints(true, %grid)
+    $cur = wrap_ints(false, %grid)
+    $cur = wrap_ints(true, {"a": [7], "b": [8, 9]})
+    print(match $cur {
+        Ok(%m) { sum_map(%m) }
+        Err($e) { -2 }
+    })
+}

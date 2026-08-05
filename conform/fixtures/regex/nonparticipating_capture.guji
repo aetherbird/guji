@@ -1,0 +1,30 @@
+# gujiconform bug #2 — non-participating regex capture (§13.3, §13.4).
+#
+# A group that EXISTS in the pattern but did not participate in the match must
+# yield None, NOT Some(""), and is distinct from a group that participated and
+# matched empty text (which is Some("")). The interpreter previously returned
+# Some("") for non-participating groups; native is already spec-correct.
+sub show($g: Option[Str]): Str {
+    match $g {
+        Some($s) { "some:" ~ $s }
+        None { "none" }
+    }
+}
+
+sub main(): Unit {
+    # Optional positional group that does not participate -> None.
+    $m1 = ("ac" ~~ /a(b)?c/).unwrap()
+    print("positional-nonparticipating: { show($m1[1]) }")
+
+    # Positional group that participates but matches empty text -> Some("").
+    $m2 = ("ac" ~~ /a(x*)c/).unwrap()
+    print("positional-empty: { show($m2[1]) }")
+
+    # Optional named group that does not participate -> None.
+    $m3 = ("ac" ~~ /a(?<mid>b)?c/).unwrap()
+    print("named-nonparticipating: { show($m3<mid>) }")
+
+    # Named group that participates -> Some(text).
+    $m4 = ("abc" ~~ /a(?<mid>b)c/).unwrap()
+    print("named-participating: { show($m4<mid>) }")
+}

@@ -1,0 +1,23 @@
+# A final-position if whose branch bodies are Unit side-effect blocks must lower
+# as a statement guard and return 0 from the enclosing frame, not as a value if.
+enum Flag { On, Off }
+
+sub show_flag($f: Flag): Unit {
+  if true {
+    match $f {
+      On { print("unit-on") }
+      Off { print("unit-off") }
+    }
+  }
+}
+
+sub main() {
+  $f = On
+  show_flag(Off)
+  if true {
+    match $f {
+      On { print("main-on") }
+      Off { print("main-off") }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# §11.1: `?` propagating a Result inside a Result-returning sub is well-typed
+# (the spec example); `?` propagating an Option inside an Option-returning sub is
+# well-typed too.
+sub parse_age($s: Str): Result[Int, Str] {
+    $n = parse_int($s)?
+    if $n >= 0 { Ok($n) } else { Err("age must be non-negative") }
+}
+
+sub first_pos(@xs: List[Int]): Option[Int] {
+    $x = find(@xs, sub($n: Int): Bool { $n > 0 })?
+    Some($x)
+}
+
+sub main(): Int { 0 }

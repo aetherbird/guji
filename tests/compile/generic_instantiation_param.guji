@@ -1,0 +1,35 @@
+# A NON-generic sub whose parameter is typed as a fully-concrete generic ENUM
+# instantiation (Box[Int]). Codegen must flatten the annotation to the
+# monomorphized spec (Box__Int), register the parameter as that enum so the body's
+# match dispatches concretely, and pass it by value. This is exactly the shape
+# `unwrap_or_zero($b: Box[Int])` from the D11 probe tests/generics.guji needs.
+# Expected output is the interpreter/spec answer.
+
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+}
+
+# The match unifies a TypeParam payload arm (bound to Int here) with a nullary arm.
+sub unwrap_or_zero($b: Box[Int]): Int {
+    match $b {
+        Wrap($v) { $v }
+        Empty { 0 }
+    }
+}
+
+# A second instantiation of the same generic enum, at Str, proves the flattening
+# is per-instantiation rather than fixed to one spec.
+sub describe($b: Box[Str]): Str {
+    match $b {
+        Wrap($v) { "wrap({ $v })" }
+        Empty { "empty" }
+    }
+}
+
+sub main(): Unit {
+    print(unwrap_or_zero(Wrap(9)))
+    print(unwrap_or_zero(Empty))
+    print(describe(Wrap("hi")))
+    print(describe(Empty))
+}

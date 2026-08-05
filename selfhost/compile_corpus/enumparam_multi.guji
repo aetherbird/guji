@@ -1,0 +1,13 @@
+enum Color { Red, Green, Blue }
+
+sub combine($a: Color, $n: Int, $b: Color): Int {
+    $x: Int = match $a { Red { 100 } Green { 200 } Blue { 300 } }
+    $y: Int = match $b { Red { 1 } Green { 2 } Blue { 3 } }
+    $x + $y + $n
+}
+
+sub main(): Int {
+    $p: Color = Blue
+    $q: Color = Red
+    combine($p, 7, $q)
+}

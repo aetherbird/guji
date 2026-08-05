@@ -1,0 +1,18 @@
+# gujiconform — selfhost slice 5 E5d-7b. Pins parsing of qualified
+# `module::member` expressions (§16.1) in postfix position. The member may be a
+# lowercase identifier or a Pascal name, mirroring the Go parser. Module
+# resolution is a later slice (E5d-7c); here we only pin the parsed AST shape.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

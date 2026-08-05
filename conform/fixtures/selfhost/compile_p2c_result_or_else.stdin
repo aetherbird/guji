@@ -1,0 +1,13 @@
+sub ok_s($s: Str): Result[Str, Str] { Ok($s) }
+sub err_s($s: Str): Result[Str, Str] { Err($s) }
+sub rec_s($e: Str): Result[Str, Str] { Ok("rec" ~ "overed") }
+
+sub main(): Int {
+    $r: Result[Str, Str] = ok_s("kept" ~ "!")
+    $e: Result[Str, Str] = err_s("bo" ~ "om")
+    $a: Result[Str, Str] = $r.or_else(sub($x: Str): Result[Str, Str] { rec_s($x) })
+    $b: Result[Str, Str] = or_else($e, sub($y: Str): Result[Str, Str] { rec_s($y) })
+    match $a { Ok($s) { print($s) } Err($m) { print($m) } }
+    match $b { Ok($s2) { print($s2) } Err($m2) { print($m2) } }
+    0
+}

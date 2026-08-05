@@ -1,0 +1,5 @@
+sub main(): Int {
+    @words = ["aa", "bb", "cc"]
+    print(match @words.find(sub($w: Str): Bool { $w == "bb" }) { Some($hit) { $hit } None { "missing" } })
+    0
+}

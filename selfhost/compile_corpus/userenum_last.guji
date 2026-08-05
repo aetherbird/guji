@@ -1,0 +1,14 @@
+enum Light {
+    Red
+    Yellow
+    Green
+}
+
+sub main(): Int {
+    $l: Light = Green
+    match $l {
+        Red { 1 }
+        Yellow { 2 }
+        Green { 3 }
+    }
+}

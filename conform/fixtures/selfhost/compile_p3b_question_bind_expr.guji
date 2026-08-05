@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-3 compiler codegen fixture.
+# Pins non-final scalar bindings whose RHS contains a `?`: the carrier payload is
+# hoisted into a synthetic local, then the rebuilt expression is assigned to the
+# user's binding by the ordinary scalar bind path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = gr3.ok;"))
+            print(has_text($c, " = guji_add(gv4, 1LL);"))
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr3.err};"))
+            print(has_text($c, " = go0.val;"))
+            print(has_text($c, " = guji_add(gv1, 2LL);"))
+            print(has_text($c, "return (guji_opt_int)\{0LL, 0LL};"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,11 @@
+# selfhost slice 5 E5d-7c-2: bind a List[Str] from a user-sub CALL (slice-backed
+# list local, listlen 0), then INDEX it (owned Str element, retained) and COUNT it
+# in a comparison -- the exact shape the driver's `@argv = args()` / `@argv[0]` /
+# `if @argv.count() < 3` uses. Exits 0 iff the bound list reads back correctly.
+sub mk(): List[Str] { ["alpha", "beta", "gamma"] }
+sub main(): Int {
+    @xs = mk()
+    print(@xs[0])
+    print(@xs[2])
+    if @xs.count() == 3 { 0 } else { 1 }
+}

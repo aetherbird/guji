@@ -1,0 +1,6 @@
+sub dbl($n: Int): Int { $n * 2 }
+sub apply_dbl($o: Option[Int]): Option[Int] { Some(dbl($o?)) }
+sub parse_dbl($s: Str): Result[Int, Str] { Ok(dbl(parse_int($s)?)) }
+sub main(): Int {
+    0
+}

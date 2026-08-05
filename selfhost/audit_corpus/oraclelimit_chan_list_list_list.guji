@@ -1,0 +1,6 @@
+# Guji-canonical channel metadata is recursive; this historical Go-backend
+# oracle limit is covered by the exact channel_deep_collections corpus row.
+sub main(): Int {
+    $ch: Chan[List[List[List[Int]]]] = channel(1)
+    0
+}

@@ -1,0 +1,36 @@
+class Box {
+    has $.s: Str
+}
+
+enum Wrap {
+    WNil
+    WSome($b: Option[Box])
+}
+
+sub use_some(): Int {
+    match WSome(Some(Box(s: "x" ~ "y"))) {
+        WNil { 0 }
+        WSome($b) {
+            match $b {
+                None { 1 }
+                Some($x) { 2 }
+            }
+        }
+    }
+}
+
+sub use_none(): Int {
+    match WSome(None) {
+        WNil { 0 }
+        WSome($b) {
+            match $b {
+                None { 1 }
+                Some($x) { 2 }
+            }
+        }
+    }
+}
+
+sub main(): Int {
+    return use_some() + use_none()
+}

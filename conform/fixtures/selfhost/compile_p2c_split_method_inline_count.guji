@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins `count()` over an inline `$s.split($sep)` receiver. This is not a new
+# lowering path: P2c-2's method-form split producer flows through the existing
+# E5d-8g inline list-count specialization, which copies `.len` before releasing
+# the owned split payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gl2.data = (void*)guji_split(gt0, gt1, &gl2.len);"))
+            print(has_text($c, "gi3 = gl2.len;"))
+            print(has_text($c, "guji_release((const void*)gl2.data);"))
+            print(has_text($c, "gl2.data = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

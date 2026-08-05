@@ -1,0 +1,2 @@
+engines: both
+spec: 2.7, 7.4, 10.1, 20, 20:sub_decl, 20:stmt, 20:pattern, 20:pattern_literal, 20:primary, 20:item_sep, 20:item_gap, 20:sep

@@ -1,0 +1,11 @@
+# G6b-b-3-ii: non-generic enum construction and exhaustive match should type-check.
+enum Color { Red, Green, Blue }
+
+sub main(): Int {
+    $c: Color = Red
+    match $c {
+        Red { 0 }
+        Green { 1 }
+        Blue { 2 }
+    }
+}

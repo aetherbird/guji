@@ -1,0 +1,8 @@
+# P1c-a (§7.4): a non-capturing Int -> Int lambda can be bound as a function
+# value and called through that binding. This is the first codegen slice toward
+# full closures; capturing environments and function-valued parameters remain
+# the next P1c work.
+sub main(): Int {
+    $add = sub($n: Int): Int { $n + 10 }
+    $add(5)
+}

@@ -1,0 +1,10 @@
+sub main(): Int {
+    $n = 4
+    $f: Func[Int, Int] = sub($x: Int): Int { $x + $n }
+    $ch: Chan[Func[Int, Int]] = channel(1)
+    $sent = $ch.send($f)
+    $got = $ch.recv()
+    $g: Func[Int, Int] = $got.unwrap()
+    print($g(3))
+    0
+}

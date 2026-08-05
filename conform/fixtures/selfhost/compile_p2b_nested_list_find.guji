@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P2b-3c-5: `.find` over a nested-list receiver returns Option[List[Int]].
+# The generated carrier stores a guji_slice_t payload and the Some path deep-copies
+# the borrowed row before the owned source slice is released.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_list"))
+            print(has_text($c, "guji_slice_t val;"))
+            print(has_text($c, ".val.data = guji_copy_arr((const void*)"))
+            print(has_text($c, "guji_release((const void*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

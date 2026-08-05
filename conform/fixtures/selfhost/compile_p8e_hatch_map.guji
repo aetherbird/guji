@@ -1,0 +1,27 @@
+# P8e-4: pin Map copy-on-capture — paired guji_copy_arr fill, named-form
+# adopt from env->cap, and task-exit key/val releases.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_task_spawn(&") == 2)
+            print(count_of($c, "guji_map_t cap_") == 2)
+            print(count_of($c, "->cap_nums.keys = (const char**)guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "->cap_nums.vals = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "->cap_labels.keys = (const char**)guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "->cap_labels.vals = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "_keys = (const char**)env->cap_nums.keys;") == 1)
+            print(count_of($c, "_vals = (int64_t*)env->cap_nums.vals;") == 1)
+            print(count_of($c, "_len = env->cap_nums.len;") == 1)
+            print(count_of($c, "_keys = (const char**)env->cap_labels.keys;") == 1)
+            print(count_of($c, "guji_release((const void*)gv") > 0)
+            0
+        }
+    }
+}

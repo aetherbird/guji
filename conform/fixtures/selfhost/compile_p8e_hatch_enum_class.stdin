@@ -1,0 +1,69 @@
+class Payload {
+    has $.v: Int
+}
+
+class Named {
+    has $.n: Str
+    has $.v: Int
+}
+
+class Bag {
+    has $.xs: List[Int]
+}
+
+enum Box {
+    Full($p: Payload)
+    Empty
+}
+
+enum Labeled {
+    NamedBox($p: Named)
+    LabEmpty
+}
+
+enum Packed {
+    BagBox($p: Bag)
+    PackEmpty
+}
+
+sub main(): Int {
+    $name = "he" ~ "llo"
+    $b = Full(Payload(v: 8))
+    $lab = NamedBox(Named(n: $name, v: 3))
+    $pack = BagBox(Bag(xs: [1, 2]))
+
+    $b_ch: Chan[Int] = channel(0)
+    $lab_ch: Chan[Str] = channel(0)
+    $pack_ch: Chan[Int] = channel(0)
+
+    hatch {
+        match $b {
+            Full($p) { $b_ch.send($p.v) }
+            Empty { $b_ch.send(0) }
+        }
+    }
+
+    hatch {
+        match $lab {
+            NamedBox($p) {
+                $s = $p.n
+                $lab_ch.send($s)
+            }
+            LabEmpty { $lab_ch.send("empty") }
+        }
+    }
+
+    hatch {
+        match $pack {
+            BagBox($p) {
+                $pack_ch.send($p.xs[0] + $p.xs[1])
+            }
+            PackEmpty { $pack_ch.send(0) }
+        }
+    }
+
+    print($b_ch.recv().unwrap())
+    print($lab_ch.recv().unwrap())
+    print($pack_ch.recv().unwrap())
+    0
+}

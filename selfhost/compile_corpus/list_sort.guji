@@ -1,0 +1,26 @@
+# §15.1 list `sort`, P2c slice: a fresh, stably ORDERED copy of a scalar/Str list.
+# Covers method and function spellings, Int/Float/Str elements, duplicate values
+# (exercising the stable insertion sort), and the empty-list path via `take(@xs, 0)`.
+sub main(): Int {
+    @xs = [3, 1, 4, 1, 5]
+    @si = @xs.sort()
+    print("{ @si[0] },{ @si[1] },{ @si[4] }")
+
+    @fs = [2.5, 1.5, 8.25, 1.5]
+    @sf = sort(@fs)
+    print("{ @sf[0] }/{ @sf[3] }")
+
+    @ws = ["cat", "ant", "bee" ~ "tle", "ant"]
+    @sw = @ws.sort()
+    print("{ @sw[0] }/{ @sw[1] }/{ @sw[3] }")
+
+    @empty = take(@xs, 0)
+    @se = @empty.sort()
+    print("{ count(@se) }")
+
+    if @si[0] == 1 && @si[4] == 5 && @sw[0] == "ant" && @sw[3] == "cat" {
+        42
+    } else {
+        1
+    }
+}

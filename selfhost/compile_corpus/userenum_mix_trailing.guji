@@ -1,0 +1,14 @@
+enum E {
+    A($x: Int, $y: Int)
+    B($x: Float, $y: Int)
+    C
+}
+
+sub main(): Int {
+    $e: E = B(1.5, 9)
+    match $e {
+        A($x, $y) { $x + $y }
+        B($f, $y) { if $f > 1.0 { $y } else { 0 } }
+        C { 0 }
+    }
+}

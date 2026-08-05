@@ -1,0 +1,38 @@
+# P8f-2a: pin select over FLAT heap element channels (Str/List/Map, §17.5).
+# One poll loop per select; a bound heap recv arm adopts the detached message
+# into an OWNED Option carrier released at arm exit (".val = NULL; }" — the
+# $got release plus its owned match-scrutinee copy); unbound heap arms discard
+# the ready message immediately ("== 1) { guji_release(" with the kind-shaped
+# reset); the send arm rebuilds its copy-on-send message every poll and binds
+# Result off the tri-state (".tag = (gsel").
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_try_recv(") == 3)
+            print(count_of($c, "guji_chan_try_send(") == 1)
+            print(count_of($c, "guji_progress_snapshot()") == 4)
+            # Only the two no-else unbound selects park on progress.
+            print(count_of($c, "guji_select_wait(gseen") == 2)
+            # Bound Str arm exit: carrier + owned scrutinee copy, tag-guarded.
+            print(count_of($c, ".val = NULL; }") == 2)
+            # Unbound ready-message discards: List and Map[Str,Str].
+            print(count_of($c, "== 1) \{ guji_release(") == 2)
+            print(count_of($c, "= (guji_slice_t)\{0}; }") == 1)
+            print(count_of($c, "= (guji_map_t)\{0}; }") == 1)
+            # Recv-wrapper Option tag + send Result tag both read the tri-state.
+            print(count_of($c, ".tag = (gsel") == 2)
+            # Heap channels register their kind-shaped undelivered-message drops.
+            print(count_of($c, "guji_chan_drop_str") == 1)
+            print(count_of($c, "guji_chan_drop_list") == 1)
+            print(count_of($c, "guji_chan_drop_map") == 2)
+            0
+        }
+    }
+}

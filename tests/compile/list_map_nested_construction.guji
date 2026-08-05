@@ -1,0 +1,31 @@
+# Depth-3 List[Map[Str,List|Map]] construction/read support. These list rows
+# used to be rejected by mapListLiteral even though the runtime ARR_MAP copy/drop
+# path can own the nested arrays once codegen preserves their shape metadata.
+sub main(): Int {
+    @rows = [{"a": [1, 2]}, {"b": [3, 4]}]
+    print(@rows[0]{"a"}[1])
+
+    mut $sum = 0
+    for %row in @rows {
+        for $k, @vals in %row {
+            $sum = $sum + @vals.sum()
+        }
+    }
+    print($sum)
+
+    @words = [{"x": ["a" ~ "b", "c"]}]
+    print(@words[0]{"x"}[0])
+
+    @dicts = [{"left": {"x": 5}}, {"right": {"y": 7}}]
+    print(@dicts[1]{"right"}{"y"})
+
+    @word_maps = [{"m": {"w": "v" ~ "w"}}]
+    print(@word_maps[0]{"m"}{"w"})
+
+    mut %src = {"keep": [10]}
+    @snap = [%src]
+    %src = {"keep": [99]}
+    print(@snap[0]{"keep"}[0])
+    print(%src{"keep"}[0])
+    0
+}

@@ -1,0 +1,13 @@
+sub mk($s: Str): Result[Str, Int] {
+    if $s == "a" { Ok($s ~ "!") } else { Err(5) }
+}
+
+sub score($r: Result[Str, Int]): Int {
+    match $r { Ok($s) { print($s) 1 } Err($e) { $e } }
+}
+
+sub main(): Int {
+    $a: Result[Str, Int] = mk("a")
+    $b: Result[Str, Int] = $a
+    score($a) + score($b)
+}

@@ -1,0 +1,21 @@
+# P9-11b-2b: pin Chan[Result[List, Str]] ABI — guji_res_list_str carrier,
+# opt wrapper, elem_drop releasing Ok .data + Err Str, and copy_arr on send.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "} guji_res_list_str;") >= 1)
+            print(count_of($c, "} guji_opt_res_list_str;") >= 1)
+            print(count_of($c, "static void guji_chan_drop_res_list_str") == 1)
+            print(count_of($c, "guji_release((const void*)v.ok.data);") >= 1)
+            print(count_of($c, "sizeof(guji_res_list_str), guji_chan_drop_res_list_str)") == 1)
+            0
+        }
+    }
+}

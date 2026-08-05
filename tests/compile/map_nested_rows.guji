@@ -1,0 +1,38 @@
+# A-callback-prelude-map-reduce (map slice): map over List[List]/List[Map]
+# receivers passes each row to the body lambda as a borrowed collection view
+# (bindNestedRow), exactly like each/filter/sort_by. A SCALAR body then maps a
+# nested receiver to a flat scalar result — the row is reached through the
+# ordinary generic list/map lowerings, so depth is unbounded with no per-shape
+# code. The old nestedListGuard rejected ANY List[List]/List[Map] map receiver;
+# this proves the generic row-binder path on shapes deeper than any previously-
+# implemented map receiver. (A body that RETURNS a nested row is still rejected —
+# that nested-OUTPUT case is the remaining map/reduce work.)
+sub main(): Int {
+    # List[List[Int]] -> List[Int] via count() on each borrowed row.
+    @rows = [[1, 2, 3], [], [4]]
+    @lens = @rows.map(sub(@r) { @r.count() })
+    print(@lens)
+
+    # List[List[Int]] -> List[Int] via sum() (a scalar reduction over the row).
+    @sums = @rows.map(sub(@r) { @r.sum() })
+    print(@sums)
+
+    # depth-3 List[List[List[Int]]] -> List[Int]: count the middle rows per plane.
+    @cube = [[[9]], [[1, 2], [3]], [[4]]]
+    @plane_rows = map(@cube, sub(@plane) { @plane.count() })
+    print(@plane_rows)
+
+    # List[Map[Str, List[Int]]] -> List[Int]: %m.keys() builds a temp keys list
+    # per row, exercising the per-iteration temp release.
+    @maps = [{"z": [9]}, {"a": [1], "b": [2]}, {"empty": []}]
+    @key_counts = @maps.map(sub(%m) { %m.keys().count() })
+    print(@key_counts)
+
+    # List[List[Str]] -> List[Str]: join each borrowed row into a fresh Str,
+    # proving a Str-producing body over a nested receiver.
+    @words = [["alpha", "beta"], ["gamma"], ["delta", "eps"]]
+    @joined = @words.map(sub(@w) { @w.join("-") })
+    print(@joined)
+
+    0
+}

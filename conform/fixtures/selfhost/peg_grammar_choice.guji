@@ -1,0 +1,16 @@
+# gujiconform — P7c-2a. Ordered choice, literal escapes, and pipe-inside-literal
+# must not invent extra alternatives (native peg_test.go shapes).
+import lexer
+
+sub main(): Int {
+    match lexer::grammar_pegs_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,21 @@
+[alpha
+
+beta
+]
+reader:[alpha
+
+beta
+]
+again:alpha
+
+beta
+cannot open file: file_handles.missing
+line:[alpha]
+line:[]
+line:[beta]
+count=3
+alpha
+beta
+method
+cannot create file: /tmp/guji_i8d2_missing_dir/x
+kept

@@ -1,0 +1,7 @@
+# P12b: explicit panic flushes earlier output, writes stderr, and exits nonzero.
+sub message(): Str { "explicit" ~ " failure" }
+
+sub main(): Int {
+    print("before explicit panic")
+    if true { panic(message()) } else { 0 }
+}

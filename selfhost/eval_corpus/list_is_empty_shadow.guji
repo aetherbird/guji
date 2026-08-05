@@ -1,0 +1,16 @@
+# Prelude names may be shadowed at top level (§16.2). The compiler deliberately
+# sends both is_empty spellings through this user sub, so D must do the same.
+sub is_empty(@xs: List[Int]): Bool {
+    @xs.count() == 2
+}
+
+sub main(): Int {
+    @two = [7, 8]
+    @none: List[Int] = []
+
+    print(is_empty(@two))
+    print(@two.is_empty())
+    print(is_empty(@none))
+    print(@none.is_empty())
+    0
+}

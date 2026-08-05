@@ -1,0 +1,39 @@
+# W3 (Platform slice 2, write IO): write_file truncates-or-creates and writes the
+# whole content; append_file appends, creating the file if absent. Both return
+# Result[Unit, Str]. The fixture writes, appends, then reads each path back so the
+# differential gate observes the bytes on stdout. It truncates (write_file) at the
+# START of every run, so it stays idempotent under the gate's repeated native runs
+# in the same directory (an append-only fixture would otherwise double its output).
+sub main(): Int {
+    $wpath = "io_write_file.generated"
+    write_file($wpath, "alpha\nbeta").unwrap()
+    print(read_file($wpath).unwrap())
+
+    # write_file truncates: the second write replaces, not appends.
+    write_file($wpath, "fresh").unwrap()
+    print(read_file($wpath).unwrap())
+
+    # append_file after a truncating write_file: cumulative, in order. Truncating
+    # first keeps this self-contained across interp + native + native repeats.
+    $apath = "io_append_file.generated"
+    write_file($apath, "one\n").unwrap()
+    append_file($apath, "two\n").unwrap()
+    "io_append_file.generated".append_file("three").unwrap()
+    print(read_file($apath).unwrap())
+
+    # Method-style write_file (data-first: receiver is the path).
+    "io_write_method.generated".write_file("gamma").unwrap()
+    print(read_file("io_write_method.generated").unwrap())
+
+    # Error path: a path under a directory that does not exist fails with the
+    # fixed, OS-reason-free message, byte-identical in both engines.
+    match write_file("io_missing_dir/out", "x") {
+        Ok(_)   { print("unexpected ok") }
+        Err($e) { print($e) }
+    }
+    match append_file("io_missing_dir/out", "x") {
+        Ok(_)   { print("unexpected ok") }
+        Err($e) { print($e) }
+    }
+    0
+}

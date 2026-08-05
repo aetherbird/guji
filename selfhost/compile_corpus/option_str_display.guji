@@ -1,0 +1,16 @@
+# Raw Option[Str] display must preserve the carrier and distinguish an absent
+# capture from an empty or participating capture.
+sub main(): Unit {
+    $o: Option[Str] = Some("pay" ~ "load")
+    print("{ $o }/{ $o }")
+    $n: Option[Str] = None
+    print("{ $n }")
+
+    match "ab" ~~ /(a)(z)?/ {
+        Some($m) {
+            print("{ $m[0] }/{ $m[1] }/{ $m[2] }")
+            print($m[1].unwrap())
+        }
+        None { print("no match") }
+    }
+}

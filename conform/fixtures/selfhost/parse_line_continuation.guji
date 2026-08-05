@@ -1,0 +1,19 @@
+# gujiconform — selfhost slice 5 E5d-2. Pins line-continuation after a trailing
+# binary operator (§2.7, §5.5): a `~`/`+`/`&&` at the END of a line continues
+# onto the next line as one binary expression. The Go lexer suppresses newlines
+# inside brackets; the selfhost parser must skip the newline after the operator
+# before parsing the right operand.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

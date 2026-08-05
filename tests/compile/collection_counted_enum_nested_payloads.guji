@@ -1,0 +1,55 @@
+# A-collection-elements-rest (enum NESTED List/Map-payload slice): a flat List of
+# enum values whose payloads are NESTED collections — List[List[Int]],
+# List[List[Str]], List[Map[Str,Int]], Map[Str,List[Str]], and Map[Str,Map[Str,Int]].
+# These are deeper than the previously-implemented flat List[scalar|Str] /
+# Map[Str,scalar|Str] enum payloads. Construction routes each payload through the
+# depth-generic g.list/g.mapExpr → sliceFromList path (kind-tagged ARR_SLICE/ARR_MAP
+# storage), so the per-element guji_release_<Enum>_fields cascade (a single
+# guji_release(.data) / guji_release(keys)+(vals)) frees the whole inner row graph
+# through the runtime KIND tag with NO per-shape codegen. Reads `match` the payload
+# as a borrowed VIEW (count/sum/keys over the nested rows recurse generically).
+# Payloads are HEAP-built (`~` concat leaves/keys, multi-element rows) so LSan
+# exercises the retain/release balance; an immortal literal would hide leaks.
+# (Depth-3 payloads like List[List[List]] are not representable in the enumPayload
+# struct — a separate structural limit, not this slice.)
+
+enum Shape {
+    Leaf($n: Int)
+    Grid($rows: List[List[Int]])
+    Words($lines: List[List[Str]])
+    Table($cells: List[Map[Str, Int]])
+    Tagged($groups: Map[Str, List[Str]])
+    Nested($tree: Map[Str, Map[Str, Int]])
+}
+
+sub main(): Int {
+    @shapes = [
+        Grid([[1, 2], [3, 4, 5]]),
+        Words([["a" ~ "b", "c"], ["d" ~ "e"]]),
+        Table([{"x" ~ "1": 7, "y": 8}, {"z": 9}]),
+        Tagged({"k" ~ "ey": ["p" ~ "q", "r"]}),
+        Nested({"o" ~ "ut": {"in": 5}}),
+        Leaf(99),
+    ]
+    print(@shapes.count())
+
+    for $s in @shapes {
+        $v = match $s {
+            Leaf($x) { $x }
+            Grid($rs) { $rs.count() }
+            Words($ls) { $ls.count() }
+            Table($cs) { $cs.count() }
+            Tagged($gs) { $gs.keys().count() }
+            Nested($t) { $t.keys().count() }
+        }
+        print($v)
+    }
+
+    # Non-fresh (alias) element: an existing nested-payload enum reused inside a
+    # literal. The array copies the struct by value, so it retains its OWN +1 on
+    # the payload storage; the array drop and $g's own end-of-scope release balance.
+    $g = Grid([[10, 20], [30]])
+    @more = [$g, Words([["x" ~ "1"], ["y", "z"]])]
+    print(@more.count())
+    0
+}

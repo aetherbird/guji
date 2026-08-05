@@ -1,0 +1,16 @@
+# Checked if/match scalar result typing: native codegen should use checker
+# TypeInfo for expression-result types while preserving Unit for no-else if.
+enum Pick { A, B }
+
+sub main(): Int {
+    $f = if true { 1.25 } else { 2.5 }
+    $m = match A {
+        A { 3.5 }
+        B { 4.5 }
+    }
+    if true { print("side") }
+    print($f)
+    print($m)
+    print("done")
+    0
+}

@@ -1,0 +1,12 @@
+sub main(): Int {
+    @xs = [3, 1, 2]
+    print(@xs)
+    @ss = ["a" ~ "x", "b"]
+    print("s: { @ss }")
+    @fs = [1.5]
+    print(@fs)
+    @rows = [[1], [2, 3]]
+    print(@rows)
+    print(sort(@xs))
+    0
+}

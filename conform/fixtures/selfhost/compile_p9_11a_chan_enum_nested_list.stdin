@@ -1,0 +1,26 @@
+# P9-11a stdin: nested List-payload enum for C-shape pin.
+enum Msg {
+    Rows($xs: List[List[Int]])
+    Words($ws: List[List[Str]])
+    Maps($ms: List[Map[Str, Str]])
+    Done
+}
+
+sub show($m: Msg): Int {
+    match $m {
+        Rows($xs) { $xs[0][0] }
+        Words($ws) { 0 }
+        Maps($ms) { 0 }
+        Done { -1 }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Msg] = channel(3)
+    $ch.send(Rows([[1, 2], [3]]))
+    $ch.send(Words([["a"], ["b"]]))
+    $ch.send(Maps([{"k": "v"}]))
+    print(show($ch.recv().unwrap()))
+    print(show($ch.recv().unwrap()))
+    0
+}

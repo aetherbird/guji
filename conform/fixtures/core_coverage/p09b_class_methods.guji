@@ -1,0 +1,23 @@
+# P09b: associated and instance dispatch, receiver identity, and chaining.
+class Counter {
+    has $.value: Int
+    has $!label: Str
+
+    sub from($value: Int, $label: Str): Counter {
+        Counter(value: $value, label: $label)
+    }
+
+    sub bumped($self, $amount: Int): Counter {
+        Counter(value: $self.value + $amount, label: $!label)
+    }
+
+    sub describe($self): Str { "{ $!label }={ $self.value }" }
+}
+
+sub main(): Int {
+    $start = Counter.from(5, "count")
+    print($start.describe())
+    print($start.bumped(2).bumped(3).describe())
+    print($start.describe())
+    0
+}

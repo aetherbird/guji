@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P9-8b-2c nominal structural equality.
+# Pins dependency-safe prototypes, recursive helper bodies, collection fields,
+# and direct comparison calls in generated C.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t guji_eq_Card(const Card* a, const Card* b);"))
+            print(has_text($c, "static int64_t guji_eq_Chain(const Chain* a, const Chain* b);"))
+            print(has_text($c, "guji_str_equal(a->f1, b->f1)"))
+            print(has_text($c, "guji_list_equal((const void*)a->f2.data"))
+            print(has_text($c, "if (a->tag != b->tag) \{ return 0LL; }"))
+            print(has_text($c, "guji_eq_Chain(&"))
+            print(has_text($c, "guji_eq_Card(&"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

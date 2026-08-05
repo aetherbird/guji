@@ -1,0 +1,35 @@
+# A-callback-prelude-map-reduce (reduce slice): reduce over List[List]/List[Map]
+# receivers passes each element row to the fold lambda as a borrowed collection
+# view (bindNestedRow), exactly like each/map/filter/sort_by. The accumulator is
+# a plain scalar/Str, so no row-handle ownership is threaded across the fold —
+# only the per-element row is a collection. The old nestedListGuard rejected ANY
+# List[List]/List[Map] receiver; this proves the generic row-binder path with no
+# per-shape code, on shapes deeper than any previously-implemented reduce.
+sub main(): Int {
+    # List[List[Int]] — sum each row's sum into a scalar Int accumulator.
+    @rows = [[1, 2, 3], [], [4]]
+    $total = @rows.reduce(0, sub($acc, @r) { $acc + @r.sum() })
+    print($total)
+
+    # data-first form — accumulate the total element count.
+    $n = reduce(@rows, 0, sub($acc, @r) { $acc + @r.count() })
+    print($n)
+
+    # depth-3 List[List[List[Int]]] — fold a nested reduce over each plane.
+    @cube = [[[9]], [[1, 2], [3]], [[4]]]
+    $deep = @cube.reduce(0, sub($acc, @plane) {
+        $acc + @plane.reduce(0, sub($p, @row) { $p + @row.sum() })
+    })
+    print($deep)
+
+    # List[Map[Str, Int]] — sum each row map's key count; the body builds a keys()
+    # temp per row, proving the per-iteration temp release.
+    @maps = [{"a": 1, "b": 2}, {"z": 9}, {}]
+    $keys = @maps.reduce(0, sub($acc, %m) { $acc + %m.keys().count() })
+    print($keys)
+
+    # Str accumulator over nested rows — interpolate each row's count.
+    $label = @rows.reduce("counts:", sub($lab, @r) { $lab ~ " { @r.count() }" })
+    print($label)
+    0
+}

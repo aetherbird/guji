@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins the §15.3 `lines($s)` prelude lowering. Like `split`, `lines` yields an
+# OWNED List[Str] slice: `guji_lines` hands back a counted ARR_STR array it filled
+# with owned copies, so the produced slice OWNS `.data` and the Str receiver temp
+# (an owned `gt`) is released right after the call — `guji_lines` copies the bytes
+# it keeps and does NOT consume the receiver. Checks the generated C carries the
+# inferred List[Str] slice local, the `guji_lines` prelude call filling that
+# slice's data+len, and the post-call receiver release.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_slice_t gl1 = \{0};"))
+            print(has_text($c, "gl1.data = (void*)guji_lines(gt0, &gl1.len);"))
+            print(has_text($c, "guji_release(gt0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

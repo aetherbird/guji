@@ -1,0 +1,6 @@
+sub main(): Int {
+    @xs = [1, 2, 3, 4, 5, 6]
+    @ev = @xs.filter(sub($n: Int): Bool { $n % 2 == 0 })
+    print("{ @ev[0] }")
+    @ev.count()
+}

@@ -1,0 +1,39 @@
+# gujiconform - selfhost slice 6 P5b-2b(d) compiler codegen fixture.
+# Pins CROSS-MODULE GENERIC CALLS: a qualified call `alias::template(args)` to a
+# PUB generic sub of an imported module demands a monomorphized spec that is
+# cloned into the imported module's decl list (module-prefixed C name), including
+# a transitive sibling-template call inside the demanded spec body and a
+# module-internal instantiation used by a pub non-generic sub.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    $lib = "pub sub identity[T](\$x: T): T \{ \$x }\n\npub sub pick_first[T](\$a: T, \$b: T): T \{ \$a }\n\npub sub twice_first[T](\$a: T, \$b: T): T \{ pick_first(pick_first(\$a, \$b), \$b) }\n\npub sub first_of_two(\$x: Int, \$y: Int): Int \{ pick_first(\$x, \$y) }\n"
+    match write_file("/tmp/guji_compile_import_generic_lib.guji", $lib) {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match lexer::compile_program_c_at("/tmp/guji_compile_import_generic_main.guji", stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # demanded scalar specs, module-prefixed
+            print(has_text($c, "static int64_t gf_imp_guji_compile_import_generic_lib_identity__Int_Int(int64_t gp0);"))
+            print(has_text($c, "static const char* gf_imp_guji_compile_import_generic_lib_identity__Str_Str(const char* gp0);"))
+            # transitive: demanded twice_first spec + the sibling pick_first spec its body needs
+            print(has_text($c, "static int64_t gf_imp_guji_compile_import_generic_lib_twice_first__Int_Int_Int(int64_t gp0, int64_t gp1);"))
+            print(has_text($c, "gf_imp_guji_compile_import_generic_lib_pick_first__Int_Int_Int("))
+            # module-internal instantiation from the pub non-generic sub
+            print(has_text($c, "static int64_t gf_imp_guji_compile_import_generic_lib_first_of_two(int64_t gp0, int64_t gp1)"))
+            # the generic TEMPLATE itself must not be emitted by its bare name
+            print(has_text($c, "gf_imp_guji_compile_import_generic_lib_identity("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

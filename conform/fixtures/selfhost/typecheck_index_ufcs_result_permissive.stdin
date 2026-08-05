@@ -1,0 +1,8 @@
+sub first_sorted(@xs: List[Str]): Str {
+    @xs.sort()[0]
+}
+
+sub main(): Int {
+    print(first_sorted(["b", "a"]))
+    0
+}

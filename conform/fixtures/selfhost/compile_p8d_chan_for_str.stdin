@@ -1,0 +1,15 @@
+sub main(): Int {
+    $ch: Chan[Str] = channel(2)
+    $ch.send("a" ~ "b")
+    $ch.send("c")
+    $ch.close()
+    mut $all = ""
+    for $s in $ch {
+        $all = $all ~ $s
+    }
+    $empty: Chan[Str] = channel(1)
+    $empty.close()
+    for $s in $empty { print($s) }
+    print($all)
+    0
+}

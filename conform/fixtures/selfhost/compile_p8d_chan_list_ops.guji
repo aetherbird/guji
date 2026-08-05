@@ -1,0 +1,23 @@
+# P8d-2c-3c-1: pin Chan[List[T]] copy-on-send + elem_drop ABI.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_new(2LL, sizeof(guji_slice_t), guji_chan_drop_list)") >= 1)
+            print(count_of($c, "guji_chan_new(1LL, sizeof(guji_slice_t), guji_chan_drop_list)") >= 1)
+            print(count_of($c, "guji_copy_arr((const void*)") >= 4)
+            print(count_of($c, "guji_opt_list") >= 1)
+            print(count_of($c, "guji_chan_send(") >= 4)
+            print(count_of($c, "guji_chan_recv(") >= 4)
+            print(count_of($c, "guji_chan_close(") >= 2)
+            print(count_of($c, "guji_chan_release(") >= 1)
+            0
+        }
+    }
+}

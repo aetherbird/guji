@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P9-6b compiler codegen fixture.
+# Unannotated empty list `[]` defaults to List[Int] (native list()), so the
+# bind path emits the one-slot stack backing with _len = 0.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "int64_t gv"))
+            # `{` in a guji string opens interpolation — pin the brace-free prefix.
+            print(has_text($c, "_data[1] = "))
+            print(has_text($c, "_len = 0"))
+            print(has_text($c, "guji_list_str((const void*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

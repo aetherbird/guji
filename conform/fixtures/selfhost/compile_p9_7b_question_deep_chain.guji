@@ -1,0 +1,35 @@
+# gujiconform - selfhost slice 6 P9-7b question_deep_chain compiler codegen fixture.
+# Pins multi-statement Result if-value branches whose PREFIX statements carry
+# statement-level `?` (bind) and retkind-aware `while { …? }`: the enclosing
+# return carrier must reach those prefixes so Err early-returns from inside the
+# branch (and from a loop nested in the branch) before the shared if-result
+# temp is assigned.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Then-arm: `$n = leaf(true)?` materializes a Result temp and
+            # early-returns Err before assigning the shared if-result.
+            print(has_text($c, "gf_leaf("))
+            print(has_text($c, ".tag != 0LL)"))
+            print(has_text($c, "return (guji_res_int_str)"))
+            # Else-arm: retkind-aware while shell so an in-loop `?` can early-return.
+            print(has_text($c, "while (1)"))
+            print(has_text($c, "gf_layer1("))
+            # Shared if-result temp still assigned on the success path.
+            # Brace-escape the literal `{` so §4.3 interpolation does not eat it.
+            print(has_text($c, " = (guji_res_int_str)\{0LL, "))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

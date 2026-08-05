@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins the §15.1 `sum(@xs)` prelude lowering. `sum` folds a numeric list into a
+# single scalar: the receiver is materialized to an OWNED `guji_slice_t` (a deep
+# copy of the bound list, so releasing it is not a double-free), an accumulator is
+# seeded to zero, then each element is added in — `guji_add` for an Int list (so an
+# overflowing total panics exactly as `+` would). The source slice is released
+# after the loop. Checks the generated C carries the fold loop over the
+# materialized slice, the `guji_add` accumulation step, and the post-fold release.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "for (gi4 = 0; gi4 < gl1.len; gi4 = guji_add(gi4, 1))"))
+            print(has_text($c, "gi3 = guji_add(gi3, ((int64_t*)gl1.data)[gi4]);"))
+            print(has_text($c, "guji_release((const void*)gl1.data);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

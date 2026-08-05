@@ -1,0 +1,8 @@
+sub main(): Int {
+    $src = match read_file("missing-file") {
+        Ok($s) { $s }
+        Err($e) { note("nope") return 3 }
+    }
+    print($src)
+    0
+}

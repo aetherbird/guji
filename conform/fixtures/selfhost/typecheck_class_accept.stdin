@@ -1,0 +1,10 @@
+# E3: a well-typed class — named-arg construction + public field reads.
+class Token {
+    has $.kind: Str
+    has $.text: Str
+}
+
+sub main(): Int {
+    $t = Token(kind: "id", text: "x")
+    if $t.kind == "id" { 0 } else { 1 }
+}

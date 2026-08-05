@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P9-6b Option[List] unwrap_or fixture.
+# `%m.get(k).unwrap_or([])` materializes an owned slice: Some retains `.val.data`
+# then releases the fresh carrier; None steals the default (nulls its `.data`).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_list"))
+            print(has_text($c, "guji_retain((const void*)"))
+            print(has_text($c, ".val.data"))
+            print(has_text($c, ".data = NULL"))
+            print(has_text($c, "tag != 0LL"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

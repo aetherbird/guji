@@ -1,0 +1,3 @@
+sub main(): Int {
+  if 1e3 == 1000.0 { 1 } else { 0 }
+}

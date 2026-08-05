@@ -1,0 +1,34 @@
+# I8d2: §15.4 path helpers — write_file / append_file / read_file.
+# Truncating write, cumulative append, method-form path.write_file, and the
+# fixed OS-reason-free Err messages for a missing directory. Generated paths
+# live under /tmp so the corpus stays clean across repeated gate runs.
+sub main(): Int {
+    $wpath = "/tmp/guji_i8d2_write_file.txt"
+    write_file($wpath, "alpha\nbeta").unwrap()
+    print(read_file($wpath).unwrap())
+    write_file($wpath, "fresh").unwrap()
+    print(read_file($wpath).unwrap())
+
+    $apath = "/tmp/guji_i8d2_append_file.txt"
+    write_file($apath, "one\n").unwrap()
+    append_file($apath, "two\n").unwrap()
+    "/tmp/guji_i8d2_append_file.txt".append_file("three").unwrap()
+    print(read_file($apath).unwrap())
+
+    "/tmp/guji_i8d2_write_method.txt".write_file("gamma").unwrap()
+    print(read_file("/tmp/guji_i8d2_write_method.txt").unwrap())
+
+    match write_file("/tmp/guji_i8d2_missing_dir/out", "x") {
+        Ok(_) { print("unexpected ok") }
+        Err($e) { print($e) }
+    }
+    match append_file("/tmp/guji_i8d2_missing_dir/out", "x") {
+        Ok(_) { print("unexpected ok") }
+        Err($e) { print($e) }
+    }
+    match read_file("/tmp/guji_i8d2_absent.txt") {
+        Ok(_) { print("unexpected ok") }
+        Err($e) { print($e) }
+    }
+    0
+}

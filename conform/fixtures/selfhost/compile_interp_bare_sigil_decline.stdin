@@ -1,0 +1,8 @@
+sub main(): Int {
+    $x = 5
+    @xs = [1, 2]
+    %m = {"a": 1}
+    print("got $x @xs %m")
+    print("escaped \$x \@xs \%m lone $ @ %")
+    0
+}

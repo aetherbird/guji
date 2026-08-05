@@ -1,0 +1,33 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins the whole-list display lowering (§15.4): a list value in print/note or
+# string-interpolation position materializes to an owned slice, renders through
+# the runtime guji_list_str KIND-tag recursion (ARR_SCALAR/ARR_STR/ARR_SLICE with
+# the innermost scalar leaf tag), then releases the materialized slice and the
+# display Str. Display lives ONLY in the print sink + interpolation part lowering,
+# never in g3_str_lower, so element-kind probes cannot mistake a list for a Str.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gt3 = guji_list_str((const void*)gl1.data, gl1.len, GUJI_KIND_ARR_SCALAR, GUJI_LEAF_INT);"))
+            print(has_text($c, "guji_release((const void*)gl1.data);"))
+            print(has_text($c, "guji_print(gt3);"))
+            print(has_text($c, "guji_release(gt3);"))
+            print(has_text($c, "gt12 = guji_list_str((const void*)gl10.data, gl10.len, GUJI_KIND_ARR_STR, GUJI_LEAF_INT);"))
+            print(has_text($c, "gt13 = guji_str_cat(gt9, gt12);"))
+            print(has_text($c, "GUJI_KIND_ARR_SCALAR, GUJI_LEAF_FLOAT);"))
+            print(has_text($c, "gt22 = guji_list_str((const void*)gl21.data, gl21.len, GUJI_KIND_ARR_SLICE, GUJI_LEAF_INT);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

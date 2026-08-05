@@ -1,0 +1,37 @@
+enum Inner {
+    INone
+    ISome($s: Str)
+}
+
+enum Outer {
+    OEmpty
+    OWrap($node: Option[Inner])
+}
+
+sub use_some(): Int {
+    match OWrap(Some(ISome("x" ~ "y"))) {
+        OEmpty { 0 }
+        OWrap($node) {
+            match $node {
+                None { 1 }
+                Some($i) { 2 }
+            }
+        }
+    }
+}
+
+sub use_none(): Int {
+    match OWrap(None) {
+        OEmpty { 0 }
+        OWrap($node) {
+            match $node {
+                None { 1 }
+                Some($i) { 2 }
+            }
+        }
+    }
+}
+
+sub main(): Int {
+    return use_some() + use_none()
+}

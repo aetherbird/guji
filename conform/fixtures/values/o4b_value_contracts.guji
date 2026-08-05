@@ -1,0 +1,147 @@
+# O4b: recursive value display/equality and one canonical Str/Map order.
+# The binary stdin sidecar has two lines, "a<U+0000>b" and "c<U+0000>d".
+
+class Packet {
+    has $.z: Int
+    has $!secret: Str
+    has @.items: List[Int]
+    has %.lookup: Map[Str, List[Int]]
+}
+
+enum Wrapped {
+    Empty
+    Full($packet: Packet, @labels: List[Str])
+}
+
+sub main(): Int {
+    @input = stdin.slurp().lines()
+    print(@input.count())
+    $nul_key: Str = @input[0]
+
+    @nested = [{"z": [3], "a": [1, 2]}]
+    @nested_same = [{"a": [1, 2], "z": [3]}]
+    @nested_other = [{"a": [1, 9], "z": [3]}]
+    print(@nested)
+    print(@nested == @nested_same)
+    print(@nested != @nested_other)
+
+    $packet = Packet(
+        z: 9,
+        secret: "s",
+        items: [1, 2],
+        lookup: {"b": [2, 3], "a": [1]}
+    )
+    $packet_same = Packet(
+        z: 9,
+        secret: "s",
+        items: [1, 2],
+        lookup: {"a": [1], "b": [2, 3]}
+    )
+    $packet_other = Packet(
+        z: 9,
+        secret: "different",
+        items: [1, 2],
+        lookup: {"a": [1], "b": [2, 3]}
+    )
+    print($packet)
+    print($packet == $packet_same)
+    print($packet != $packet_other)
+
+    $wrapped = Full($packet, ["x", "y"])
+    print($wrapped)
+    print(Empty)
+    print($wrapped == Full($packet_same, ["x", "y"]))
+    print($wrapped != Full($packet_same, ["x", "z"]))
+
+    %escaped = {
+        "tab\t": 4,
+        "q\"": 2,
+        "slash\\": 3,
+        "line\n": 1
+    }
+    @escaped_order: List[Str] = ["line\n", "q\"", "slash\\", "tab\t"]
+    print(%escaped)
+    print(%escaped.keys() == @escaped_order)
+    print(%escaped.values())
+    mut $escaped_walk = ""
+    for $key, $value in %escaped {
+        $escaped_walk = $escaped_walk ~ "{ $value }|"
+    }
+    print($escaped_walk)
+    $control_key = match run("printf", ["\\a\\b\\v\\f\\r\\001\\177é"]) {
+        Ok($p) { $p.stdout }
+        Err($e) { "" }
+    }
+    print({$control_key: 5})
+
+    print($nul_key == $nul_key)
+    print($nul_key == "a")
+    print("a" < $nul_key)
+    print($nul_key < "b")
+    @one_nul: List[Str] = [$nul_key]
+    @one_a: List[Str] = ["a"]
+    @one_nul_copy: List[Str] = [@input[0]]
+    print(@one_nul == @one_a)
+    print(@one_nul == @one_nul_copy)
+    print(["a"].contains($nul_key))
+    print(@one_a.contains($nul_key))
+    print(match $nul_key {
+        "a" { "bad-prefix" }
+        _ { "pattern-exact" }
+    })
+    print(split($nul_key, "").count())
+    print(match "é" ~~ /^\w$/ {
+        Some($m) { "regex-unicode" }
+        None { "regex-bad" }
+    })
+    match $nul_key ~~ /^.*$/ {
+        Some($left) {
+            match "a" ~~ /^.*$/ {
+                Some($right) { print($left != $right) }
+                None { print(false) }
+            }
+        }
+        None { print(false) }
+    }
+    match read_file($nul_key) {
+        Ok($text) { print(false) }
+        Err($e) { print($e == ("cannot read file: " ~ $nul_key)) }
+    }
+    @no_args: List[Str] = []
+    match run($nul_key, @no_args) {
+        Ok($proc) { print(false) }
+        Err($e) { print($e == ("cannot run command: " ~ $nul_key)) }
+    }
+    match run("printf", [$nul_key]) {
+        Ok($proc) { print(false) }
+        Err($e) { print($e == "cannot run command: printf") }
+    }
+
+    %nul_map = {$nul_key: 2, "b": 3, "a": 1}
+    %nul_map_same = {"a": 1, $nul_key: 2, "b": 3}
+    @nul_order: List[Str] = ["a", $nul_key, "b"]
+    print(%nul_map)
+    print(%nul_map["a"])
+    print(%nul_map[$nul_key])
+    print(%nul_map == %nul_map_same)
+    print(%nul_map.keys() == @nul_order)
+    print(%nul_map.values())
+    mut $nul_walk = ""
+    for $key, $value in %nul_map {
+        $nul_walk = $nul_walk ~ "{ $value }|"
+    }
+    print($nul_walk)
+    print(%nul_map.has_key($nul_key))
+    print(%nul_map.get($nul_key).unwrap())
+
+    %updated = %nul_map.set($nul_key, 9)
+    print(%updated)
+    print(%nul_map.get($nul_key).unwrap())
+    %removed = %updated.remove($nul_key)
+    print(%removed)
+    print(%removed.has_key($nul_key))
+
+    @sorted = [$nul_key, "b", "a"].sort()
+    print(@sorted == @nul_order)
+    0
+}

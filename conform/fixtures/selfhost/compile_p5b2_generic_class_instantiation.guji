@@ -1,0 +1,34 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Concrete generic class annotations materialize ordinary class specs.
+            print(has_text($c, "typedef struct Pair__Str_Int Pair__Str_Int;"))
+            print(has_text($c, "struct Pair__Str_Int"))
+            print(has_text($c, "const char* f0;"))
+            print(has_text($c, "int64_t f1;"))
+            print(has_text($c, "typedef struct Pair__Int_Str Pair__Int_Str;"))
+            print(has_text($c, "static const char* gf_label(Pair__Str_Int gp0)"))
+            print(has_text($c, "static const char* gf_flip_label(Pair__Int_Str gp0)"))
+            # Constructors keep the template spelling in source but materialize
+            # concrete spec temps before the by-value call.
+            print(has_text($c, " = (Pair__Str_Int)"))
+            print(has_text($c, "gf_label(gc"))
+            print(has_text($c, " = (Pair__Int_Str)"))
+            print(has_text($c, "gf_flip_label(gc"))
+            # The generic template itself is skipped by typedef emission.
+            print(has_text($c, "typedef struct Pair Pair;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,7 @@
+# Unary negation of a Str-arg call result, composed with arithmetic.
+sub score($s: Str): Int {
+    if $s == "ok" { 7 } else { 3 }
+}
+sub main(): Int {
+    -score("ok") + 100
+}

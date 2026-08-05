@@ -1,0 +1,20 @@
+# I8d bootstrap boundary: mixed enum storage owns a real Handle.
+enum FileValue {
+    Empty
+    Text($text: Str)
+    Opened($handle: Handle)
+}
+
+sub use($value: FileValue): Str {
+    match $value {
+        Empty { "empty" }
+        Text($text) { $text }
+        Opened($handle) { $handle.slurp() }
+    }
+}
+
+sub main(): Int {
+    $value = Opened(open("input.txt").unwrap())
+    print(use($value))
+    0
+}

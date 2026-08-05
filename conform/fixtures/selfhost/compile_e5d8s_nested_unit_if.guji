@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 5 E5d-8s compiler codegen fixture.
+# Pins a statement-position Unit `if`/`else if`/`else` used as a leading
+# non-final statement inside nested blocks: first inside a value-producing if
+# branch, then inside a statement-match arm.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_branch_value"))
+            print(has_text($c, 'if (gp0) {'))
+            print(has_text($c, 'if (gp1) {'))
+            print(has_text($c, "gi1 = guji_add(gv0, 4LL);"))
+            print(has_text($c, "ge1 = gp0;"))
+            print(has_text($c, 'if ((ge1.tag == 0LL)) {'))
+            print(has_text($c, '} else if ((ge1.tag == 1LL)) {'))
+            print(has_text($c, "gv0 = guji_add(gv0, 5LL);"))
+            print(has_text($c, "gv0 = guji_add(gv0, 11LL);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,48 @@
+# A channel message whose first enum boxes a later enum, while that later enum
+# embeds the first by value. Both hatch capture and channel send must deep-clone
+# the complete mutually-recursive graph; sharing either counted Ret box would
+# cross a task boundary with a non-atomic refcount.
+enum Kind {
+    Number($value: Int)
+    Deferred($ret: Ret)
+}
+
+enum Ret {
+    Text($value: Str)
+    Again($kind: Kind)
+}
+
+sub score_kind($kind: Kind): Int {
+    match $kind {
+        Number($value) { $value }
+        Deferred($ret) { 10 + score_ret($ret) }
+    }
+}
+
+sub score_ret($ret: Ret): Int {
+    match $ret {
+        Text(_) { 10 }
+        Again($kind) { 20 + score_kind($kind) }
+    }
+}
+
+sub main(): Int {
+    $messages: Chan[Kind] = channel(2)
+    $done: Chan[Int] = channel()
+    $source = Deferred(Again(Deferred(Text("deep" ~ "-value"))))
+
+    hatch {
+        $messages.send($source)
+        # This detached graph remains buffered until channel teardown.
+        $messages.send(Deferred(Again(Number(99))))
+        $done.send(1)
+    }
+
+    $received = $messages.recv().unwrap()
+    $waited = $done.recv().unwrap()
+    print($received)
+    print(score_kind($received))
+    print($received == $source)
+    print(score_kind($source))
+    0
+}

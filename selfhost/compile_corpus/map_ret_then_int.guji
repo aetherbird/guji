@@ -1,0 +1,7 @@
+sub mk(): Map[Str, Int] {
+    {"a": 10, "b": 20}
+}
+sub main(): Int {
+    print(mk())
+    3
+}

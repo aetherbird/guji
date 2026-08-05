@@ -1,0 +1,21 @@
+sub apply[T]($f, $x: T): T {
+    $f($x)
+}
+
+sub apply_twice[T]($f, $x: T): T {
+    apply($f, apply($f, $x))
+}
+
+sub main(): Int {
+    $inc = sub($n: Int): Int { $n + 1 }
+    print(apply($inc, 10))
+    print(apply_twice($inc, 10))
+
+    $bang = sub($s: Str): Str { $s ~ "!" }
+    print(apply($bang, "go"))
+
+    $flip = sub($b: Bool): Bool { !$b }
+    print(apply($flip, true))
+
+    0
+}

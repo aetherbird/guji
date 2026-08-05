@@ -1,0 +1,5 @@
+# An unescaped opening brace must contain a complete expression and closing brace.
+sub main(): Int {
+    print("value={ 1 + 2")
+    0
+}

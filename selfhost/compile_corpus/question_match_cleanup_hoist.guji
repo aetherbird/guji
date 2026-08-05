@@ -1,0 +1,81 @@
+# Slice 6 P3b-2b-2c-4f: `?` bind/reassign statements inside statement-match
+# arms whose scrutinee is a fresh owned enum value. The `?` early-return path
+# must release that scrutinee temp before returning from the enclosing sub.
+
+enum Item { Label($s: Str), Empty }
+
+sub make_item($s: Str, $b: Bool): Item {
+    if $b { Label("item:" ~ $s) } else { Empty }
+}
+
+sub tag_s($s: Str): Result[Str, Str] {
+    if $s == "" { Err("empty") } else { Ok("tag:" ~ $s) }
+}
+
+sub direct($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 0
+    match make_item($s, $b) {
+        Label($label) {
+            print("direct label { $label }")
+            $n = parse_int($s)?
+            return Ok($n + 10)
+        }
+        Empty { $r = 3 }
+    }
+    Ok($r)
+}
+
+sub hoisted($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 0
+    match make_item($s, $b) {
+        Label($label) {
+            print("hoist label { $label }")
+            $n = parse_int($s)? + 1
+            $r = $n * 2
+        }
+        Empty { $r = 4 }
+    }
+    Ok($r)
+}
+
+sub reassigned($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 7
+    match make_item($s, $b) {
+        Label($label) {
+            print("reassign label { $label }")
+            $r = parse_int($s)? + 2
+        }
+        Empty { $r = 5 }
+    }
+    Ok($r)
+}
+
+sub strpayload($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 0
+    match make_item($s, $b) {
+        Label($label) {
+            print("str label { $label }")
+            $t = tag_s($s)?
+            print("tagged { $t }")
+            $r = 6
+        }
+        Empty { $r = 8 }
+    }
+    Ok($r)
+}
+
+sub main(): Int {
+    match direct("5", true) { Ok($a) { print("di ok { $a }") } Err($e) { print("di err { $e }") } }
+    match direct("x", true) { Ok($b) { print("dix ok { $b }") } Err($e2) { print("dix err { $e2 }") } }
+    match direct("7", false) { Ok($c) { print("die ok { $c }") } Err($e3) { print("die err { $e3 }") } }
+    match hoisted("4", true) { Ok($d) { print("ho ok { $d }") } Err($e4) { print("ho err { $e4 }") } }
+    match hoisted("q", true) { Ok($f) { print("hoq ok { $f }") } Err($e5) { print("hoq err { $e5 }") } }
+    match hoisted("4", false) { Ok($g) { print("hoe ok { $g }") } Err($e6) { print("hoe err { $e6 }") } }
+    match reassigned("8", true) { Ok($h) { print("ra ok { $h }") } Err($e7) { print("ra err { $e7 }") } }
+    match reassigned("z", true) { Ok($i) { print("raz ok { $i }") } Err($e8) { print("raz err { $e8 }") } }
+    match reassigned("8", false) { Ok($j) { print("rae ok { $j }") } Err($e9) { print("rae err { $e9 }") } }
+    match strpayload("ab", true) { Ok($k) { print("st ok { $k }") } Err($ea) { print("st err { $ea }") } }
+    match strpayload("", true) { Ok($l) { print("ste ok { $l }") } Err($eb) { print("ste err { $eb }") } }
+    match strpayload("", false) { Ok($m) { print("stf ok { $m }") } Err($ec) { print("stf err { $ec }") } }
+    54
+}

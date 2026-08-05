@@ -1,0 +1,88 @@
+# Chan[Result[Match|Regex|Bush, Str]] -- counted-pointer Ok payloads over
+# channels (H4c-rest, sec 17). Sends are copy-on-send: the active Ok pointer
+# payload is deep-copied into a detached message, while Err(Str) is also copied
+# through the carrier-Str path. Each channel leaves one buffered Ok message
+# undelivered so elem_drop must release the copied Ok graph/buffer under LSan.
+
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub classify_match($s: Str): Result[Match, Str] {
+    match ($s ~~ /(?<a>\w+)-(?<b>\w+)/) {
+        Some($m) { Ok($m) }
+        None { Err("no-match") }
+    }
+}
+
+sub classify_regex($s: Str): Result[Regex, Str] {
+    if $s == "bad" {
+        Err("no-regex")
+    } else {
+        Ok(Regex.literal($s))
+    }
+}
+
+sub classify_bush($s: Str): Result[Bush, Str] {
+    match Pair.parse($s) {
+        Some($b) { Ok($b) }
+        None { Err("no-bush") }
+    }
+}
+
+sub main(): Int {
+    $match_ch: Chan[Result[Match, Str]] = channel(3)
+    $match_ch.send(classify_match("aa-bb"))
+    $match_ch.send(classify_match("zzz"))
+    $match_ch.send(classify_match("cc-dd"))
+
+    $match_one = $match_ch.recv().unwrap()
+    print(match $match_one {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+
+    $match_two = $match_ch.recv().unwrap()
+    print(match $match_two {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+
+    $regex_ch: Chan[Result[Regex, Str]] = channel(3)
+    $regex_ch.send(classify_regex("a.b"))
+    $regex_ch.send(classify_regex("bad"))
+    $regex_ch.send(classify_regex("drop"))
+
+    $regex_one = $regex_ch.recv().unwrap()
+    match $regex_one {
+        Ok($r) { print($r) }
+        Err($e) { print($e) }
+    }
+
+    $regex_two = $regex_ch.recv().unwrap()
+    match $regex_two {
+        Ok($r) { print($r) }
+        Err($e) { print($e) }
+    }
+
+    $bush_ch: Chan[Result[Bush, Str]] = channel(3)
+    $bush_ch.send(classify_bush("ll-rr"))
+    $bush_ch.send(classify_bush("bad"))
+    $bush_ch.send(classify_bush("xx-yy"))
+
+    $bush_one = $bush_ch.recv().unwrap()
+    print(match $bush_one {
+        Ok($b) { $b.text }
+        Err($e) { $e }
+    })
+
+    $bush_two = $bush_ch.recv().unwrap()
+    print(match $bush_two {
+        Ok($b) { $b.text }
+        Err($e) { $e }
+    })
+
+    0
+}

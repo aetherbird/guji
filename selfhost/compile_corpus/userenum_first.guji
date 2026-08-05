@@ -1,0 +1,16 @@
+enum Dir {
+    North
+    East
+    South
+    West
+}
+
+sub main(): Int {
+    $d: Dir = North
+    match $d {
+        North { 10 }
+        East { 20 }
+        South { 30 }
+        West { 40 }
+    }
+}

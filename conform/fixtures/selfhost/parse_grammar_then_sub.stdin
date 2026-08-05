@@ -1,0 +1,7 @@
+grammar G {
+    token x { 'a' }
+}
+
+sub main(): Int {
+    0
+}

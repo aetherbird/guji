@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 5 E5d-7c-2 compiler codegen fixture.
+# Pins the generated-C shape for a SLICE-BACKED list local bound from a call: the
+# `args()` prelude lowering (`guji_args` + the slice `.data` assignment) and the
+# function-exit release of the owned slice. This is the codegen the driver's
+# `@argv = args()` / `@argv[0]` / `if @argv.count() < 3` collection binding needs.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_args(&"))
+            print(has_text($c, ".data = (void*)guji_args"))
+            print(has_text($c, "guji_release((const void*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

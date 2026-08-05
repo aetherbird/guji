@@ -1,0 +1,64 @@
+# Option[Map[Str, scalar|Str]] value construct + match-binding + RC ownership
+# (H4c-rest). A counted Map carrier payload owns two arrays (`.val.keys` and
+# `.val.vals`): Some(%m) deep-copies the source into fresh owned storage, a
+# binding/sub-return transfers that +1, a match BORROWS it, and a discarded or
+# rebound carrier releases both arrays. The sanitizer gate is the memory oracle.
+
+sub wrap_counts(%m: Map[Str, Int]): Option[Map[Str, Int]] {
+    Some(%m)
+}
+
+sub wrap_words(%m: Map[Str, Str]): Option[Map[Str, Str]] {
+    Some(%m)
+}
+
+sub empty_counts(): Option[Map[Str, Int]] {
+    None
+}
+
+sub main(): Unit {
+    %counts = {"a": 10, "b": 20}
+    $a: Option[Map[Str, Int]] = Some(%counts)
+    print(match $a {
+        Some(%m) { %m{"a"} + %m{"b"} }
+        None { 0 }
+    })
+
+    %words = {"first": "alpha", "second": "beta"}
+    $w: Option[Map[Str, Str]] = Some(%words)
+    print(match $w {
+        Some(%m) { %m{"first"} ~ "-" ~ %m{"second"} }
+        None { "none" }
+    })
+
+    $none: Option[Map[Str, Int]] = None
+    print(match $none {
+        Some(%m) { %m{"a"} }
+        None { -1 }
+    })
+
+    $r = wrap_counts(%counts)
+    print(match $r {
+        Some(%m) { %m{"b"} }
+        None { 0 }
+    })
+
+    $rw = wrap_words(%words)
+    print(match $rw {
+        Some(%m) { %m{"second"} }
+        None { "none" }
+    })
+
+    # Discarded carrier results must release their fresh key/value arrays.
+    wrap_counts(%counts)
+    wrap_words(%words)
+
+    # mut rebind releases the old map payload before storing the new one.
+    mut $cur: Option[Map[Str, Int]] = wrap_counts(%counts)
+    $cur = empty_counts()
+    $cur = wrap_counts({"a": 1, "b": 2})
+    print(match $cur {
+        Some(%m) { %m{"a"} + %m{"b"} }
+        None { 0 }
+    })
+}

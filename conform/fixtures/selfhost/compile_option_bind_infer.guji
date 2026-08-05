@@ -1,0 +1,29 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# Pins the unannotated Option-carrier bind inference (g6_option_kind_from_value):
+# `$o = wrap(21)` / `$s = find_name("a")` / `$f = half(5.0)` declare inferred
+# guji_opt_int / guji_opt_str / guji_opt_float locals with NO `: Option[T]`
+# annotation in the source, and a generic Option-returning spec call
+# (`wrap_opt(33)`) routes through the same inference to the monomorphized
+# gf_wrap_opt__Int_Option_int spec.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_int gv"))
+            print(has_text($c, "guji_opt_str gv"))
+            print(has_text($c, "guji_opt_float gv"))
+            print(has_text($c, "gf_wrap_opt__Int_Option_int(33LL)"))
+            print(has_text($c, "gf_wrap_opt("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

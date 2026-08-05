@@ -1,0 +1,8 @@
+# G7-c-2b-ii-b: two reassignments in a row exercise the alloc/release balance
+# across multiple rebinds of a Float-value map.
+sub main() {
+    mut %m: Map[Str, Float] = {"a": 1.5}
+    %m = {"b": 2.5}
+    %m = {"c": 3.5, "d": 4.5}
+    print(%m)
+}

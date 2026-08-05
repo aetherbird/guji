@@ -1,0 +1,30 @@
+# Spec §15.5: extraction is data-first, eager, and preserves the carried value.
+# Both spellings are pinned, along with bound and fresh carrier receivers.
+sub some_int($n: Int): Option[Int] { Some($n) }
+sub none_int(): Option[Int] { None }
+sub ok_str($s: Str): Result[Str, Str] { Ok($s) }
+sub err_str($s: Str): Result[Str, Str] { Err($s) }
+
+sub main(): Int {
+    $some: Option[Int] = some_int(5)
+    $none: Option[Int] = none_int()
+    $ok: Result[Str, Str] = ok_str("y" ~ "es")
+    $err: Result[Str, Str] = err_str("b" ~ "ad")
+
+    print("{ $some.unwrap() }|{ unwrap($some) }")
+    print("{ $some.expect('need') }|{ expect($some, 'need') }")
+    print("{ $some.unwrap_or(9) }|{ unwrap_or($none, 9) }")
+
+    print($ok.unwrap())
+    print(unwrap($ok) ~ "!")
+    print($ok.expect("need") ~ "|" ~ expect($ok, "need"))
+    print($ok.unwrap_or("x") ~ "|" ~ unwrap_or($err, "fallback"))
+
+    # Result fallback receives Err; the Ok branch never invokes its callback.
+    print($err.unwrap_or_else(sub($e: Str): Str { $e ~ "!" }))
+    print(unwrap_or_else($ok, sub($e: Str): Str { "never" }))
+
+    # Fresh carriers exercise the same semantics without a bound local.
+    print("{ parse_int('8').unwrap_or(0) }|{ unwrap_or(parse_int('x'), 7) }")
+    0
+}

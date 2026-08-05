@@ -1,0 +1,52 @@
+# E5d-8u: a NON-FINAL local binding whose RHS is a value-position `if`
+# producing a user-enum carrier, then consumed downstream. This is the real
+# `check_stmt_t2` shape (`$final_ty = if is_unknown($bound) { $actual } else
+# { $bound }`) reduced to a native-accepted recursive enum.
+#
+# The binding-kind inference reads the branch result expressions; the RHS then
+# lowers through the already-existing value-position enum-if path. The `else if`
+# branch is intentionally unreachable at runtime but still codegenerated.
+
+enum Ty {
+    TName($name: Str)
+    TFun($param: Ty, $ret: Ty)
+}
+
+enum SymTable {
+    STNil
+    STCons($sym: Ty, $tail: SymTable)
+}
+
+sub ty_score($t: Ty): Int {
+    match $t {
+        TName($s) { if $s == "base" { 1 } else { 2 } }
+        TFun($p, $r) { 10 + ty_score($p) + ty_score($r) }
+    }
+}
+
+sub table_score($t: SymTable): Int {
+    match $t {
+        STNil { 0 }
+        STCons($s, $rest) { ty_score($s) + table_score($rest) }
+    }
+}
+
+sub bind_final($use_bound: Bool, $bound: Ty, $actual: Ty, $tail: SymTable): SymTable {
+    $final = if $use_bound {
+        $bound
+    } else if false {
+        TFun(TName("skip"), $bound)
+    } else {
+        TFun($actual, $bound)
+    }
+    STCons($final, $tail)
+}
+
+sub main(): Int {
+    $base = TName("base")
+    $alt = TName("alt")
+    $t1 = bind_final(true, $base, $alt, STNil)
+    $t2 = bind_final(false, $base, $alt, $t1)
+    print("enum-if-bind")
+    table_score($t2)
+}

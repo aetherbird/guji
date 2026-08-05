@@ -1,0 +1,7 @@
+# G7-c-2b-ii-b: reassigned Str values from a concat are owned temps moved into the
+# array, proving retained Str values are released exactly once on scope exit.
+sub main() {
+    mut %m: Map[Str, Str] = {"k": "old"}
+    %m = {"k": "ab" ~ "cd"}
+    print(%m)
+}

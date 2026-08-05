@@ -1,0 +1,17 @@
+enum IntList {
+    INil
+    ICons($head: Int, $tail: IntList)
+}
+
+sub describe($xs: IntList): Str {
+    match $xs {
+        INil { "empty" }
+        ICons($h, INil) { "one" }
+        ICons($h, $rest) { "many" }
+    }
+}
+
+sub main(): Int {
+    print(describe(ICons(1, INil)))
+    0
+}

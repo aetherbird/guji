@@ -1,0 +1,7 @@
+# §6.3: a scalar Int is not one of the specified iterable shapes.
+sub main(): Int {
+    for $value in 5 {
+        print($value)
+    }
+    0
+}

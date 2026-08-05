@@ -1,0 +1,54 @@
+#[
+  G2b: generic subs that RETURN a scalar-element List[T] monomorphize natively.
+  The callee heap-copies its list into a guji_slice_t so the result outlives the
+  call frame; the caller views it as a borrowed list and can bind, index,
+  iterate, count, and aggregate it. Covers Int/Str/Float instantiations, a
+  transitive generic->generic list return, a list result passed as an argument,
+  and a non-generic List-returning helper exercising the same return ABI.
+]#
+
+sub pair[T]($a: T, $b: T): List[T] {
+    [$a, $b]
+}
+
+sub wrap[T]($x: T): List[T] {
+    [$x]
+}
+
+# A generic body that calls another generic list-returning sub (transitive
+# monomorphization) and returns a freshly built list.
+sub twice[T]($x: T): List[T] {
+    @inner = wrap($x)
+    $head = @inner[0]
+    @out = [$x, $head]
+    @out
+}
+
+# A non-generic List[Int]-returning sub consuming a generic list result as its
+# argument, exercising the return ABI without monomorphization.
+sub sum_list(@xs: List[Int]): Int {
+    @xs.sum()
+}
+
+sub main(): Int {
+    @p = pair(3, 4)
+    print(@p[0])
+    print(@p[1])
+    print(@p.count())
+
+    @t = twice(7)
+    print(@t.count())
+    print(@t[1])
+
+    @names = pair("ada", "bob")
+    for $name in @names {
+        print($name)
+    }
+
+    @floats = wrap(2.5)
+    print(@floats[0])
+
+    print(sum_list(wrap(9)))
+    print(sum_list(pair(10, 20)))
+    0
+}

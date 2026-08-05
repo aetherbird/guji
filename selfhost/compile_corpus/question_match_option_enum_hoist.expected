@@ -1,0 +1,18 @@
+opt ok 39
+opt err invalid integer: zap
+opt none 1
+multi ok 36
+multi err invalid integer: boom
+optstr ok hi:tag/go:n!
+optstr none none!
+optstr err bad
+enumstr ok hi:tag/x:t
+enumstr anon anon
+enumstr err bad
+reassign ok 32
+reassign err invalid integer: boom
+reassign fail 10
+guard ok 17
+guard low 6
+guard err invalid integer: boom
+bool ok true

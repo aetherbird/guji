@@ -1,0 +1,5 @@
+sub main(): Int {
+    $a = "x" ~~ /a\/b[\/]/
+    $b = "y" ~~ /<{ Regex.literal("b/c") }>d/
+    0
+}

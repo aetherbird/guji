@@ -1,0 +1,3 @@
+sub main(): Int {
+  if 1.5 < 2.5 { 1 } else { 0 }
+}

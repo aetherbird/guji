@@ -1,0 +1,37 @@
+# Section 17 native channel send/recv for recursive-box enum payloads.
+#
+# A recursive enum stores child Tree payloads as RC boxes. Sending Tree across a
+# channel must deep-clone that boxed graph, not retain/share it with the sender's
+# per-task heap. The source binding is rebound after send; the received message
+# must still decode the original tree and release cleanly under LSan.
+enum Tree {
+    Leaf($name: Str, $value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf(_, $v) { $v }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub names($t: Tree): Str {
+    match $t {
+        Leaf($n, _) { $n }
+        Node($l, $r) { names($l) ~ names($r) }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Tree] = channel(1)
+    mut $t = Node(Leaf("a", 1), Node(Leaf("b", 2), Leaf("c", 3)))
+    $ch.send($t)
+    $t = Leaf("z", 99)
+
+    $got = $ch.recv().unwrap()
+    print("{ sum($got) }")
+    print(names($got))
+    print("{ sum($t) }")
+    print(names($t))
+}

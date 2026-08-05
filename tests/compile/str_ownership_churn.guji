@@ -1,0 +1,74 @@
+# RC1.1b: Str binding ownership — alias retains, mut-rebind releases,
+# escape-suppressed releases, owned sub returns (fresh and alias-shaped),
+# pattern-capture borrows. The sanitizer gate (GUJI_GATE_SANITIZE=1) is the
+# memory oracle for this fixture: a wrong release here is a use-after-free or
+# double-free, not just a leak.
+
+sub shout($w: Str): Str {
+    $w.upper()
+}
+
+sub pass($w: Str): Str {
+    $w
+}
+
+sub pick($a: Str, $b: Str, $flip: Bool): Str {
+    if $flip { $a } else { $b }
+}
+
+sub describe($name: Str, $n: Int): Str {
+    mut $acc = ""
+    mut $i = 0
+    while $i < $n {
+        $acc = $acc ~ $name
+        $i = $i + 1
+    }
+    $acc
+}
+
+sub main(): Unit {
+    $base = "  Guji  "
+    $t = $base.trim()
+    $u = $t
+    $v = shout($u)
+    $w = pass($v)
+    $x = pick($w, $u, true)
+    print($x)
+
+    mut $acc = ""
+    mut $i = 0
+    while $i < 3 {
+        $acc = $acc ~ $t
+        $i = $i + 1
+    }
+    print($acc)
+
+    # Escape into a list, then rebind: the stored value must stay readable.
+    mut $s = "keep".upper()
+    @kept = [$s, $s]
+    $s = "other".upper()
+    print(@kept[0])
+    print($s)
+
+    # Self-referential rebind chain.
+    mut $trimmed = "  pad  "
+    $trimmed = $trimmed.trim()
+    $trimmed = $trimmed ~ "!"
+    print($trimmed)
+
+    # Pattern capture borrows the payload; aliasing it retains.
+    $o: Option[Str] = Some($t)
+    match $o {
+        Some($got) {
+            $copy = $got
+            print(pass($copy))
+        }
+        None { print("none") }
+    }
+
+    # Conditional binding: both branches assign the same owned local.
+    $c = if $i > 2 { "big".upper() } else { "small" }
+    print($c)
+
+    print(describe("ab", 2))
+}

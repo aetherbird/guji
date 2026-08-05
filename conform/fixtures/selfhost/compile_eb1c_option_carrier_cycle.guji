@@ -1,0 +1,34 @@
+# gujiconform - EB-1c cyclic Option-carrier boxes.
+# A field stored as Option[user] is itself an inline carrier; if the wrapped user
+# type reaches back to the owner, that carrier must be heap-boxed rather than embedded
+# by value. Pins both class-field (`Node.next: Option[Node]`) and enum-field
+# (`Expr.EIf(Option[StmtList])`) storage, allocation, drop-table, and dereferenced
+# match reads.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct guji_opt_Node* f0;"))
+            print(has_text($c, 'typedef struct guji_opt_Node {'))
+            print(has_text($c, "#define GUJI_KIND_opt_Node 12"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_opt_Node, 0, sizeof(guji_opt_Node))"))
+            print(has_text($c, "guji_drop_opt_Node, /* GUJI_KIND_opt_Node */"))
+            print(has_text($c, "go0 = (*(gp0.f0));"))
+            print(has_text($c, "struct guji_opt_StmtList* f0;"))
+            print(has_text($c, "#define GUJI_KIND_opt_StmtList 17"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_opt_StmtList, 0, sizeof(guji_opt_StmtList))"))
+            print(has_text($c, "guji_drop_opt_StmtList, /* GUJI_KIND_opt_StmtList */"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

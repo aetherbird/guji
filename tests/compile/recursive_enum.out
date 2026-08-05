@@ -1,0 +1,8 @@
+sum: 10
+depth: 3
+left node sums 3
+left leaf 7, right sums 8
+leaf 5
+list sum: 6
+pair start: true
+pair start: false

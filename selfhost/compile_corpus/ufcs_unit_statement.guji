@@ -1,0 +1,9 @@
+# Unit-returning UFCS calls are valid standalone statements.
+sub emit($s: Str): Unit {
+    print($s)
+}
+
+sub main(): Int {
+    "ok".emit()
+    0
+}

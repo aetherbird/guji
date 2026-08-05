@@ -1,0 +1,56 @@
+# A-collection-elements-rest (enum List-payload slice): a flat List of enum
+# values whose payloads include a flat List[scalar|Str] now lowers to a counted
+# heap array (GUJI_KIND_<Enum>_ARR) whose drop releases each element's payload
+# fields (including the inner slice storage). Proves construction (fresh
+# constructor temps AND a non-fresh alias element), .count(), for-loop iteration
+# with `match` reading the List payload as a borrowed view (.count()/.sum()), and
+# clean release under LeakSanitizer. The List payloads are HEAP-allocated at
+# runtime (`~` concat element, multi-element arrays), so the per-element
+# retain/release balances exactly — an immortal literal would hide leaks/
+# double-frees. (Map[Str,…] payloads wait on a separate map key-string release
+# fix; see fix_plan.)
+
+enum Node {
+    Leaf($nums: List[Int])
+    Word($parts: List[Str])
+    Empty
+}
+
+sub main(): Int {
+    @nodes = [Leaf([1, 2, 3]), Word(["a" ~ "b", "c"]), Empty]
+    print(@nodes.count())
+
+    # for-loop borrows each element; match reads the List payload as a view.
+    mut $sum = 0
+    for $n in @nodes {
+        $v = match $n {
+            Leaf($xs) { $xs.sum() }
+            Word($ps) { $ps.count() }
+            Empty { 0 }
+        }
+        $sum = $sum + $v
+    }
+    print($sum)
+
+    # Non-fresh (alias) element: an existing value reused inside a literal. The
+    # array copies the struct by value, so it must retain its OWN +1 on the List
+    # payload; the array drop and $g's own end-of-scope release balance it.
+    $g = Leaf([10, 20])
+    @more = [$g, Word(["x" ~ "1", "y", "z"])]
+    print(@more.count())
+    for $mm in @more {
+        $w = match $mm {
+            Leaf($ys) { $ys.count() }
+            Word($qs) { $qs.count() }
+            Empty { 0 }
+        }
+        print($w)
+    }
+    $gc = match $g {
+        Leaf($zs) { $zs.sum() }
+        Word($rs) { 0 }
+        Empty { 0 }
+    }
+    print($gc)
+    0
+}

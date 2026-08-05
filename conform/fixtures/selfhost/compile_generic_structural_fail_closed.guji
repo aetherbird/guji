@@ -1,0 +1,42 @@
+import lexer
+
+# The structural prepass must infer a child if-value without reusing the outer
+# tag, and preserve wrappers that belong to a higher-order type argument. These
+# formerly declined programs are both spec-valid and must compile.
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub check($src: Str, $spec: Str): Str {
+    match lexer::compile_program_c($src) {
+        Ok($c) { if has_text($c, "struct " ~ $spec) { "compiled" } else { "wrong-spec" } }
+        Err($e) { "declined" }
+    }
+}
+
+sub main(): Int {
+    print(check(
+        'class ListBox[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    @same: List[Int] = [1]' ~ "\n" ~
+        '    if true {' ~ "\n" ~
+        '        @same = if true { ["inner"] } else { ["other"] }' ~ "\n" ~
+        '        $box = ListBox(items: @same)' ~ "\n" ~
+        '        print($box.items)' ~ "\n" ~
+        '    }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "ListBox__List_Str"
+    ))
+    print(check(
+        'class ListBox[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    @rows: List[List[Int]] = [[1, 2]]' ~ "\n" ~
+        '    $box = ListBox(items: @rows)' ~ "\n" ~
+        '    print($box.items)' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "ListBox__List_List_Int"
+    ))
+    0
+}

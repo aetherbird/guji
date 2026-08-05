@@ -1,0 +1,11 @@
+# EB-3 divergence: unknown / non-decoded string escapes must lower exactly like the
+# Go lexer's `interpolate` (eval.go) — the backslash is KEPT for any escape that is
+# not one of \n \t \\ \" \$ \@ \% \{. The only brace special-case is `\{` -> `{`;
+# `\}` stays backslash+`}`. Before the decode_escape / g3 fix, a self-compiled `"\r"`
+# constant collapsed to the bare letter `r`, so the C/JSON escapers' carriage-return
+# branch went live and `guji2c` diverged from the interpreter on its OWN source.
+sub main(): Int {
+    print("cr:\rZ unk:\zX brace-open:\{lit\} pct:\% at:\@ dollar:\$")
+    print("tab:\tend back:\\ quote:\"")
+    0
+}

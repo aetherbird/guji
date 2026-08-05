@@ -1,0 +1,18 @@
+# P1c-b (§7.4): a lambda that CAPTURES enclosing scalar locals by value. Native
+# lowers the capture set to a `genv_lambda_N` struct allocated with
+# GUJI_KIND_ENV, fills it from the enclosing locals, and stores the pointer in
+# `guji_fn_t.env`; the lifted function reads `genv->capI`. This slice mirrors that
+# for scalar Int/Bool captures called directly through the binding. Function-valued
+# parameters remain the next P1c slice.
+sub main(): Int {
+    $base = 10
+    $step = 3
+    $flag = true
+    $f = sub($n: Int): Int { if $flag { $n + $base + $step } else { $n } }
+    print("{ $f(5) }")
+    print("{ $f(100) }")
+    $step2 = 0 - 4
+    $g = sub($n: Int): Int { $n + $step2 }
+    print("{ $g(20) }")
+    $f(0) + $g(0)
+}

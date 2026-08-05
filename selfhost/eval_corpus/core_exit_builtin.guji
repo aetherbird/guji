@@ -1,0 +1,18 @@
+# I2g: §15.4 exit($code: Int): Never. An untaken value-position exit unifies
+# with Int; a taken statement-position exit flushes prior stdout, writes no
+# stderr of its own, and terminates with the caller-chosen status (here 7).
+sub pick($n: Int): Int {
+    if $n < 0 {
+        exit(4)
+    } else {
+        $n + 1
+    }
+}
+
+sub main(): Unit {
+    $v = pick(5)
+    print("picked $v")
+    print("before exit")
+    exit(3 + 4)
+    print("unreachable")
+}

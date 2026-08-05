@@ -1,0 +1,9 @@
+# P9-0 statement-position Option[Regex] match input for compile_program_c.
+sub main(): Int {
+    $o: Option[Regex] = Some(Regex.literal("a.b"))
+    match $o {
+        Some($x) { print($x) }
+        None { print("none") }
+    }
+    0
+}

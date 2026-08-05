@@ -1,0 +1,49 @@
+import lexer
+
+# P6e-replace-b: spliced regex literals in .replace emit greparts[] +
+# guji_regex_replace_engine_parts. Pin Str-escape and Regex-.pattern paths;
+# replace_with splices compile through guji_regex_compile_spliced; plain replace
+# stays on the non-parts engine.
+sub main(): Int {
+    match lexer::compile_program_c('sub main(): Int { $n = "a.b" print("a.b".replace(/<{ $n }>/, "[$0]")) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_part_t greparts/).is_some() && ($c ~~ /guji_regex_escape_literal/).is_some() && ($c ~~ /guji_regex_replace_engine_parts/).is_some() {
+                print("str-replace")
+            } else {
+                print("str-replace-shape")
+            }
+        }
+        Err($e) { print("str-replace-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { $r = Regex.compile("ab|cd").unwrap() print("ab".replace(/<{ $r }>/, "[$0]")) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_replace_engine_parts/).is_some() && ($c ~~ /\.pattern = /).is_some() && ($c ~~ /guji_regex_escape_literal/).is_none() {
+                print("re-replace")
+            } else {
+                print("re-replace-shape")
+            }
+        }
+        Err($e) { print("re-replace-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { $n = "a" print("a".replace_with(/<{ $n }>/, sub($m: Match): Str { $m.text })) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_compile_spliced\(greparts/).is_some() && ($c ~~ /guji_regex_program_free/).is_some() {
+                print("rw-spliced")
+            } else {
+                print("rw-shape")
+            }
+        }
+        Err($e) { print("rw-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { print("a1".replace(/\\d/, "x")) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_replace_engine/).is_some() && ($c ~~ /guji_regex_replace_engine_parts/).is_none() {
+                print("plain-ok")
+            } else {
+                print("plain-wrong")
+            }
+        }
+        Err($e) { print("plain-declined") }
+    }
+    0
+}

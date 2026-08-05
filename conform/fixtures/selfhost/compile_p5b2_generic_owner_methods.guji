@@ -1,0 +1,34 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # get_with's RETURN is the OWNER type param T — the new slice
+            # substitutes it into the cloned generic method, so the emitted
+            # return type is the concrete instantiation (int64_t / const char* /
+            # double), not a broken bare `T`. The method's own [U] is bound per
+            # call site (Bool / Float).
+            print(has_text($c, "static int64_t gf_GBox__Int_get_with__GBox__Int_Bool_Int(GBox__Int gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_GBox__Str_get_with__GBox__Str_Float_Str(GBox__Str gp0, double gp1)"))
+            print(has_text($c, "static double gf_EBox__Float_get_with__EBox__Float_Bool_Float(EBox__Float gp0, int64_t gp1)"))
+            # identity's return is the method's own U (worked before this slice).
+            print(has_text($c, "static int64_t gf_GBox__Int_identity__GBox__Int_Int_Int(GBox__Int gp0, int64_t gp1)"))
+            print(has_text($c, "static int64_t gf_EBox__Float_identity__EBox__Float_Int_Int(EBox__Float gp0, int64_t gp1)"))
+            # call sites resolve to the same monomorphized names.
+            print(has_text($c, "gf_GBox__Int_get_with__GBox__Int_Bool_Int(gv0, 1LL)"))
+            print(has_text($c, "gf_GBox__Str_get_with__GBox__Str_Float_Str(gv8, 3.5)"))
+            # NEGATIVE: no un-substituted bare-`T` owner-return spec leaks through.
+            print(!has_text($c, "get_with__GBox__Int_Bool_T"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

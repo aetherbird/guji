@@ -1,0 +1,27 @@
+# List[Map[Str,V]] storage: map rows are immutable copied values, and row
+# indexing/iteration/prelude reads preserve key-sorted map behavior.
+sub main(): Int {
+    mut %base = {"b": 2, "a": 1}
+    @maps = [%base, {"a": 4, "c": 6}]
+    %base = {"a": 9}
+
+    print(@maps.count())
+    print(@maps[0]{"b"})
+    print(%base{"a"})
+
+    mut $keys = ""
+    for %row in @maps {
+        @ks = %row.keys()
+        $keys = $keys ~ @ks.join("")
+    }
+    print($keys)
+
+    @vals = @maps[1].values()
+    print(@vals.sum())
+    print(@maps[1].has_key("c"))
+
+    @names = [{"first": "ada", "last": "lovelace"}]
+    %name = @names[0]
+    print(%name.values().join("/"))
+    0
+}

@@ -1,0 +1,29 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P2-a: an UNANNOTATED list-literal binding (`@xs = [..]`) now
+# lowers by inferring the element kind from the first literal (g7_scalar_elem_kind),
+# routing through the same literal path an annotated `List[T]` binding used. Pins
+# the emitted C shape: an Int list becomes a fixed-length `int64_t` stack array with
+# per-element assigns; a Str list becomes a heap GUJI_KIND_ARR_STR array released at
+# scope exit — proving BOTH element kinds are inferred (not defaulted to one).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "int64_t gv0_data[3] = "))
+            print(has_text($c, "gv0_data[0] = 10LL;"))
+            print(has_text($c, "gv0_len = 3;"))
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_STR, sizeof(const char*), 2)"))
+            print(has_text($c, "guji_release((const void*)gv3_data);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

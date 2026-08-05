@@ -1,0 +1,23 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_get_or_default__Option_int_Int_Int(guji_opt_int gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_get_or_default__Option_str_Str_Str(guji_opt_str gp0, const char* gp1)"))
+            print(has_text($c, "gf_get_or_default__Option_int_Int_Int((guji_opt_int)\{0LL, 0LL"))
+            print(has_text($c, "gf_get_or_default__Option_str_Str_Str(go"))
+            print(has_text($c, "gf_get_or_default("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

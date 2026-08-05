@@ -1,0 +1,1 @@
+type error: argument 1 has type Result[Int, E], expected Result[Int, Str]

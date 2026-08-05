@@ -1,0 +1,19 @@
+# gujiconform - I9a: drive the Guji-written checker through native D.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

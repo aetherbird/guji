@@ -1,0 +1,24 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-4 compiler codegen fixture.
+# Pins Bool parameters in generated C signatures and Bool literal call arguments.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "int64_t gp0"))
+            print(has_text($c, "gf_pick(int64_t gp0)"))
+            print(has_text($c, "gf_pick(1LL)"))
+            print(has_text($c, "gf_pick(0LL)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

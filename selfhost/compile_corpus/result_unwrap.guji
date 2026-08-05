@@ -1,0 +1,45 @@
+# §15.5 Result `unwrap`, function form `unwrap($r)` and method form
+# `$r.unwrap()`, over bound `Result[T,E]` locals for scalar/Str Ok payloads.
+# The panic message is COMPUTED from the Err display, so the guard is emitted
+# per err KIND (Str raw, Int/Float/Bool via guji_*_str) even on the happy path —
+# the four helpers below vary the err kind so every display arm is generated.
+# The Bool case uses `Ok(false)` so a wrong tag/payload polarity is visible.
+
+sub oki($n: Int): Result[Int, Str] {
+    if $n > 0 { Ok($n) } else { Err("int") }
+}
+sub okf($n: Int): Result[Float, Int] {
+    if $n > 0 { Ok(2.5) } else { Err(-9) }
+}
+sub okb($n: Int): Result[Bool, Float] {
+    if $n > 0 { Ok(false) } else { Err(1.5) }
+}
+sub oks($n: Int): Result[Str, Bool] {
+    if $n > 0 { Ok("pay" ~ "load" ~ "{ $n }") } else { Err(true) }
+}
+
+sub main(): Int {
+    $ri: Result[Int, Str] = oki(5)
+    $rf: Result[Float, Int] = okf(1)
+    $rb: Result[Bool, Float] = okb(1)
+    $rs: Result[Str, Bool] = oks(7)
+    $pi: Result[Int, Str] = parse_int("33")
+
+    mut $code = 0
+
+    if $ri.unwrap() == 5 { $code = $code + 1 }
+    if unwrap($ri) == 5 { $code = $code + 2 }
+    print("{ $ri.unwrap() },{ unwrap($pi) }")
+
+    print("{ $rf.unwrap() }|{ unwrap($rf) + 0.25 }")
+
+    if $rb.unwrap() { $code = $code + 1000 } else { $code = $code + 4 }
+    if unwrap($rb) { $code = $code + 2000 } else { $code = $code + 8 }
+
+    print($rs.unwrap())
+    print(unwrap($rs) ~ "-tail")
+    print("{ $rs.unwrap() }?")
+
+    # Return-arithmetic position closes the code: 15 + 5 + 33 = 53.
+    $code + $ri.unwrap() + unwrap($pi)
+}

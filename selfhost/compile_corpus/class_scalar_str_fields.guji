@@ -1,0 +1,15 @@
+class Run {
+    has $.text: Str
+    has $.next: Int
+}
+
+sub bump($r: Run): Run {
+    Run(text: $r.text ~ "!", next: $r.next + 1)
+}
+
+sub main(): Int {
+    $r = Run(text: "abc", next: 6)
+    $s = bump($r)
+    print($s.text)
+    $s.next
+}

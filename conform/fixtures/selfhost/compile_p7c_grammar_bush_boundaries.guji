@@ -1,0 +1,29 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P7c-2b-2b pins Bush boundary ownership in emitted C: borrowed-param Option
+# retain-on-return, bare Bush param/return retain, unwrap retain, fresh unwrap
+# transfer, and mut-rebind release-before-store.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Forward decl + definition each contribute one hit.
+            print(count_of($c, "static guji_opt_bush gf_pass(guji_opt_bush gp0)") == 2)
+            print(count_of($c, "guji_retain((const void*)gp0.val)") == 1)
+            print(count_of($c, "static const char* gf_left_text(guji_bush_t* gp0)") == 2)
+            print(count_of($c, "static guji_bush_t* gf_id_bush(guji_bush_t* gp0)") == 2)
+            print(count_of($c, "guji_retain((const void*)gbu") >= 1)
+            print(count_of($c, "guji_panic(\"unwrap on None\")") >= 2)
+            print(count_of($c, "guji_release((const void*)gv") >= 2)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

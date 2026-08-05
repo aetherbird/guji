@@ -1,0 +1,32 @@
+sub mk($n: Int): Result[Int, Str] {
+    if $n < 0 { Err("neg") } else { Ok($n) }
+}
+
+sub msg($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s) }
+}
+
+sub main(): Unit {
+    $i_a: Option[Int] = Some(5)
+    $i_b: Option[Int] = Some(5)
+    $i_c: Option[Int] = Some(6)
+    $i_none: Option[Int] = None
+    print("opt_int_eq: { $i_a == $i_b }")
+    print("opt_int_neq: { $i_a != $i_c }")
+    print("opt_int_tag: { $i_a == $i_none }")
+    print("opt_int_none_eq: { $i_none == $i_none }")
+
+    $s_a: Option[Str] = Some("hi")
+    $s_b: Option[Str] = Some("hi")
+    $s_c: Option[Str] = Some("ho")
+    print("opt_str_eq: { $s_a == $s_b }")
+    print("opt_str_neq: { $s_a != $s_c }")
+
+    print("res_ok_eq: { mk(5) == mk(5) }")
+    print("res_ok_vs_err: { mk(5) == mk(-1) }")
+    print("res_err_eq: { mk(-1) == mk(-2) }")
+    print("res_ok_neq: { mk(5) != mk(6) }")
+    $mx = msg("x")
+    $my = msg("x")
+    print("res_str_ok: { $mx == $my }")
+}

@@ -1,0 +1,27 @@
+# P8d-2b: owned Str channel payloads. Buffered send/recv/close stays
+# scheduler-independent. Copy-on-send + guji_chan_drop_str must keep
+# ASan/UBSan/LSan clean. Bind recv carriers before unwrap (chained
+# `$ch.recv().unwrap()` remains a later P8d refinement).
+sub main(): Int {
+    $source = "al" ~ "pha"
+    $ch: Chan[Str] = channel(2)
+    $ch.send($source)
+    $ch.send("beta")
+    $ch.close()
+    print($source)
+    $a = $ch.recv()
+    print($a.unwrap())
+    $b = $ch.recv()
+    print($b.unwrap())
+    $done = $ch.recv()
+    print($done.is_none())
+
+    # send consumes its detached copy even when the channel is closed.
+    $rejected = $ch.send("drop" ~ "-closed")
+    print($rejected.is_err())
+
+    # Scope cleanup drops this buffered, never-received detached copy.
+    $left: Chan[Str] = channel(2)
+    $left.send("un" ~ "delivered")
+    0
+}

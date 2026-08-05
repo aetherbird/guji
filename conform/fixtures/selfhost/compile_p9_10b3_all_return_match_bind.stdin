@@ -1,0 +1,13 @@
+sub bind_ret_probe($n: Int): Int {
+    $out = match $n {
+        7 { return $n * 2 }
+        $m { return $m + 3 }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(bind_ret_probe(7))
+    print(bind_ret_probe(5))
+    0
+}

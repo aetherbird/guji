@@ -1,0 +1,38 @@
+# P8d-2c-3c-9: counted Option[List] channel elements. Active Some payloads
+# cross the channel as detached KIND-tagged list graphs; inner None remains
+# distinct from the outer recv None that means closed-and-drained. Heap Str
+# elements and nested List rows ensure the copy/drop path is genuinely deep.
+sub main(): Int {
+    $ints: Chan[Option[List[Int]]] = channel(3)
+    $oi: Option[List[Int]] = Some([4, 5])
+    $ni: Option[List[Int]] = None
+    $ints.send($oi)
+    $ints.send($ni)
+    $ints.close()
+    $got_i: Option[List[Int]] = $ints.recv().unwrap()
+    $got_n: Option[List[Int]] = $ints.recv().unwrap()
+    print(match $got_i { Some(@xs) { @xs[0] + @xs[1] } None { 0 } })
+    print($got_n.is_none())
+    # Sending leaves the source carrier live and independently owned.
+    print(match $oi { Some(@src) { @src[0] } None { 0 } })
+
+    $strs: Chan[Option[List[Str]]] = channel(2)
+    $os: Option[List[Str]] = Some(["al" ~ "pha", "be" ~ "ta"])
+    $strs.send($os)
+    $strs.close()
+    $got_s: Option[List[Str]] = $strs.recv().unwrap()
+    print(match $got_s { Some(@words) { @words[0] ~ ":" ~ @words[1] } None { "none" } })
+
+    $nested: Chan[Option[List[List[Int]]]] = channel(2)
+    $on: Option[List[List[Int]]] = Some([[7, 8], [9]])
+    $nested.send($on)
+    $nested.send($on)
+    $held = $nested.recv()
+    $got_rows: Option[List[List[Int]]] = unwrap($nested.recv())
+    print(match $got_rows { Some(@rows) { @rows[0][1] + @rows[1][0] } None { 0 } })
+
+    # One final Some stays buffered: releasing the channel must invoke the
+    # Option[List] drop hook. `$held` separately proves outer-carrier cleanup.
+    $nested.send($on)
+    15
+}

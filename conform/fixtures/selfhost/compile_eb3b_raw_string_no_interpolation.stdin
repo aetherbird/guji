@@ -1,0 +1,6 @@
+sub main(): Int {
+    $n = 5
+    print('v{ $n }w')
+    print('a\{b\} z\q')
+    0
+}

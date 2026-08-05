@@ -1,0 +1,70 @@
+# Chan[Result[List[List[T]], Str]] must detach active nested-list Ok payloads
+# on send and adopt them on recv; unread buffered Ok/Err messages exercise the
+# carrier elem_drop under LSan. This is the Result mirror of the Option nested
+# list channel slice.
+
+sub sum_grid(@g: List[List[Int]]): Int {
+    mut $total = 0
+    for @row in @g {
+        $total = $total + @row.sum()
+    }
+    $total
+}
+
+sub join_grid(@g: List[List[Str]]): Str {
+    @g[0][0] ~ @g[0][1] ~ "/" ~ @g[1][0]
+}
+
+sub classify_grid($ok: Bool): Result[List[List[Int]], Str] {
+    if $ok {
+        Ok([[1, 2], [3, 4, 5]])
+    } else {
+        Err("no-grid")
+    }
+}
+
+sub classify_words($ok: Bool): Result[List[List[Str]], Str] {
+    if $ok {
+        Ok([["gu", "ji"], ["lang"]])
+    } else {
+        Err("no-words")
+    }
+}
+
+sub main(): Int {
+    $ints: Chan[Result[List[List[Int]], Str]] = channel(3)
+    $ints.send(classify_grid(true))
+    $ints.send(classify_grid(false))
+    $ints.send(classify_grid(true))
+
+    $grid_one = $ints.recv().unwrap()
+    print(match $grid_one {
+        Ok(@rows) { sum_grid(@rows) }
+        Err($e) { 0 }
+    })
+
+    $grid_two = $ints.recv().unwrap()
+    match $grid_two {
+        Ok(@rows) { print(@rows[0][0]) }
+        Err($e) { print($e) }
+    }
+
+    $words: Chan[Result[List[List[Str]], Str]] = channel(3)
+    $words.send(classify_words(true))
+    $words.send(classify_words(false))
+    $words.send(classify_words(true))
+
+    $words_one = $words.recv().unwrap()
+    print(match $words_one {
+        Ok(@rows) { join_grid(@rows) }
+        Err($e) { $e }
+    })
+
+    $words_two = $words.recv().unwrap()
+    print(match $words_two {
+        Ok(@rows) { @rows[0][0] }
+        Err($e) { $e }
+    })
+
+    0
+}

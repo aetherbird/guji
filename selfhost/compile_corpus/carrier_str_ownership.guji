@@ -1,0 +1,39 @@
+# P5b-2b(carrier-str-ownership): two previously-declined §3.3 carrier constructs.
+#
+# (1) A carrier-returning CALL used as a bare statement discards its value. Native
+#     evaluates it into a temp, casts (void), then releases the active owned slot so
+#     the Some(Str) payload / Err(Str) slot does not leak. Covered here by
+#     `make_some(...)` (Option[Str]) and `fail(...)` (Result[Int, Str]) discards.
+# (2) An UNANNOTATED bind of a list `.get()` result infers its Option kind from the
+#     receiver element kind (the `find` twin), so `$w = @words.get(1)` needs no
+#     `: Option[Str]` annotation to compile.
+sub make_some($s: Str): Option[Str] {
+    Some($s)
+}
+
+sub fail($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub main(): Unit {
+    # (1) discarded carrier calls — heap payloads must be released, not leaked.
+    make_some("drop" ~ "!")
+    fail("gone" ~ "!")
+
+    # (2) unannotated get binds infer Option[Str] / Option[Int].
+    @words = ["red", "blue", "green"]
+    $w = @words.get(1)
+    print($w.unwrap())
+
+    @nums = [10, 20, 30]
+    $n = @nums.get(2)
+    print("{ $n.unwrap() }")
+
+    # get out of range yields None; matched to prove both arms.
+    $miss = @words.get(9)
+    $label = match $miss {
+        Some($v) { $v }
+        None { "none" }
+    }
+    print($label)
+}

@@ -1,0 +1,9 @@
+sub main(): Int {
+    $s = "  hello world  "
+    print($s.trim())
+    print(trim("\tGUJI\n"))
+    print("Ada".upper())
+    print("LoWeR".lower())
+    print("  chain  ".trim().upper())
+    0
+}

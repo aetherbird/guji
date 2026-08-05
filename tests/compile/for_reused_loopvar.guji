@@ -1,0 +1,37 @@
+# D7 differential fixture: reusing ONE loop-variable name across a List[Str]
+# `for` and a Chan[Str] `for` in the same function scope must be native==interp
+# and sanitizer-clean. Before the D7 fix, native double-freed: the list-`for`
+# left the shared variable holding a BORROWED element of the source list, and the
+# channel-`for`'s first-iteration "release the previous value" freed that
+# borrowed element -- which the source list then freed again at scope exit
+# (ASan heap-use-after-free in guji_drop_arr_str). The interpreter always ran
+# both loops cleanly, so this was a native-only divergence surfaced only under
+# the sanitizer gate. The fixture exercises BOTH reuse shapes the fix covers:
+# (1) list-`for` then channel-`for` sharing $line, and
+# (2) channel-`for` then channel-`for` sharing $row.
+sub main(): Int {
+    # (1) list-`for` then channel-`for`, both binding the SAME name $line.
+    $s = read_file("for_reused_loopvar.input").unwrap()
+    @ls = lines($s)
+    for $line in @ls {
+        print("L[" ~ $line ~ "]")
+    }
+    $h = open("for_reused_loopvar.input").unwrap()
+    $ch: Chan[Str] = $h.lines()
+    for $line in $ch {
+        print("C[" ~ $line ~ "]")
+    }
+
+    # (2) channel-`for` then channel-`for`, both binding the SAME name $row.
+    $h2 = open("for_reused_loopvar.input").unwrap()
+    $c1: Chan[Str] = $h2.lines()
+    for $row in $c1 {
+        print("A[" ~ $row ~ "]")
+    }
+    $h3 = open("for_reused_loopvar.input").unwrap()
+    $c2: Chan[Str] = $h3.lines()
+    for $row in $c2 {
+        print("B[" ~ $row ~ "]")
+    }
+    0
+}

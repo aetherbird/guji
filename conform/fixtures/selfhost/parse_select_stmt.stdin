@@ -1,0 +1,12 @@
+# §17.5: preserve operation-arm order, optional bindings, an else amid arms,
+# nested select blocks, and parsing resumption after the outer closing brace.
+sub choose($in: Chan[Int], $out: Chan[Int]): Unit {
+    select {
+        $v = $in.recv() {
+            select { $out.send(1) { print($v) } }
+        }
+        else { print("idle") }
+        $r = $out.send(2) { print($r) }
+    }
+    ()
+}

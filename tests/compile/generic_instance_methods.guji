@@ -1,0 +1,26 @@
+# Generic instance methods have their own type params; native codegen must
+# specialize them while still passing the implicit $self receiver.
+class Holder {
+    has $.base: Int
+
+    sub identity[T]($self, $v: T): T { $v }
+
+    sub keep_first[T]($self, $a: T, $b: T): T {
+        $a
+    }
+
+    sub pair[T]($self, $v: T): List[T] {
+        [$v, $v]
+    }
+}
+
+sub main(): Unit {
+    $h = Holder(base: 10)
+    print("{ $h.identity(5) }")
+    print($h.identity("ok"))
+    print("{ $h.identity(true) }")
+    print("{ $h.keep_first(2.5, 9.0) }")
+    @xs = $h.pair(7)
+    print("{ @xs.count() }")
+    print("{ @xs[0] }")
+}

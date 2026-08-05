@@ -1,0 +1,21 @@
+sub joined(@xs: List[Str]): Str {
+    @xs.join("-")
+}
+
+sub main(): Unit {
+    @names = ["ada", "grace", "ken"]
+    $j = @names.join(", ")
+    print($j)
+    print(@names.join(""))
+    print(join(@names, "/"))
+    @empty = ["solo"].filter({ $_ == "none" })
+    print(@empty.join(",") ~ "<")
+    print(["solo"].join(","))
+    mut $i = 0
+    while $i < 3 {
+        $line = @names.join(":") ~ "#{ $i }"
+        print($line)
+        $i = $i + 1
+    }
+    print(joined(@names) ~ "!")
+}

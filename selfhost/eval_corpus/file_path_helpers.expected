@@ -1,0 +1,10 @@
+alpha
+beta
+fresh
+one
+two
+three
+gamma
+cannot write file: /tmp/guji_i8d2_missing_dir/out
+cannot append file: /tmp/guji_i8d2_missing_dir/out
+cannot read file: /tmp/guji_i8d2_absent.txt

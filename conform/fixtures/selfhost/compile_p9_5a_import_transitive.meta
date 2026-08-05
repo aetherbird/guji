@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost transitive import emission (main→a→b) lowers nested gf_imp_b_base before a::value

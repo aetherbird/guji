@@ -1,0 +1,5 @@
+# Shared leaf of the I8b2 diamond. It is loaded through both parents but emitted
+# only once by the native compiler's path-keyed module cache.
+pub sub base(): Int {
+    41
+}

@@ -1,0 +1,38 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Each concrete instantiation of the self-recursive `rep[T]` gets its own
+            # monomorphized spec (Int/Str/Float type params), named exactly as native.
+            print(has_text($c, "static int64_t gf_rep__Int_Int_Int(int64_t gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_rep__Str_Int_Str(const char* gp0, int64_t gp1)"))
+            print(has_text($c, "static double gf_rep__Float_Int_Float(double gp0, int64_t gp1)"))
+            # The RECURSIVE call inside the spec passes the arithmetic step `$n - 1`
+            # (guji_sub) and routes to the SAME monomorphized spec — the binop-arg fix.
+            print(has_text($c, "gf_rep__Int_Int_Int(gp0, guji_sub(gp1, 1LL))"))
+            # Mutually recursive templates (ping <-> pong) both monomorphize and the
+            # inter-template call carries the `$n - 1` step at the same instantiation.
+            print(has_text($c, "gf_pong__Int_Int_Int(gp0, guji_sub(gp1, 1LL))"))
+            print(has_text($c, "gf_pong__Str_Int_Str(gt2, guji_sub(gp1, 1LL))"))
+            # A type argument BOUND from arithmetic (`$n - 1`, `$n + 1`) plus a
+            # comparison-result Bool argument (`$n > 0`) resolve the Int/Bool spec.
+            print(has_text($c, "static int64_t gf_choose__Int_Int_Bool_Int(int64_t gp0, int64_t gp1, int64_t gp2)"))
+            print(has_text($c, "gf_choose__Int_Int_Bool_Int(guji_sub("))
+            # The generic templates themselves are NOT emitted as functions.
+            print(has_text($c, "gf_rep("))
+            print(has_text($c, "gf_ping("))
+            print(has_text($c, "gf_choose("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

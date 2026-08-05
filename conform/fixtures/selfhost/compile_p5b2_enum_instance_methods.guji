@@ -1,0 +1,22 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static const char* gf_Color_label(Color gp0)"))
+            print(has_text($c, "static Color gf_Color_flip(Color gp0)"))
+            print(has_text($c, "static int64_t gf_Color_same_label(Color gp0, Color gp1)"))
+            print(has_text($c, "gf_Color_label(gv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

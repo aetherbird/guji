@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 5 E5d-8g compiler codegen fixture.
+# Pins `count()` over an INLINE `split(...)` receiver -- the real-source
+# `has_char($s, $ch)` shape. Before E5d-8g `g7_lower_list_count_receiver`
+# handled only bound list locals and class list fields, so a call receiver
+# declined. The generated C should lower split to an owned slice, copy `.len`
+# into an Int temp, then release the slice payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = (void*)guji_split("))
+            print(has_text($c, " = gl"))
+            print(has_text($c, ".len;"))
+            print(has_text($c, "guji_release((const void*)gl"))
+            print(has_text($c, ".data = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

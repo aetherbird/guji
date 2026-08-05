@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 4d D3 compiler codegen fixture.
+# A nested (non-self, non-recursive) user-enum variant field is embedded BY VALUE:
+# the outer struct holds the inner enum's struct directly, and the outer's
+# retain/release recurses transitively into the by-value child's helpers.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "Inner f0;"))
+            print(has_text($c, "guji_release_Inner_fields(&p->f0);"))
+            print(has_text($c, "guji_retain_Inner_fields(&p->f0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,15 @@
+# P6f: unwrap on a None Option[Match] must panic "unwrap on None" (stderr
+# byte-identical native==selfhost; interp errored-ness consistent). The first
+# unwrap succeeds through the VALUE engine (a Regex value RHS — names=NULL is
+# fine here: no capture is accessed), proving unwrap binds compose with
+# value-`~~` carriers; the second carrier is None and the bind's guard fires.
+sub main(): Int {
+    $re = Regex.literal("a.b")
+    $ok = "za.bz" ~~ $re
+    $m = $ok.unwrap()
+    print($m.text)
+    $miss = "zzz" ~~ /q(x)/
+    $bad = $miss.unwrap()
+    print($bad.text)
+    0
+}

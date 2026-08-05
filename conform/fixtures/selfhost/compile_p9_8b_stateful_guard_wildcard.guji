@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 6 P9-8b-2a stateful guard + wildcard ownership.
+# Pins guarded Str prep inside the successful pattern test, statement wildcard
+# emission, and the fresh carrier copy that survives source-local cleanup.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "if (go"))
+            print(has_text($c, "else if (1) \{"))
+            print(has_text($c, "guji_retain(gv"))
+            print(has_text($c, ".tag != 0LL) \{ guji_release(gv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

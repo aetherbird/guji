@@ -1,0 +1,36 @@
+# A lambda nested inside another lambda that captures a binding from OUTSIDE
+# the outer lambda must compile natively, matching the interpreter (which
+# snapshots the whole env). Before lambda-nested-transitive-capture the free-var
+# collector skipped nested lambdas, so the outer closure never captured the
+# transitively-referenced binding and native build failed "captured variable $x
+# not available in this scope" while the interpreter ran the program — a latent
+# compiler/oracle divergence (no prior fixture nested capturing lambdas).
+# RFC-003 §7.4.
+sub main(): Int {
+    # $tag (Str) and $base (Int) live in main, OUTSIDE the outer lambda. The
+    # inner lambda references them both transitively, so the outer must capture
+    # and thread them into the inner env. The fresh Str concat exercises env Str
+    # ownership under LeakSanitizer.
+    $tag = "x" ~ "y"
+    $base = 100
+
+    # Transitive Str capture, used both directly and via interpolation.
+    $make = sub($prefix: Str): Str {
+        $inner = sub($s: Str): Str { "$prefix-{ $tag }-$s" }
+        $inner("end")
+    }
+
+    # Three levels deep: the innermost lambda reaches $base (main), the outer
+    # lambda's param, and the middle lambda's param all at once.
+    $g1 = sub($a: Int): Int {
+        $g2 = sub($b: Int): Int {
+            $g3 = sub($c: Int): Int { $a + $b + $c + $base }
+            $g3(3)
+        }
+        $g2(2)
+    }
+
+    print($make("start"))
+    print("{ $g1(1) }")
+    0
+}

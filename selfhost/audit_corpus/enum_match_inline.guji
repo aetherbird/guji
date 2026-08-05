@@ -1,0 +1,13 @@
+# DECLINE-AUDIT seed (slice 4b). match-over-enum where the scrutinee is an INLINE
+# construction (match A(7)). Both oracles accept. This used to DECLINE (rc 4)
+# because g6_lower_scrutinee only aliased an existing env var (an EName) and
+# never materialised an enum-valued expression into a fresh temp; F2b fixed it,
+# so this must stay COVERED.
+enum N { A($v: Int), B }
+
+sub main(): Int {
+    match A(7) {
+        A($v) { $v }
+        B { 0 }
+    }
+}

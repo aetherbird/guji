@@ -1,0 +1,39 @@
+# Section 17 hatch capture for recursive-box enum payloads.
+#
+# Capturing Tree into a hatched task must clone the boxed child graph into the
+# task heap. The task walks nested boxes and Str leaf payloads, then exits; its
+# adopted clone must release independently from the parent's original tree.
+enum Tree {
+    Leaf($name: Str, $value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf(_, $v) { $v }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub names($t: Tree): Str {
+    match $t {
+        Leaf($n, _) { $n }
+        Node($l, $r) { names($l) ~ names($r) }
+    }
+}
+
+sub main(): Unit {
+    $t = Node(Node(Leaf("l", 4), Leaf("m", 5)), Leaf("r", 6))
+    $sum_ch: Chan[Int] = channel(0)
+    $name_ch: Chan[Str] = channel(0)
+
+    hatch {
+        $sum_ch.send(sum($t))
+        $name_ch.send(names($t))
+    }
+
+    print("{ $sum_ch.recv().unwrap() }")
+    print($name_ch.recv().unwrap())
+    print("{ sum($t) }")
+    print(names($t))
+}

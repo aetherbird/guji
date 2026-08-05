@@ -1,0 +1,1 @@
+Program(decls=[Sub(public=false,name="run",params=[Param(name="$xs",type=Some(Type(name="List",args=[Type(name="Int",args=[])])))],ret=Some(Type(name="Int",args=[])),body=BlockBody(stmts=[Expr(value=Call(callee=Field(object=Call(callee=Field(object=Name(value="$xs"),name="map"),args=[Name(value="$f")]),name="count"),args=[]))]))])

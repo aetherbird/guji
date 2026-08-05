@@ -1,0 +1,5 @@
+sub main(): Int {
+    @words: List[Str] = ["only"]
+    print(@words[1])
+    0
+}

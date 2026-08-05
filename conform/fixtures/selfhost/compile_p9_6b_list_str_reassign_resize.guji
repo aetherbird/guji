@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 6 P9-6b mut List[Str] length-changing reassignment.
+# Pins save-old / guji_arr_alloc(new len) / move slots / guji_release(old) — the
+# native heap-rebind shape that admits shorter and longer literals.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_STR"))
+            print(has_text($c, "guji_release((const void*)"))
+            print(has_text($c, "_len = 1"))
+            print(has_text($c, "_len = 3"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

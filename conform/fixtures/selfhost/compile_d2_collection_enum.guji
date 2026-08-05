@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 4d D2 compiler codegen fixture.
+# List and Map enum-carrier fields must compile through the generic union layout
+# and emit retain/release for their by-value heap handles.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_slice_t l; guji_map_t m;"))
+            print(has_text($c, ".l = "))
+            print(has_text($c, ".m = "))
+            print(has_text($c, "p->f0.l.data"))
+            print(has_text($c, "p->f0.m.keys"))
+            print(has_text($c, "p->f0.m.vals"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

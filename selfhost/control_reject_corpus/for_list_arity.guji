@@ -1,0 +1,7 @@
+# §6.3: a List iterator binds exactly one loop variable.
+sub main(): Int {
+    for $x, $y in [1, 2, 3] {
+        print($x)
+    }
+    0
+}

@@ -1,0 +1,14 @@
+[list-if!]
+{"k!": map-match!}
+[list-bind!]
+{"k": map-bind!}
+[typed-list!]
+{"k": typed-map!}
+[after-list!]
+{"k": after-map!}
+list-arg!
+map-arg!
+[return-list!]
+{"k": return-map!}
+[{"a": 1}]
+{"a": [1, 2]}

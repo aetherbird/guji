@@ -1,0 +1,10 @@
+sub main(): Int {
+    match 'ada@example.com' ~~ /(?<user>\w+)@(?<host>\w+)/ {
+        Some($m) {
+            print($m<user>.unwrap())
+            print(unwrap($m[2]))
+        }
+        None { print("no match") }
+    }
+    0
+}

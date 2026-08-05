@@ -1,0 +1,6 @@
+single=7
+multiple-allowed=true
+closed-recv=true
+closed-send=true
+idle=true
+wake=awake

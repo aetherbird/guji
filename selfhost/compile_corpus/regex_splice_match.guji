@@ -1,0 +1,20 @@
+# P6e: Str + Regex splices in ~~ match position (host-provided parts).
+sub main(): Int {
+    $needle = "a.b"
+    $matched = match "xxa.byy" ~~ /x<{ $needle }>y/ {
+        Some($m) { $m[0].unwrap_or("missing") }
+        None { "none" }
+    }
+    $r = Regex.compile("ab|cd").unwrap()
+    $atom = match "abab" ~~ /^<{ $r }>+$/ {
+        Some($m) { $m.text }
+        None { "none" }
+    }
+    $caps = Regex.compile("(a)(b)").unwrap()
+    $host = match "ab!" ~~ /(<{ $caps }>)(!)/ {
+        Some($m) { $m[1].unwrap_or("?") ~ "|" ~ $m[2].unwrap_or("?") ~ "|" ~ $m[3].unwrap_or("none") }
+        None { "none" }
+    }
+    print("$matched|$atom|$host")
+    0
+}

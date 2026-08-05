@@ -1,0 +1,6 @@
+# A loop binder belongs only to the loop body's lexical child scope.
+sub main(): Int {
+    for $item in [1] { print($item) }
+    print($item)
+    0
+}

@@ -1,0 +1,7 @@
+# O4a: a semicolon ends an item; it is not layout within call arguments.
+sub add($left: Int, $right: Int): Int { $left + $right }
+
+sub main(): Int {
+    print(add(1;, 2))
+    0
+}

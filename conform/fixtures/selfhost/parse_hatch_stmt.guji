@@ -1,0 +1,10 @@
+# gujiconform — selfhost slice 6 P8a hatch parser fixture (§17.1, §20).
+# The stdin program is rendered as the canonical selfhost AST.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) { print($ast) 0 }
+        Err($e) { note($e) 1 }
+    }
+}

@@ -1,0 +1,17 @@
+# gujiconform — selfhost slice 2 E4 evaluator driver surface. Program `print`
+# output is emitted first; the selfhost-only delimiter and main-frame dump follow.
+import lexer
+
+sub main(): Int {
+    match lexer::eval_main(stdin.slurp()) {
+        Ok($r) {
+            print(lexer::eval_env_delimiter())
+            print($r.dump)
+            $r.exit_code
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

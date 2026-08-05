@@ -1,0 +1,1 @@
+Program(decls=[Sub(public=false,name="vals",params=[],ret=None,body=BlockBody(stmts=[Bind(mut=false,name="$a",type=None,value=Int(text="42")),Bind(mut=false,name="$b",type=None,value=Float(text="3.14")),Bind(mut=false,name="$c",type=None,value=Str(value="hi")),Bind(mut=false,name="$d",type=None,value=Bool(value="true")),Bind(mut=false,name="$e",type=None,value=Unit)]))])

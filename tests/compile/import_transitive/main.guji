@@ -1,0 +1,6 @@
+import a
+
+sub main(): Int {
+    print("chain: { a::value() }")
+    0
+}

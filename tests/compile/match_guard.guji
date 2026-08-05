@@ -1,0 +1,46 @@
+enum Shape {
+    Circle($r: Int)
+    Square($s: Int)
+}
+
+sub classify($shape: Shape): Str {
+    match $shape {
+        Circle($r) if $r < 0 { "negative circle" }
+        Circle($r) if $r == 0 { "point" }
+        Circle($r) { "circle(r={ $r })" }
+        Square($s) if $s < 0 { "negative square" }
+        Square($s) { "square(s={ $s })" }
+    }
+}
+
+sub make_opt($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub main(): Int {
+    print(classify(Circle(-1)))
+    print(classify(Circle(0)))
+    print(classify(Circle(3)))
+    print(classify(Square(-2)))
+    print(classify(Square(4)))
+
+    $o1 = make_opt(5)
+    $o2 = make_opt(15)
+    $o3 = make_opt(-1)
+    match $o1 {
+        Some($v) if $v > 10 { print("opt1 big") }
+        Some($v) { print("opt1 { $v }") }
+        None { print("opt1 none") }
+    }
+    match $o2 {
+        Some($v) if $v > 10 { print("opt2 big") }
+        Some($v) { print("opt2 { $v }") }
+        None { print("opt2 none") }
+    }
+    match $o3 {
+        Some($v) if $v > 10 { print("opt3 big") }
+        Some($v) { print("opt3 { $v }") }
+        None { print("opt3 none") }
+    }
+    0
+}

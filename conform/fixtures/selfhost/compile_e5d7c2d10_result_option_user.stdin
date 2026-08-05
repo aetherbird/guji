@@ -1,0 +1,23 @@
+class Binding {
+    has $.name: Str
+}
+
+sub find_binding($s: Str): Result[Option[Binding], Str] {
+    if $s == "" {
+        Err("empty")
+    } else {
+        Ok(Some(Binding(name: $s)))
+    }
+}
+
+sub main(): Int {
+    match find_binding("x") {
+        Ok($maybe) {
+            match $maybe {
+                None { 1 }
+                Some($b) { print($b.name) 0 }
+            }
+        }
+        Err($e) { print($e) 2 }
+    }
+}

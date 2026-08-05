@@ -1,0 +1,6 @@
+sub main(): Int {
+    @m = [[1, 2], [3]]
+    @row = @m[1]
+    print("{ @m.count() }/{ @row.count() }/{ @m[0][1] }")
+    @m[1][0]
+}

@@ -1,0 +1,48 @@
+# I8d2: §15.4 file Handles — open/create, slurp/write, and .lines().
+# file_handles.input is committed beside this fixture (verbatim LF text with a
+# blank middle line). open+slurp and open+lines must agree with C; create+write
+# round-trips through read_file; method-form path.open/create are prelude;
+# missing-path open/create yield the fixed Err strings. An unused open handle
+# is left live until process exit so LSan proves counted-handle teardown.
+sub main(): Int {
+    $in = "file_handles.input"
+    match read_file($in) {
+        Ok($s) { print("[" ~ $s ~ "]") }
+        Err($e) { print("error: $e") }
+    }
+    $h = open($in).unwrap()
+    print("reader:[" ~ $h.slurp() ~ "]")
+    match $in.open() {
+        Ok($r) { print("again:" ~ $r.slurp().trim()) }
+        Err($e) { print("unexpected:" ~ $e) }
+    }
+    match open("file_handles.missing") {
+        Ok($r) { print($r.slurp()) }
+        Err($e) { print($e) }
+    }
+
+    mut $n = 0
+    for $line in open($in).unwrap().lines() {
+        print("line:[" ~ $line ~ "]")
+        $n = $n + 1
+    }
+    print("count=$n")
+
+    $out = "/tmp/guji_i8d2_create_write.txt"
+    $w = create($out).unwrap()
+    $w.write("alpha\n")
+    write($w, "beta")
+    print(read_file($out).unwrap())
+    "/tmp/guji_i8d2_create_method.txt".create().unwrap().write("method")
+    print(read_file("/tmp/guji_i8d2_create_method.txt").unwrap())
+
+    match create("/tmp/guji_i8d2_missing_dir/x") {
+        Ok(_) { print("unexpected create ok") }
+        Err($e) { print($e) }
+    }
+
+    # Owned unread handle: final release must close under LSan.
+    $keep = open($in).unwrap()
+    print("kept")
+    0
+}

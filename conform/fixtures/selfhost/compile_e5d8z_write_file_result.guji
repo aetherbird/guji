@@ -1,0 +1,36 @@
+# gujiconform - selfhost slice 5 E5d-8z compiler codegen fixture.
+# Pins the generated C for a `write_file(...)` prelude call lowered to a
+# `Result[Unit, Str]` carrier and matched in STATEMENT position (value discarded) —
+# the driver's `main` shape. Two slice-5 E5d-8z additions are pinned here:
+#   1. the write_file prelude lowering: path + content owned temps, the
+#      `guji_write_file` call, NULL->Ok(tag 0) / non-NULL->Err(tag 1, .err=msg) tag
+#      logic, and BOTH argument temps released after the call;
+#   2. statement-position Result-match lowering: the scrutinee carrier is
+#      materialised (`gr4 = gr2;`), its arms emit tag conditions, and the active Err
+#      Str is released exactly once at match end (`if (gr4.tag != 0LL) { ... }`).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gt3 = guji_write_file(gt0, gt1);"))
+            print(has_text($c, 'if (gt3 == NULL) { gr2.tag = 0LL; } else { gr2.tag = 1LL; gr2.err = gt3; }'))
+            print(has_text($c, "guji_release(gt0);"))
+            print(has_text($c, "guji_release(gt1);"))
+            print(has_text($c, "gr4 = gr2;"))
+            print(has_text($c, 'if ((gr4.tag == 0LL)) {'))
+            print(has_text($c, 'else if ((gr4.tag == 1LL)) {'))
+            print(has_text($c, 'if (gr4.tag != 0LL) { guji_release(gr4.err); gr4.err = NULL; }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

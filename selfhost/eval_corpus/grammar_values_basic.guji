@@ -1,0 +1,63 @@
+# spec 14.1-14.2: basic Grammar.parse and Bush.text in native D and C.
+# Each grammar isolates a PEG rule that differs observably from its neighbors.
+grammar Word {
+    token TOP { [a-z]+ }
+}
+
+grammar Pair {
+    rule TOP { <word> ':' <word> }
+    token word { [a-z]+ }
+}
+
+grammar Tight {
+    token TOP { [a-z]+ ':' [a-z]+ }
+}
+
+grammar Digits {
+    regex TOP { [0-9]+ }
+}
+
+grammar Pick {
+    token TOP { 'yes' | 'no' }
+}
+
+sub main(): Int {
+    # A direct token TOP produces a Bush whose text is the full matched span.
+    match Word.parse("alpha") {
+        Some($b) { print("word:{ $b.text }") }
+        None { print("word-miss") }
+    }
+
+    # A rule inserts ASCII whitespace between every adjacent term.
+    match Pair.parse("left   :\tright") {
+        Some($b) { print("rule-whitespace") }
+        None { print("rule-miss") }
+    }
+    match Pair.parse("left:right") {
+        Some($b) { print("pair:{ $b.text }") }
+        None { print("pair-miss") }
+    }
+
+    # A token has no implicit whitespace, even when its body has term spacing.
+    match Tight.parse("left : right") {
+        Some($b) { print("token-wrong") }
+        None { print("token-tight") }
+    }
+
+    # TOP is a full-input recognizer: a successful prefix is still None.
+    match Word.parse("alpha!") {
+        Some($b) { print("prefix-wrong") }
+        None { print("prefix-rejected") }
+    }
+
+    # regex productions and ordered choice share the same anchored PEG path.
+    match Digits.parse("2048") {
+        Some($b) { print("regex:{ $b.text }") }
+        None { print("regex-miss") }
+    }
+    match Pick.parse("no") {
+        Some($b) { print("choice:{ $b.text }") }
+        None { print("choice-miss") }
+    }
+    0
+}

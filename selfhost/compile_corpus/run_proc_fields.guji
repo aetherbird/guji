@@ -1,0 +1,13 @@
+# selfhost slice 5 E5d-8aa — THREE-WAY run() success/non-zero process result.
+# `run` returns Result[Proc, Str]; the Ok arm reads all three public Proc fields.
+# The child process writes to stdout and stderr and exits non-zero, but guji's
+# program observes those as captured fields and returns the captured exit code.
+sub main(): Int {
+    match run("sh", ["-c", "printf out; printf err >&2; exit 5"]) {
+        Ok($p) {
+            print($p.stdout ~ ":" ~ $p.stderr)
+            $p.exit_code
+        }
+        Err($e) { print($e) return 99 }
+    }
+}

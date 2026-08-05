@@ -1,0 +1,14 @@
+# §8.3 class methods on a TEMPORARY receiver — a constructor value and a method-call
+# chain, not a bound local. Native accepts these where the final method is scalar;
+# this probe locks the selfhost at parity for that shape (P4c-2).
+class Counter {
+    has $.n: Int
+    sub bumped($self): Counter { Counter(n: $self.n + 1) }
+    sub value($self): Int { $self.n }
+}
+sub main(): Int {
+    print("{ Counter(n: 7).value() }")
+    $c = Counter(n: 5)
+    print("{ $c.bumped().value() }")
+    0
+}

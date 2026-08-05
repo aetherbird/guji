@@ -1,0 +1,18 @@
+# E5d-8w: an unannotated local binding whose RHS is a value-position if
+# producing a Result carrier. This is the native-accepted scalar version of the
+# real `$arms_out = if ... { Result[CgState, Str] } else { ... }` blocker.
+sub maybe_num($n: Int): Result[Int, Str] {
+    if $n > 0 { Ok($n) } else { Err("neg") }
+}
+
+sub score($take: Bool): Int {
+    $r = if $take { maybe_num(5) } else { maybe_num(0 - 1) }
+    match $r {
+        Ok($n) { $n }
+        Err($e) { print($e) 7 }
+    }
+}
+
+sub main(): Int {
+    score(true) + score(false)
+}

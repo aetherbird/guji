@@ -1,0 +1,21 @@
+sub maybe($x: Int): Result[Option[Int], Str] {
+    if $x < 0 {
+        Err("neg")
+    } else if $x == 0 {
+        Ok(None)
+    } else {
+        Ok(Some($x * 2))
+    }
+}
+
+sub classify($x: Int): Int {
+    match maybe($x) {
+        Err($m) { print($m) 100 }
+        Ok(Some($n)) { $n }
+        Ok(None) { 7 }
+    }
+}
+
+sub main(): Int {
+    return classify(5) + classify(0) + classify(0 - 1)
+}

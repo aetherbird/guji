@@ -1,0 +1,31 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P5b-2b(carrier-conversion): UNANNOTATED binds of §15.5 carrier conversions infer
+# their carrier kind from the bound receiver and lower through the SAME conversion
+# shapes the annotated forms already used — pin the inferred decl kinds, the
+# slot-conditional fills, and the Str retain discipline (err-slot retain on the
+# Result->Option err path; None-guarded err retain + owned-tmp release on ok_or).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_int gv3 = \{0};"))
+            print(has_text($c, "guji_opt_str gv5 = \{0};"))
+            print(has_text($c, "guji_res_int_str gv10 = \{0};"))
+            print(has_text($c, "if (gv1.tag == 0LL) \{ go2.tag = 1LL; go2.val = gv1.ok; }"))
+            print(has_text($c, "if (gv1.tag != 0LL) \{ go4.tag = 1LL; go4.val = gv1.err; }"))
+            print(has_text($c, "if (gv1.tag != 0LL) \{ guji_retain(go4.val); }"))
+            print(has_text($c, "if (gv7.tag != 0LL) \{ gr9.tag = 0LL; gr9.ok = gv7.val; } else \{ gr9.tag = 1LL; gr9.err = gt8; }"))
+            print(has_text($c, "if (gv7.tag == 0LL) \{ guji_retain(gr9.err); }"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

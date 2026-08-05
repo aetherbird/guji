@@ -1,0 +1,15 @@
+# DECLINE-AUDIT control: match-over-enum where the scrutinee is an ANNOTATED bound
+# binding ($c: Color = Green). Already covered, because g6e_enum_kind_from_type
+# resolves the annotation and registers $c as a CgEnum carrier. The audit must
+# classify this as COVERED — it is the foil to enum_match_bound_inferred (which is
+# the SAME shape minus the annotation, and is a GAP).
+enum Color { Red, Green, Blue }
+
+sub main(): Int {
+    $c: Color = Green
+    match $c {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}

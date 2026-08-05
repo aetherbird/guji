@@ -1,0 +1,22 @@
+# gujiconform — selfhost slice 5 E5d-6: an arithmetic operand whose type the
+# checker cannot model (here an Int reached through an Ok() arm over an unmodeled
+# Result, then a field access) stays permissive. The expression is spec-valid,
+# so the maintained checker must not false-reject `0 - $r.v`.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

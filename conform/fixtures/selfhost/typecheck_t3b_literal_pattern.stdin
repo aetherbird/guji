@@ -1,0 +1,8 @@
+# T3b: literal patterns must have the subject type.
+sub main(): Int {
+    $n = 1
+    match $n {
+        "hi" { 1 }
+        _ { 0 }
+    }
+}

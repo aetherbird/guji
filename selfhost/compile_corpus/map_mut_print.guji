@@ -1,0 +1,5 @@
+sub main(): Int {
+  mut %m: Map[Str, Int] = {"a": 1, "b": 2}
+  print(%m)
+  0
+}

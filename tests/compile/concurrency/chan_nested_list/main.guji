@@ -1,0 +1,24 @@
+# Section 17 channel copy-on-send for nested List[List[T]] values.
+#
+# Nested lists crossing a channel boundary must be detached message graphs: the
+# outer ARR_SLICE and every row backing array are copied. The final buffered send
+# is intentionally left undrained so guji_chan_drop_list releases an undelivered
+# nested message under the sanitizer gate.
+
+sub main(): Unit {
+    $ints: Chan[List[List[Int]]] = channel(2)
+    @rows = [[1, 2], [3, 4, 5]]
+    @drop = [[90], [91, 92]]
+    $ints.send(@rows)
+    $ints.send(@drop)
+
+    @got = $ints.recv().unwrap()
+    print(@got[0][1] + @got[1][2])
+
+    $words: Chan[List[List[Str]]] = channel(1)
+    @parts = [["ab", "cd"], ["ef"]]
+    $words.send(@parts)
+
+    @seen = $words.recv().unwrap()
+    print(@seen[0][0] ~ @seen[1][0] ~ @seen[0][1])
+}

@@ -1,0 +1,34 @@
+# P5b-2b enum-method slice: non-generic enum instance methods lower as
+# qualified static functions with the enum receiver passed as `$self`.
+enum Color {
+    Red
+    Blue
+
+    sub label($self): Str {
+        match $self {
+            Red { "red" }
+            Blue { "blue" }
+        }
+    }
+
+    sub flip($self): Color {
+        match $self {
+            Red { Blue }
+            Blue { Red }
+        }
+    }
+
+    sub same_label($self, $other: Color): Bool {
+        $self.label() == $other.label()
+    }
+}
+
+sub main(): Int {
+    $c = Red
+    print($c.label())
+    $d = $c.flip()
+    print($d.label())
+    print("same: { $c.same_label(Red) }")
+    print("same: { $c.same_label(Blue) }")
+    0
+}

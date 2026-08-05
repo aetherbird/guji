@@ -1,0 +1,11 @@
+sub main(): Int {
+    mut $sum = 0
+    for $i in 1..4 {
+        $sum = $sum + $i
+    }
+    for $j in 0..<3 {
+        $sum = $sum + $j
+    }
+    print("{ $sum }")
+    0
+}

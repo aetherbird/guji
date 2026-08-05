@@ -1,0 +1,10 @@
+sub main(): Int {
+    %ml: Map[Str, List[Int]] = {"a": [1, 2]}
+    @w = [%ml]
+    @lm = [{"a": 1}, {"b": 2}, {"c": 3}]
+    @t = @lm.take(2)
+    @d = @lm.drop(1)
+    @r = @lm.reverse()
+    print("{ @w.count() }/{ @t.count() }/{ @d.count() }/{ @r.count() }")
+    @w.count() + @t.count() + @d.count() + @r.count()
+}

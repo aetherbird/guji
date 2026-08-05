@@ -1,0 +1,78 @@
+# RC1.4b: Option[Match] carrier ownership across every consuming site. Each
+# shape below had a live ASan-confirmed failure in the first partial RC1.4b
+# implementation: matching the same call-returned carrier twice (payload was
+# stolen as a statement temp -> freed+NULLed -> segfault and oracle
+# divergence), mut rebind (the NEW payload was released instead of the old ->
+# double free), and an alias-shaped inline replace_with body ($m.text was read
+# after the match struct was released). Subs returning Option[Match] pin the
+# uniform +1-payload-out convention, including the borrowed-param escape case.
+sub find($s: Str): Option[Match] {
+    $s ~~ /(?<a>\w+)-(?<b>\w+)/
+}
+sub find_local($s: Str): Option[Match] {
+    $opt = $s ~~ /(\w+)\.(\w+)/
+    $opt
+}
+sub pass($o: Option[Match]): Option[Match] {
+    $o
+}
+sub first_of($s: Str): Str {
+    $found = $s ~~ /(?<x>\w+) (\w+)/
+    match $found {
+        Some($m) { $m<x>.unwrap_or('?') }
+        None { '?' }
+    }
+}
+sub shout($m: Match): Str {
+    '<' ~ $m.text ~ '>'
+}
+sub main(): Unit {
+    $opt = find('aa-bb')
+    $r1 = match $opt {
+        Some($m) { $m[1].unwrap_or('?') }
+        None { '?' }
+    }
+    $r2 = match $opt {
+        Some($m) { $m[2].unwrap_or('?') }
+        None { '?' }
+    }
+    print($r1)
+    print($r2)
+    $alias = $opt
+    $r3 = match $alias {
+        Some($m) { $m.text }
+        None { '?' }
+    }
+    print($r3)
+    mut $cur = 'p-q' ~~ /(?<l>\w)-(?<r>\w)/
+    $cur = 'r-s' ~~ /(?<l>\w)-(?<r>\w)/
+    $r4a = match $cur {
+        Some($m) { $m<l>.unwrap_or('?') }
+        None { '?' }
+    }
+    $r4b = match $cur {
+        Some($m) { $m<r>.unwrap_or('?') }
+        None { '?' }
+    }
+    print($r4a ~ $r4b)
+    $kept = pass(find_local('m.n'))
+    $r5 = match $kept {
+        Some($m) { $m[2].unwrap_or('?') }
+        None { '?' }
+    }
+    print($r5)
+    print(first_of('hi yo'))
+    'zz' ~~ /(q)(x)/
+    $none = 'zz' ~~ /q-x/
+    $r6 = match $none {
+        Some($m) { $m.text }
+        None { 'none' }
+    }
+    print($r6)
+    $w1 = 'a1 b2'.replace_with(/\d/, sub($m: Match): Str { '[' ~ $m.text ~ ']' })
+    print($w1)
+    $w2 = 'c3 d4'.replace_with(/\d/, sub($m: Match): Str { $m.text })
+    print($w2)
+    $w3 = replace_with('e5', /\d/, shout)
+    print($w3)
+}

@@ -1,0 +1,49 @@
+# A-interpolate: string interpolation ("{ ... }" and bare @x/%x sigils) of
+# arbitrarily-nested List/Map values via the same generic runtime-tag display
+# recursion print uses (guji_list_str / guji_map_str). Before this, codegen
+# rejected interpolating any List/Map ("codegen cannot interpolate a List value").
+# Here every shape -- scalar/Str leaves, depth-5 nesting, sorted-quoted-key maps,
+# list-of-map and map-of-list mixes, empty collections -- interpolates
+# byte-identically to the interpreter's displayString -> Value.String(), with NO
+# per-shape codegen. The depth-5 list is deeper than any shape codegen previously
+# handled for interpolation (it handled none). Both single-part (alias-shaped)
+# and multi-part (guji_concat-chain) interpolations are covered.
+sub main(): Unit {
+    @ints = [1, 2, 3]
+    print("ints=@ints")
+    @strs = ["ada", "bob"]
+    print("strs={ @strs }")
+    @bools = [true, false, true]
+    print("bools=@bools done")
+    @floats = [1.5, 2.0, 3.25]
+    print("floats=@floats")
+    @empty = []
+    print("empty=@empty.")
+    @deep5 = [[[[[1]]]], [[[[2, 3]]]]]
+    print("deep5={ @deep5 }!")
+    @rows = [[1, 2], [], [3]]
+    print("rows=@rows")
+    @nstr = [["a", "b"], ["c"]]
+    print("nstr=@nstr")
+    %scores = {"cy": 3, "ada": 1, "bob": 2}
+    print("scores=%scores")
+    %words = {"y": "yo", "x": "hi"}
+    print("words={ %words }")
+    %nested = {"a": {"b": {"c": [1, 2, 3]}}}
+    print("nested=%nested")
+    %listval = {"nums": [1, 2], "more": [3]}
+    print("listval={ %listval }")
+    @maps = [{"k": [1, 2]}, {"j": [3]}]
+    print("maps=@maps")
+    %mlist = {"k": [{"x": 1}, {"y": 2}]}
+    print("mlist=%mlist end")
+    # Single-part interpolation (whole string is one { ... }).
+    print("{ @ints }")
+    print("{ %scores }")
+    # Multiple collections in one interpolation (concat chain).
+    print("a=@ints b=%words c=@nstr")
+    # A brace expression that is a list literal, not just a binding.
+    print("inline={ [[1], [2, 3]] } yo")
+    # A brace index that yields a nested list value.
+    print("row0={ @rows[0] }")
+}

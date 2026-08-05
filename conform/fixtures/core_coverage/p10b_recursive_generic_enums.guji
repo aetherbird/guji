@@ -1,0 +1,29 @@
+# P10b: a finite recursive value and a generic enum with an owned nested payload.
+enum Chain {
+    Link($value: Int, $rest: Chain)
+    End
+}
+
+enum Wrapped[T] {
+    Value($value: T)
+    Empty
+}
+
+sub sum($chain: Chain): Int {
+    match $chain {
+        Link($value, $rest) { $value + sum($rest) }
+        End { 0 }
+    }
+}
+
+sub main(): Int {
+    $chain = Link(1, Link(2, Link(3, End)))
+    print(sum($chain))
+
+    $word: Wrapped[Str] = Value("one" ~ "-two")
+    match $word {
+        Value($text) { print($text) }
+        Empty { print("empty") }
+    }
+    0
+}

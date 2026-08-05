@@ -1,0 +1,7 @@
+import lexer
+
+sub main(): Int {
+    $a = lexer::typecheck_verdict
+    $b = ast::Node
+    0
+}

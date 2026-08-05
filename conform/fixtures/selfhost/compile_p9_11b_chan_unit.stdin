@@ -1,0 +1,9 @@
+# §17.3 Chan[Unit] lowers Unit as an int64_t sentinel and recv as Option[Unit].
+sub main(): Int {
+    $ch: Chan[Unit] = channel(1)
+    $ch.send(())
+    $got = $ch.recv()
+    if $got.is_some() { print("some") } else { print("none") }
+    $ch.close()
+    0
+}

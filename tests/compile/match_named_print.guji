@@ -1,0 +1,7 @@
+# Printing a named Match capture prints the Option[Str] carrier itself.
+sub main(): Unit {
+    $m = ("2024-01-15" ~~ /(?<y>\d+)-(?<mo>\d+)-(?<d>\d+)/).unwrap()
+    print($m<y>)
+    print($m<mo>)
+    print($m<d>)
+}

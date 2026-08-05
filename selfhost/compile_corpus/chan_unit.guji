@@ -1,0 +1,12 @@
+# §17.3: Unit is a real channel element kind even though its payload is the
+# value-less 0LL sentinel. Exercise buffered delivery and the recv-presence
+# Option[Unit] carrier without relying on Unit display.
+sub main(): Int {
+    $ch: Chan[Unit] = channel(1)
+    $sent = $ch.send(())
+    print($sent.is_ok())
+    $ch.close()
+    $got = $ch.recv()
+    print($got.is_some())
+    0
+}

@@ -1,0 +1,5 @@
+sub main(): Int {
+    write_file("/tmp/guji_conform_p94b.txt", "hi").unwrap()
+    print("ok")
+    0
+}

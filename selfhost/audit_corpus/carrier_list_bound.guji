@@ -1,0 +1,7 @@
+# DECLINE-AUDIT (slice 4d): a List[Int] enum carrier in a bound-inferred scrutinee.
+# Native builds + runs it; the selfhost compiler must COVER it, not decline.
+enum Box { Nums(@xs: List[Int]) }
+sub main(): Int {
+    $b = Nums([3, 4, 5])
+    match $b { Nums(@xs) { @xs[1] } }
+}

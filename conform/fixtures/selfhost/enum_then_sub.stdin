@@ -1,0 +1,5 @@
+enum Flag { On, Off }
+
+sub main(): Int {
+    0
+}

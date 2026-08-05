@@ -1,0 +1,38 @@
+# §8/§9/§15.4 (I5g): collection-bearing class/enum display and equality.
+# Pins List/Map fields (including nested Map[Str, List] enum payloads) rendered
+# through the same recursive display form as freestanding collections, plus
+# structural equality that already agreed for these carriers. Nested class
+# fields (List[List]/Map[Str, List]/…) are I5g3; Class/Enum element
+# collections as class fields remain a later type→kind admission boundary.
+
+class Box {
+    has $.label: Str
+    has @.items: List[Int]
+    has %.lookup: Map[Str, Int]
+}
+
+enum Wrap {
+    Empty
+    Items(@xs: List[Int])
+    NestedMap(%m: Map[Str, List[Int]])
+}
+
+sub main(): Int {
+    $a = Box(label: "a", items: [1, 2], lookup: {"b": 2, "a": 1})
+    $b = Box(label: "a", items: [1, 2], lookup: {"a": 1, "b": 2})
+    $c = Box(label: "a", items: [1, 9], lookup: {"a": 1, "b": 2})
+    print($a)
+    print($a == $b)
+    print($a != $c)
+    print("box={ $a }")
+
+    $w1 = Items([1, 2])
+    $w2 = Items([1, 2])
+    $w3 = NestedMap({"a": [9]})
+    print($w1)
+    print(Empty)
+    print($w1 == $w2)
+    print($w1 != $w3)
+    print($w3)
+    0
+}

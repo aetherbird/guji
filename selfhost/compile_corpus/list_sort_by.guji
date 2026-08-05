@@ -1,0 +1,30 @@
+# §15.1 list `sort_by`, P2c slice: stable ordered copies by computed Int/Float/Str
+# keys. Covers function and method spellings, scalar/Str/Bool element lists, a
+# nested-list element list whose copied rows must retain their storage, and a
+# produced receiver.
+sub main(): Int {
+    @xs = [12, 22, 11, 21]
+    @ranked = @xs.sort_by(sub($n: Int): Int { $n % 10 })
+    print(@ranked)
+
+    @words = ["pear" ~ "", "fig" ~ "", "plum" ~ ""]
+    @alpha = sort_by(@words, sub($w: Str): Str { $w })
+    print(@alpha)
+
+    @fs = [2.5, 1.25, 3.75]
+    @desc = @fs.sort_by(sub($f: Float): Float { 0.0 - $f })
+    print(@desc)
+
+    @bs = [true, false, true]
+    @bools = sort_by(@bs, sub($b: Bool): Int { if $b { 1 } else { 0 } })
+    print(@bools)
+
+    @rows = [[1, 2, 3], [4], [5, 6]]
+    @by_len = @rows.sort_by(sub($row: List[Int]): Int { count($row) })
+    print("{ @by_len[0][0] }/{ count(@by_len[2]) }")
+
+    @from_call = sort_by(reverse(@xs), sub($n2: Int): Int { $n2 })
+    print(@from_call)
+
+    count(@ranked) + count(@alpha) + count(@desc) + count(@bools) + count(@by_len) + count(@from_call)
+}

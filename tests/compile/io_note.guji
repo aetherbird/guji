@@ -1,0 +1,17 @@
+# Section 15.4 note($value): writes the display form + newline to STDERR
+# (print's diagnostic twin). stdout stays clean -- only the print line lands
+# there -- while the note lines go to stderr, gated via the io_note.stderr
+# sidecar. note accepts any value, so it shares print's full display path: a
+# scalar, a Str, a List, and a Map all render identically to print, on stderr.
+# This fixture also carries an .args sidecar to gate Section 15.4 args(): argv
+# excludes the program/source name and preserves empty string arguments.
+sub main(): Unit {
+    print("stdout stays clean")
+    @argv = args()
+    print("{ @argv.count() }")
+    print(@argv.join("|"))
+    note("diagnostic line")
+    note(7)
+    note([1, 2, 3])
+    note({"k": 9})
+}

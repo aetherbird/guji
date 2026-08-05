@@ -1,0 +1,77 @@
+# I2b: scalar-only positional calls, nesting, early returns, Unit returns,
+# and recursion. No interpolation, Float arithmetic, collections, or user types.
+sub add($a: Int, $b: Int): Int { $a + $b }
+sub greet($a: Str, $b: Str): Str { $a ~ "-" ~ $b }
+sub flag($b: Bool): Bool { if $b { false } else { true } }
+sub pick($n: Int, $s: Str, $ok: Bool): Str {
+    if $ok { $s } else { greet("n", "a") }
+}
+sub nested($n: Int): Int { add(add($n, 1), add(2, 3)) }
+sub early_int($n: Int): Int {
+    if $n < 0 { return 0 }
+    if $n == 0 { return 1 }
+    $n + 1
+}
+sub early_str($s: Str): Str {
+    if $s == "" { return "empty" }
+    $s ~ "!"
+}
+sub early_bool($b: Bool): Bool {
+    if $b { return false }
+    true
+}
+sub fact($n: Int): Int {
+    if $n <= 1 { return 1 }
+    $n * fact($n - 1)
+}
+sub mutual_a($n: Int): Int {
+    if $n <= 0 { return 0 }
+    mutual_b($n - 1)
+}
+sub mutual_b($n: Int): Int {
+    if $n <= 0 { return 1 }
+    mutual_a($n - 1)
+}
+sub bare_unit(): Unit { return }
+sub unit_lit(): Unit { return () }
+sub early_unit($n: Int): Unit {
+    if $n < 0 {
+        print("neg")
+        return ()
+    }
+    if $n == 0 {
+        return
+    }
+    print("pos")
+}
+sub unit_print(): Unit {
+    return print("e")
+}
+sub main(): Unit {
+    print(add(3, 4))
+    print(greet("hi", "ada"))
+    print(flag(true))
+    print(flag(false))
+    print(pick(1, "yes", true))
+    print(pick(1, "yes", false))
+    print(nested(10))
+    print(early_int(-1))
+    print(early_int(0))
+    print(early_int(5))
+    print(early_str(""))
+    print(early_str("x"))
+    print(early_bool(true))
+    print(early_bool(false))
+    print(fact(5))
+    print(mutual_a(3))
+    print(mutual_b(3))
+    print(triple(7))
+    bare_unit()
+    unit_lit()
+    early_unit(-1)
+    early_unit(0)
+    early_unit(1)
+    unit_print()
+    print("done")
+}
+sub triple($x: Int): Int { $x * 3 }

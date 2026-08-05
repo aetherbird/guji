@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P6f-unwrap-or compiler codegen fixture.
+# Pins Result `unwrap_or` over a FRESH call receiver: the call is materialised
+# into a carrier temp, the pick uses Result polarity (`tag == 0 ? .ok`), the
+# carrier's Err/Ok slots are released afterward, and Str/Regex paths retain the
+# picked pointer. Regex.compile appears for the Regex.unwrap_or coverage.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_parse_int("))
+            print(has_text($c, ".tag == 0 ? gr"))
+            print(has_text($c, ".ok : guji_neg(1LL))"))
+            print(has_text($c, " = guji_retain((gr"))
+            print(has_text($c, ".tag != 0LL) \{ guji_release(gr"))
+            print(has_text($c, "guji_regex_compile("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

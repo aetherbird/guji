@@ -1,0 +1,12 @@
+enum Switch {
+    Flag($on: Bool)
+    Unknown
+}
+
+sub main(): Int {
+    $s: Switch = Flag(true)
+    match $s {
+        Flag($on) { if $on { 5 } else { 2 } }
+        Unknown { 0 }
+    }
+}

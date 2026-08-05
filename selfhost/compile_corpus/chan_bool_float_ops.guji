@@ -1,0 +1,26 @@
+# P8d-2a: the remaining non-owning scalar channel payloads. Buffered channels
+# keep this scheduler-independent while covering send/recv/close on both kinds.
+sub main(): Int {
+    $flags: Chan[Bool] = channel(2)
+    $flags.send(true)
+    $flags.send(false)
+    $flags.close()
+    $yes = $flags.recv()
+    print($yes.unwrap())
+    $no = $flags.recv()
+    print($no.unwrap())
+    $flags_done = $flags.recv()
+    print($flags_done.is_none())
+
+    $nums: Chan[Float] = channel(2)
+    $nums.send(1.5)
+    $nums.send(2.25)
+    $nums.close()
+    $one = $nums.recv()
+    print($one.unwrap())
+    $two = $nums.recv()
+    print($two.unwrap())
+    $nums_done = $nums.recv()
+    print($nums_done.is_none())
+    0
+}

@@ -1,0 +1,17 @@
+# C01: an expression-body sub with a channel parameter is spec-valid, but C
+# currently declines the whole sub instead of emitting balanced cleanup.
+sub take($ch: Chan[Int]): Int = $ch.recv().unwrap()
+
+sub alias($ch: Chan[Int]): Chan[Int] = $ch
+
+sub main(): Int {
+    $ch: Chan[Int] = channel(1)
+    $ch.send(7)
+    print(take($ch))
+
+    $returned = alias($ch)
+    $returned.send(9)
+    print($returned.recv().unwrap())
+    $returned.close()
+    0
+}

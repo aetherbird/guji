@@ -1,0 +1,21 @@
+# P8d-2c-3c-2: pin map channel drain reset/release/adoption sites.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, " = (guji_map_t)\{0};\n\tfor (;;) ") == 3)
+            print(count_of($c, ".tag = guji_chan_recv(") == 3)
+            print(count_of($c, "\t\tbreak;\n\t}\n\tguji_release((const void*)") == 3)
+            print(count_of($c, " = guji_copy_arr((const void*)") >= 4)
+            print(count_of($c, " = ") > 0 && count_of($c, ".val;") == 3)
+            print(count_of($c, "\t}\n\tguji_release((const void*)") >= 3)
+            0
+        }
+    }
+}

@@ -1,0 +1,6 @@
+sub main(): Int {
+    $prefix = "hi"
+    $base = 7
+    $f = sub($n: Int): Int { if $prefix == "hi" { $n + $base } else { $n } }
+    $f(5)
+}

@@ -1,0 +1,11 @@
+sub main(): Int {
+    $o: Option[Bool] = Some(true)
+    if match $o {
+        Some($b) { $b }
+        None { false }
+    } {
+        7
+    } else {
+        2
+    }
+}

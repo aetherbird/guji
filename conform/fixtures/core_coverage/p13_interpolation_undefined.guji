@@ -1,0 +1,5 @@
+# Bare interpolation names are statically resolved like ordinary bindings.
+sub main(): Int {
+    print("value=$missing")
+    0
+}

@@ -1,0 +1,7 @@
+sub is_digit($c: Str): Bool {
+    ($c ~~ /(?a)[0-9]/).is_some()
+}
+
+sub main(): Int {
+    if is_digit("3") && !is_digit("x") { 0 } else { 1 }
+}

@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 4c C2 compiler codegen fixture.
+# A mixed Str/Int enum field position must compile through the generic union
+# layout, including the `.s` member in construction and retain/release.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "int64_t i; double f; const char* s;"))
+            print(has_text($c, ".s = "))
+            print(has_text($c, "p->f0.s"))
+            print(has_text($c, "guji_release_Animal_fields"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

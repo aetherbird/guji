@@ -1,0 +1,41 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Generic CLASS value inference materializes one concrete spec per
+            # scalar instantiation, inferred from unannotated constructor binds
+            # with no signature mention: Box(value: 42/"hello"/3.5/true) and
+            # Pair(first:_, second:_) at two different (A, B) pairings.
+            print(has_text($c, "typedef struct Box__Int Box__Int;"))
+            print(has_text($c, "struct Box__Str"))
+            print(has_text($c, "struct Box__Float"))
+            print(has_text($c, "struct Box__Bool"))
+            print(has_text($c, "struct Pair__Int_Str"))
+            print(has_text($c, "struct Pair__Float_Bool"))
+            # The constructor's field KINDS pick the spec: each scalar literal
+            # lands in its own compound literal (Box__Int vs Box__Str both start
+            # with Box__, so the Int/Str/Float/Bool field kind decides).
+            print(has_text($c, "(Box__Int)\{42LL}"))
+            print(has_text($c, "(Box__Float)\{3.5}"))
+            print(has_text($c, "(Box__Bool)\{1LL}"))
+            print(has_text($c, "(Box__Str)\{"))
+            print(has_text($c, "(Pair__Int_Str)\{1LL, "))
+            print(has_text($c, "(Pair__Float_Bool)\{2.5, 0LL}"))
+            # Owned class locals release their fields per-spec at scope exit; the
+            # Str-bearing specs carry a real heap reference to free.
+            print(has_text($c, "guji_release_Box__Str_fields(&"))
+            print(has_text($c, "guji_release_Pair__Int_Str_fields(&"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

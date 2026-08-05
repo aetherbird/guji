@@ -1,0 +1,31 @@
+# A-collapse-compare-equality: List/Map == and != lower once to the generic
+# guji_list_equal / guji_map_equal runtime recursion over ARR_* KIND tags. These
+# shapes are broader/deeper than the older compare_nested_collections fixture:
+# both sides alternate List and Map down to depth 6, include storage-order-
+# independent maps, and exercise Int, Str, Float, Bool, and empty leaves without
+# adding any per-shape comparison arm.
+sub main(): Unit {
+    @a = [{"outer": [{"inner": [{"leaf": [1, 2]}, {"empty": []}]}]}]
+    @b = [{"outer": [{"inner": [{"leaf": [1, 2]}, {"empty": []}]}]}]
+    @c = [{"outer": [{"inner": [{"leaf": [1, 9]}, {"empty": []}]}]}]
+    print(@a == @b)
+    print(@a != @c)
+
+    %m1 = {"right": [{"z": [3.5, 4.5]}], "left": [{"x": [1.5]}, {"y": [2.5]}]}
+    %m2 = {"left": [{"x": [1.5]}, {"y": [2.5]}], "right": [{"z": [3.5, 4.5]}]}
+    %m3 = {"left": [{"x": [1.5]}, {"y": [2.5]}], "right": [{"z": [3.5, 9.5]}]}
+    print(%m1 == %m2)
+    print(%m1 != %m3)
+
+    @strs1 = [{"names": [{"first": ["ada", "bob"]}, {"last": ["cy"]}]}]
+    @strs2 = [{"names": [{"first": ["ada", "bob"]}, {"last": ["cy"]}]}]
+    @strs3 = [{"names": [{"first": ["ada", "dot"]}, {"last": ["cy"]}]}]
+    print(@strs1 == @strs2)
+    print(@strs1 == @strs3)
+
+    %bools1 = {"flags": [{"ok": [true, false]}, {"tail": [true]}]}
+    %bools2 = {"flags": [{"ok": [true, false]}, {"tail": [true]}]}
+    %bools3 = {"flags": [{"ok": [false, false]}, {"tail": [true]}]}
+    print(%bools1 == %bools2)
+    print(%bools1 == %bools3)
+}

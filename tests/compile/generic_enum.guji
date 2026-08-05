@@ -1,0 +1,26 @@
+# G3b slice: generic enum variant payloads monomorphize into separate native
+# enum layouts, so matching Wrap[Int] and Wrap[Str] destructures concrete slots.
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+}
+
+sub main(): Int {
+    $bi = Wrap(42)
+    match $bi {
+        Wrap($v) {
+            print("{ $v }")
+            0
+        }
+        Empty { 1 }
+    }
+
+    $bs = Wrap("guji")
+    match $bs {
+        Wrap($s) {
+            print("{ $s }")
+            0
+        }
+        Empty { 1 }
+    }
+}

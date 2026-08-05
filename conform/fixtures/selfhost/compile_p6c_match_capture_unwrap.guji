@@ -1,0 +1,23 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P6c: `$m<name>.unwrap()` / `unwrap($m[index])` consume fresh Option[Str]
+# capture carriers. Pin the None guard, payload retain, and carrier release.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "unwrap on None"))
+            print(has_text($c, "guji_retain(go"))
+            print(has_text($c, ".val = NULL"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

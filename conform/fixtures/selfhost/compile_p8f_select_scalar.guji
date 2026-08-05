@@ -1,0 +1,23 @@
+# P8f-1: pin scalar select polling, binding carriers, else, and blocking wait.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_progress_snapshot()") == 3)
+            print(count_of($c, "guji_chan_try_recv(") == 3)
+            print(count_of($c, "guji_chan_try_send(") == 1)
+            # Only the no-else recv select parks; poll/send selects do not.
+            print(count_of($c, "guji_select_wait(gseen") == 1)
+            print(count_of($c, ".tag = (gsel") == 3)
+            print(count_of($c, "? 1 : 0;") == 2)
+            print(count_of($c, " != -1)") == 4)
+            0
+        }
+    }
+}

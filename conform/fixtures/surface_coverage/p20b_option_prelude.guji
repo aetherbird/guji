@@ -1,0 +1,37 @@
+# Spec 15.5 Option prelude. Sentinel callbacks would print if a None path
+# evaluated a map/and_then callback, independently proving their lazy polarity.
+sub bad_option_map($n: Int): Int { print("bad-map") $n * 2 }
+sub bad_option_then($n: Int): Option[Int] { print("bad-and-then") Some($n + 1) }
+
+sub main(): Int {
+    $some: Option[Int] = Some(5)
+    $none: Option[Int] = None
+    print("predicates={ $some.is_some() }/{ $some.is_none() }/{ $none.is_some() }/{ $none.is_none() }")
+    print("unwrap={ $some.unwrap() }")
+    print("expect={ $some.expect('unused') }")
+    print("unwrap-or={ $some.unwrap_or(0) }/{ $none.unwrap_or(7) }")
+
+    $mapped_some = $some.map(sub($n: Int): Int { $n * 2 })
+    $mapped_none = $none.map(sub($n: Int): Int { bad_option_map($n) })
+    print("map={ $mapped_some.unwrap_or(-1) }/{ $mapped_none.unwrap_or(-1) }")
+
+    $filtered_keep = $some.filter(sub($n: Int): Bool { $n > 3 })
+    $filtered_drop = $some.filter(sub($n: Int): Bool { $n > 9 })
+    print("filter={ $filtered_keep.unwrap_or(-1) }/{ $filtered_drop.unwrap_or(-1) }")
+
+    $then_some = $some.and_then(sub($n: Int): Option[Int] { Some($n + 1) })
+    $then_none = $none.and_then(sub($n: Int): Option[Int] { bad_option_then($n) })
+    print("and-then={ $then_some.unwrap_or(-1) }/{ $then_none.unwrap_or(-1) }")
+
+    $some_result: Result[Int, Str] = $some.ok_or("missing")
+    $none_result: Result[Int, Str] = $none.ok_or("missing")
+    match $some_result {
+        Ok($n) { print("ok-or-some=$n") }
+        Err($e) { print("ok-or-some=$e") }
+    }
+    match $none_result {
+        Ok($n) { print("ok-or-none=$n") }
+        Err($e) { print("ok-or-none=$e") }
+    }
+    0
+}

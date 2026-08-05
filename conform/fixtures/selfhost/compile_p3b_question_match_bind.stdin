@@ -1,0 +1,27 @@
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub parse_price($s: Str): Result[Int, Str] {
+    parse_int($s)
+}
+
+sub match_bind_int($s: Str, $q: Str): Result[Int, Str] {
+    $x = match parse_price($s) {
+        Ok($v) { parse_int($q)? + $v }
+        Err($e) { 0 }
+    }
+    Ok($x + 1)
+}
+
+sub match_bind_str($s: Str, $q: Str): Result[Str, Str] {
+    $x: Str = match tag($s) {
+        Ok($t) { tag($q)? ~ $t }
+        Err($e) { "none" }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    0
+}

@@ -1,0 +1,6 @@
+sub main(): Int {
+    if true {
+        return 4
+    }
+    99
+}

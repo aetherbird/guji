@@ -1,0 +1,65 @@
+# A-collection-elements-rest (nested carrier with COUNTED class/enum leaves):
+# List[List[Person]] and List[List[Tag]], where the leaf class/enum owns
+# reference-counted fields/payloads. Each row is stored as a guji_slice_t handle
+# inside the outer ARR_SLICE, but the row's own storage is now allocated under
+# the leaf's generated array-drop kind (GUJI_KIND_<Class|Enum>_ARR), so the
+# outer release cascades into every leaf's fields. The leaf Str fields/payloads
+# are HEAP-built at runtime (`~` concat), NOT immortal literals, so the per-leaf
+# retain/release must balance exactly under LeakSanitizer.
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+enum Tag {
+    Named($s: Str)
+    Anon
+}
+
+sub tag_label($t: Tag): Str {
+    match $t {
+        Named($s) { $s }
+        Anon { "?" }
+    }
+}
+
+sub main(): Int {
+    # Counted-class leaves in a List[List[Person]] carrier.
+    @grid = [[Person(name: "A" ~ "da", age: 36), Person(name: "B" ~ "ob", age: 28)], [Person(name: "C" ~ "y", age: 5)]]
+    print(@grid.count())
+    print(@grid[0].count())
+    print(@grid[1].count())
+
+    # Row indexing then leaf field reads (borrowed views).
+    @first = @grid[0]
+    print(@first[0].name)
+    print(@first[1].name)
+
+    # Nested for-loop borrows each row, then each leaf; field reads accumulate.
+    mut $total = 0
+    for @row in @grid {
+        for $p in @row {
+            $total = $total + $p.age
+        }
+    }
+    print($total)
+
+    # Counted-enum leaves in a List[List[Tag]] carrier, with a non-fresh alias
+    # element ($shared) reused inside a row literal — the row array copies the
+    # struct by value, so it retains its OWN +1 on the Str payload.
+    $shared = Named("sh" ~ "are")
+    @tags = [[Named("x" ~ "y"), Anon], [$shared]]
+    print(@tags.count())
+    print(@tags[0].count())
+
+    mut $joined = ""
+    for @trow in @tags {
+        for $t in @trow {
+            $joined = $joined ~ tag_label($t)
+        }
+    }
+    print($joined)
+    print(tag_label($shared))
+    0
+}

@@ -1,0 +1,21 @@
+sub checked_div($a: Int, $b: Int): Result[Int, Str] {
+    if $b == 0 {
+        Err("divide by zero")
+    } else {
+        Ok($a / $b)
+    }
+}
+
+sub compute(): Result[Int, Str] {
+    $x = checked_div(20, 4)?
+    $y = checked_div($x, 5)?
+    Ok($y)
+}
+
+sub main(): Int {
+    match compute() {
+        Ok($v)  { print("ok: $v") }
+        Err($e) { print("err: $e") }
+    }
+    0
+}

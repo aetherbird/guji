@@ -1,0 +1,25 @@
+# gujiconform - selfhost slice 5 E5d-8a compiler codegen fixture.
+# Pins the narrow regex Bool predicate shape used by the selfhost lexer:
+# `($s ~~ /literal/).is_some()` lowers through the embedded regex runtime,
+# converts match-pointer presence to Bool, then releases both temporaries.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_regex_match_pattern_engine(\"(?a)[0-9]\""))
+            print(has_text($c, "guji_release((const void*)gm"))
+            print(has_text($c, "!= NULL) ? 1LL : 0LL"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

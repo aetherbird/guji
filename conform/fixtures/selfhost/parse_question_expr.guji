@@ -1,0 +1,18 @@
+# gujiconform parser fixture for selfhost slice 6 P3b-1: the postfix `?` operator
+# (§11.1, §20). Pins the `?` node at the AST boundary — parsed as a postfix
+# operator wrapping its receiver — while codegen stays out of subset for a later
+# P3b slice. Typecheck already accepts (see typecheck_question_accept).
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

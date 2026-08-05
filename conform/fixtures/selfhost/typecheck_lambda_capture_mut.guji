@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 6 P1b lambda type-checker fixture (§7.4).
+# The stdin source is classified by the self-hosted type checker; this pins the
+# lambda closure/capture verdict at the typecheck boundary.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

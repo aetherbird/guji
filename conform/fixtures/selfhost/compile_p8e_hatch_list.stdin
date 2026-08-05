@@ -1,0 +1,22 @@
+# P8e-3: fixed scalar list (stack -> alloc+loop) and heap Str list
+# (header-backed -> guji_copy_arr) captured by hatch tasks.
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    @xs = [10, 20, 30]
+    hatch {
+        mut $sum = 0
+        for $x in @xs {
+            $sum = $sum + $x
+        }
+        $ch.send($sum + @xs.count())
+    }
+    print($ch.recv().unwrap())
+    $sch: Chan[Str] = channel(0)
+    $a = "al" ~ "pha"
+    @words = [$a, "be" ~ "ta"]
+    hatch {
+        $sch.send(@words.join("-"))
+    }
+    print($sch.recv().unwrap())
+    0
+}

@@ -1,0 +1,7 @@
+sub main(): Int {
+  mut $acc = 0
+  $acc = $acc + 10
+  $acc = $acc * 3
+  $acc = $acc - 2
+  $acc
+}

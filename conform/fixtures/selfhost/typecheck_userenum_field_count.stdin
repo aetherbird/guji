@@ -1,0 +1,9 @@
+# G6b-b-3-ii: variant patterns must bind the declared number of fields.
+enum Shape { Circle($radius: Int) }
+
+sub main(): Int {
+    $s = Circle(5)
+    match $s {
+        Circle($r, $extra) { 0 }
+    }
+}

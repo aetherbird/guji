@@ -1,0 +1,33 @@
+# A-collection-elements-rest (class with counted List field slice): a flat List
+# of class values whose fields include both Str and List[Int] lowers to a
+# counted heap array whose per-class drop releases each element's fields. This
+# fixture proves indexed list-field views, for-loop field reads, and a non-fresh
+# alias element under the sanitizer gate.
+
+class Label {
+    has $.tags: List[Int]
+    has $.name: Str
+}
+
+sub main(): Int {
+    @labels = [Label(tags: [1, 2, 3], name: "A" ~ "x"), Label(tags: [4], name: "B" ~ "y")]
+    print(@labels.count())
+    print(@labels[0].tags.count())
+    print(@labels[0].tags.sum())
+    print(@labels[1].tags[0])
+    print(@labels[0].name)
+
+    mut $total = 0
+    for $l in @labels {
+        $total = $total + $l.tags.sum()
+    }
+    print($total)
+
+    $saved = Label(tags: [8, 9], name: "C" ~ "z")
+    @more = [$saved, Label(tags: [10], name: "D" ~ "w")]
+    print(@more[0].tags.sum())
+    print(@more[1].tags.count())
+    print($saved.tags.count())
+    print($saved.name)
+    0
+}

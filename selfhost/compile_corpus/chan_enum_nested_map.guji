@@ -1,0 +1,37 @@
+# P9-11a: nested Map-value enums over channels — Map[Str,List] / Map[Str,Map]
+# deep-detach through the same guji_copy_arr cascade as flat Map payloads.
+enum Rec {
+    Buckets($b: Map[Str, List[Int]])
+    Grid($g: Map[Str, Map[Str, Int]])
+    Done
+}
+
+sub show($r: Rec): Str {
+    match $r {
+        Buckets($b) {
+            $sum = $b{"evens"}[0] + $b{"evens"}[1] + $b{"odds"}[0]
+            "sum={ $sum }"
+        }
+        Grid($g) {
+            $n = $g{"left"}{"x"} + $g{"left"}{"y"}
+            "n={ $n }"
+        }
+        Done { "done" }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Rec] = channel(2)
+    %buckets = {"evens": [2, 4], "odds": [1, 3]}
+    %grid = {"left": {"x": 10, "y": 20}, "right": {"x": 5}}
+    $first = Buckets(%buckets)
+    $drop = Grid(%grid)
+
+    hatch {
+        $ch.send($first)
+        $ch.send($drop)
+    }
+
+    $got = $ch.recv().unwrap()
+    print(show($got))
+}

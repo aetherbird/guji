@@ -1,0 +1,32 @@
+KEYWORD "grammar" @1:1
+UPPER "Email" @1:9
+PUNCT "{" @1:15
+NEWLINE @1:16
+KEYWORD "rule" @2:3
+UPPER "TOP" @2:8
+PUNCT "{" @2:12
+RXBODY "<user> '@' <domain>" @2:13
+PUNCT "}" @2:34
+NEWLINE @2:35
+KEYWORD "token" @3:3
+IDENT "user" @3:9
+PUNCT "{" @3:14
+RXBODY "\w+" @3:15
+PUNCT "}" @3:20
+NEWLINE @3:21
+KEYWORD "regex" @4:3
+IDENT "d" @4:9
+PUNCT "{" @4:11
+RXBODY "\d{2,4}" @4:12
+PUNCT "}" @4:21
+NEWLINE @4:22
+KEYWORD "token" @5:3
+IDENT "braces" @5:9
+PUNCT "{" @5:16
+RXBODY "'{' [}] \}" @5:17
+PUNCT "}" @5:29
+NEWLINE @5:30
+PUNCT "}" @6:1
+NEWLINE @6:2
+EOF @7:1
+

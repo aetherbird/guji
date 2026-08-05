@@ -1,0 +1,63 @@
+# slice 5 E5d-8h: an enum variant carrying a user-CLASS field, embedded BY VALUE
+# (the class analogue of a nested-enum variant field). The class has a Str field so
+# the enum's retain/release helpers RECURSE into the class's own
+# guji_<op>_<Class>_fields helper (ownership / leak coverage). THREE-WAY: native
+# `guji build` accepts a class with scalar/Str fields inside an enum variant, so this
+# is interp == native == selfhost. (A class with an ENUM field inside an enum variant
+# is native-rejected -> interp-oracle, covered by enum_class_field_diff.sh.)
+#
+# Position 0 is HOMOGENEOUS (Tok in both variants) and position 1 is HOMOGENEOUS (Int
+# in both), so neither is a union slot — a by-value class cannot share a union slot.
+class Tok {
+    has $.kind: Str
+    has $.lex: Str
+}
+
+sub mk($k: Str, $l: Str): Tok {
+    Tok(kind: $k, lex: $l)
+}
+
+enum Step {
+    SEmit($t: Tok, $n: Int)
+    SEof($t: Tok, $n: Int)
+}
+
+# value-position `match` over Option[Str] returning the user enum, with each arm a
+# variant constructor whose first field is a class built from a CALL (None arm) or a
+# class built from a constructor literal (Some arm, via mk).
+sub classify(@chars: List[Str], $i: Int): Step {
+    match get(@chars, $i) {
+        None { SEof(mk("eof", "<<"), $i) }
+        Some($c) { SEmit(Tok(kind: "ch", lex: $c), $i + 1) }
+    }
+}
+
+# match-arm binding of the class field, then reading its Str members (retained reads).
+sub label($s: Step): Str {
+    match $s {
+        SEof($t, $n) { "eof:" ~ $t.kind ~ ":" ~ $t.lex }
+        SEmit($t, $n) { "emit:" ~ $t.kind ~ ":" ~ $t.lex }
+    }
+}
+
+sub advance($s: Step): Int {
+    match $s {
+        SEof($t, $n) { $n }
+        SEmit($t, $n) { $n }
+    }
+}
+
+sub main(): Int {
+    @cs = split("xy", "")
+    # Bind each enum result to a local so its owned class field (with a heap Str) is
+    # released at scope end — the same return-then-bind shape the real lexer uses
+    # (passing a fresh owned enum temp straight into a call leaks it, a pre-existing
+    # temp-release limitation unrelated to class fields).
+    $a = classify(@cs, 0)
+    print(label($a))
+    $b = classify(@cs, 1)
+    print(label($b))
+    $e = classify(@cs, 9)
+    print(label($e))
+    advance($b)
+}

@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 6 P9-2 Str-prelude unary arity (reject).
+# `$s.upper("x")` must reject with the oracle-verbatim arity diagnostic
+# (explicit args only; the receiver slot is excluded from both counts).
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

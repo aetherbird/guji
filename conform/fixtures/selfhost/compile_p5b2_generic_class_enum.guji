@@ -1,0 +1,37 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # CLASS type argument: T binds to the class tag; param + return are the
+            # flattened by-value class struct. Native names the spec with the bare
+            # tag, NO lowercasing (gf_identity__Point_Point).
+            print(has_text($c, "static Point gf_identity__Point_Point(Point gp0)"))
+            # ENUM type argument: the fieldless enum flattens to its int-tag struct.
+            print(has_text($c, "static Color gf_identity__Color_Color(Color gp0)"))
+            # Scalar (Str) return over class/enum args — the return tag is
+            # independent of the bound type argument.
+            print(has_text($c, "static const char* gf_describe__Point_Str(Point gp0)"))
+            print(has_text($c, "static const char* gf_describe__Color_Str(Color gp0)"))
+            # Call site: a fieldless variant argument lowers to its tag struct
+            # ((Color){1LL} = Green) and routes to the enum specialization. The
+            # `\{` keeps the brace literal (a bare `{` would interpolate here);
+            # the close brace is dropped so no `\}` marker leaks into the needle.
+            print(has_text($c, "gf_identity__Color_Color((Color)\{1LL"))
+            print(has_text($c, "gf_describe__Color_Str((Color)\{2LL"))
+            # The generic templates themselves are NOT emitted as functions.
+            print(has_text($c, "gf_identity("))
+            print(has_text($c, "gf_describe("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

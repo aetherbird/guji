@@ -1,0 +1,4 @@
+sub main(): Int {
+    @av = args()
+    if @av.count() == 0 { 0 } else { print(@av[0]) 1 }
+}

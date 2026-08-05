@@ -1,0 +1,16 @@
+# §15.5 / §11.2 `unwrap` of an `Err` panics with the COMPUTED message
+# `unwrap on Err(<display>)`. The Str err payload is heap-built so the lowering
+# must splice the live `.err` pointer into the guji_concat chain; native and
+# selfhost stderr should be byte-identical, with the interpreter agreeing that
+# the program panicked.
+
+sub erri($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub main(): Int {
+    $bad: Result[Int, Str] = erri("ba" ~ "d")
+    print("before")
+    if $bad.unwrap() == 5 { print("unreachable") }
+    0
+}

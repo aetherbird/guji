@@ -1,0 +1,4 @@
+sub main(): Int {
+    print("a\rb \{lit\} z\qz")
+    0
+}

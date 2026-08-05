@@ -1,0 +1,13 @@
+# §5.2 `&&`/`||` short-circuit: the right operand (a side-effecting sub) is NOT
+# evaluated, so `side()` never prints.
+sub side(): Bool {
+    print(999)
+    true
+}
+sub main(): Int {
+    $a = false && side()
+    $b = true || side()
+    print($a)
+    print($b)
+    0
+}

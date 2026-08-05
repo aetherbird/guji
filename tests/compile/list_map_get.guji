@@ -1,0 +1,15 @@
+sub main(): Int {
+    @xs = [10, 20, 30]
+    print(match @xs.get(1) { Some($v) { $v } None { 0 } })
+    print(match get(@xs, 9) { Some($v) { $v } None { -1 } })
+    print(match @xs.get(0 - 1) { Some($v) { $v } None { -2 } })
+
+    %ages = {"ada": 30, "grace": 36}
+    print(match %ages.get("grace") { Some($age) { $age } None { 0 } })
+    print(match get(%ages, "linus") { Some($age) { $age } None { -3 } })
+
+    %labels = {"a": "alpha"}
+    print(match %labels.get("a") { Some($label) { $label } None { "missing" } })
+    print(match %labels.get("z") { Some($label) { $label } None { "missing" } })
+    0
+}

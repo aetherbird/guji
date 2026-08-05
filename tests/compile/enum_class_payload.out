@@ -1,0 +1,10 @@
+dot 3,4
+filled 3
+empty
+rgb 255/0/128
+blank
+at 9,8 color 7
+none
+dot 7,8
+empty
+filled 7

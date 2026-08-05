@@ -1,0 +1,5 @@
+sub main(): Int {
+  %m: Map[Str, Float] = {"y": 2.5, "x": 1.5}
+  print(%m)
+  0
+}

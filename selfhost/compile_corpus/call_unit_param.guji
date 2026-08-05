@@ -1,0 +1,7 @@
+sub tick($n: Int): Unit {
+    print("tick")
+}
+sub main(): Unit {
+    tick(1)
+    tick(2)
+}

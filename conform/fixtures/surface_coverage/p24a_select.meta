@@ -1,0 +1,2 @@
+engines: both
+spec: 17, 17.2, 17.3, 17.5, 20:select_stmt, 20:select_arm

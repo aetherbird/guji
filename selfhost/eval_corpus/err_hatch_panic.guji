@@ -1,0 +1,11 @@
+# I10d2: unrecovered panic inside a hatch aborts the whole process (§11.2/§17.1).
+# Main blocks on an unbuffered recv so the process stays alive until the task
+# panics (returning immediately would abandon the task per §17.1).
+sub main(): Int {
+    hatch {
+        panic("hatch boom")
+    }
+    $hold: Chan[Int] = channel(0)
+    $hold.recv()
+    0
+}

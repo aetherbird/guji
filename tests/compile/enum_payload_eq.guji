@@ -1,0 +1,88 @@
+# D3 (spec §9): enum values compare structurally — same variant tag, then the
+# active payload slots compare structurally. Native previously emitted C `==`
+# for the tagged enum struct, which does not compile. This fixture broadens the
+# divergence probe past a single Float payload to scalar, List, Map, nested
+# collection, class, by-value enum, and boxed recursive enum payloads.
+
+class Rec {
+    has $.id: Int
+    has $.name: Str
+    has $.nums: List[Int]
+}
+
+enum Inner {
+    Mark($label: Str)
+    Code($n: Int)
+}
+
+enum Token {
+    Scalar($i: Int, $s: Str, $b: Bool, $f: Float)
+    Numbers($xs: List[Int])
+    Words($xs: List[Str])
+    Scores($m: Map[Str, Int])
+    Labels($m: Map[Str, Str])
+    Rows($xs: List[List[Int]])
+    Groups($m: Map[Str, List[Int]])
+    Empty
+}
+
+enum BoxRec {
+    Record($r: Rec)
+    BlankRec
+}
+
+enum Outer {
+    Child($inner: Inner)
+    BlankChild
+}
+
+enum Chain {
+    End($n: Int)
+    Link($next: Chain)
+}
+
+sub main(): Unit {
+    $scalar_a = Scalar(1, "a", true, 2.5)
+    $scalar_b = Scalar(1, "a", true, 2.5)
+    $scalar_bool = Scalar(1, "a", false, 2.5)
+    print("scalar_eq: { $scalar_a == $scalar_b }")
+    print("scalar_field: { $scalar_a == $scalar_bool }")
+    print("scalar_tag: { $scalar_a == Empty }")
+
+    $nums_a = Numbers([1, 2, 3])
+    $nums_b = Numbers([1, 2, 3])
+    $words_a = Words(["a", "b"])
+    $words_b = Words(["a", "c"])
+    $scores_a = Scores({"b": 2, "a": 1})
+    $scores_b = Scores({"a": 1, "b": 2})
+    $labels_a = Labels({"k": "v"})
+    $labels_b = Labels({"k": "w"})
+    $rows_a = Rows([[1, 2], [3]])
+    $rows_b = Rows([[1, 2], [3]])
+    $groups_a = Groups({"x": [1, 2], "y": [3]})
+    $groups_b = Groups({"y": [3], "x": [1, 2]})
+    print("list_int: { $nums_a == $nums_b }")
+    print("list_str: { $words_a == $words_b }")
+    print("map_int: { $scores_a == $scores_b }")
+    print("map_str: { $labels_a == $labels_b }")
+    print("nested_list: { $rows_a == $rows_b }")
+    print("nested_map: { $groups_a == $groups_b }")
+
+    $ra = Rec(id: 7, name: "r", nums: [4, 5])
+    $rb = Rec(id: 7, name: "r", nums: [4, 5])
+    $rc = Rec(id: 7, name: "r", nums: [4, 9])
+    print("class_eq: { Record($ra) == Record($rb) }")
+    print("class_diff: { Record($ra) == Record($rc) }")
+
+    $child_a = Child(Mark("x"))
+    $child_b = Child(Mark("x"))
+    $child_c = Child(Code(1))
+    print("enum_eq: { $child_a == $child_b }")
+    print("enum_diff: { $child_a == $child_c }")
+
+    $chain_a = Link(End(1))
+    $chain_b = Link(End(1))
+    $chain_c = Link(End(2))
+    print("recursive_eq: { $chain_a == $chain_b }")
+    print("recursive_diff: { $chain_a != $chain_c }")
+}

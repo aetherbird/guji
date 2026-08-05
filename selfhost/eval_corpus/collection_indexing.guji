@@ -1,0 +1,29 @@
+# I5a: §2.4/§15 indexing preserves scalar and nested List/Map values. Each
+# chained hop matters because EIndex carries no separate runtime container kind.
+sub main(): Int {
+    @ints = [10, 20, 30]
+    $i = 1
+    print(@ints[$i])
+
+    @cube = [[[1, 2], [3]], [[4], [5, 6]]]
+    print(@cube[0][0][1])
+    print(@cube[1][1][0])
+
+    @words = ["gu"]
+    @flags = [true]
+    @floats = [2.5]
+    print(@words[0])
+    print(@flags[0])
+    print(@floats[0])
+
+    %scores = {"ada": 10, "grace": 20}
+    $name = "grace"
+    print(%scores{$name})
+
+    %deep = {"root": {"row": [7, 8]}}
+    print(%deep{"root"}{"row"}[1])
+
+    @maps = [{"x": 3}, {"x": 4}]
+    print(@maps[1]{"x"})
+    0
+}

@@ -1,0 +1,96 @@
+# P5b-2d: methods on GENERIC classes/enums monomorphize with their owning spec
+# (native's cloneSubForClassSpec + its enum analogue). The template's body subs
+# are cloned into each concrete spec with the type params substituted, so
+# Box__Int gets `gf_Box__Int_get` returning int64_t while Box__Str's twin
+# returns const char*; a two-param class clones per (A,B) instantiation; a
+# method can RETURN the owner's generic type (`Holder[T]` on Holder[T]) both as
+# $self and as a fresh construction, and a method body can construct the owner
+# enum (the spec's variants are concrete by the time the body lowers). Scalar
+# T only; generic METHODS (own [U]) and bare-template returns stay out (dropped
+# from the spec — calls to them decline rc 4, matching the honest boundary).
+
+class Box[T] {
+    has $.value: T
+
+    sub get($self): T {
+        $self.value
+    }
+
+    sub label($self): Str {
+        "boxed"
+    }
+
+    sub bump($self, $by: Int): Int {
+        $by + 1
+    }
+}
+
+class Duo[A, B] {
+    has $.left: A
+    has $.right: B
+
+    sub first($self): A {
+        $self.left
+    }
+
+    sub second($self): B {
+        $self.right
+    }
+}
+
+enum Holder[T] {
+    Keep($v: T)
+    Vacant
+
+    sub get($self): T {
+        match $self {
+            Keep($n) { $n }
+            Vacant { panic("vacant") }
+        }
+    }
+
+    sub occupied($self): Bool {
+        match $self {
+            Keep(_) { true }
+            Vacant { false }
+        }
+    }
+
+    # Fresh construction of a PAYLOAD variant is native-accepted; a fieldless
+    # variant construction (`Vacant { Vacant }`) is a native oracle-limit here
+    # (native mis-attributes it across specs and rejects), so that arm returns
+    # $self — the other native-accepted owner-return shape.
+    sub duplicate($self): Holder[T] {
+        match $self {
+            Keep($n) { Keep($n) }
+            Vacant { $self }
+        }
+    }
+}
+
+sub main(): Int {
+    $bi = Box(value: 42)
+    print("{ $bi.get() }")
+    print("{ $bi.label() }")
+    print("{ $bi.bump(8) }")
+
+    $bs = Box(value: "hello")
+    print("{ $bs.get() }")
+    print("{ $bs.label() }")
+
+    $d = Duo(left: 7, right: "seven")
+    print("{ $d.first() }")
+    print("{ $d.second() }")
+
+    $hi = Keep(19)
+    print("{ $hi.occupied() }")
+    $hi2 = $hi.duplicate()
+    print("{ $hi2.get() }")
+
+    $hs = Keep("guji")
+    $hs2 = $hs.duplicate()
+    print("{ $hs2.get() }")
+    print("{ $hs2.occupied() }")
+
+    0
+}

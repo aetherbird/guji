@@ -1,0 +1,24 @@
+# Spec 15.1 value boundaries: display/equality, direct/checked indexing,
+# aliases, collection-valued control flow, and an owned nested shape across a call.
+sub keep(@rows: List[List[Str]]): List[List[Str]] { @rows }
+
+sub main(): Int {
+    @literal = ["a", "b"]
+    print("literal=@literal")
+    print("equal={ @literal == ['a', 'b'] }")
+    print("direct={ @literal[1] }")
+    print(match @literal.get(9) { Some($v) { $v } None { "missing" } })
+
+    @alias = @literal
+    @branch: List[Str] = if true { @alias } else { ["unused"] }
+    @matched: List[Str] = match 1 { 1 { @branch } _ { ["unused"] } }
+    print("branch=@matched")
+    print("source=@literal")
+
+    @nested = [["ow" ~ "ned"], ["value", "shape"]]
+    @returned = keep(@nested)
+    print("nested=@returned")
+    print("nested-equal={ @nested == @returned }")
+    print("nested-source=@nested")
+    0
+}

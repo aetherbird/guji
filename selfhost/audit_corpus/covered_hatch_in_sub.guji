@@ -1,0 +1,16 @@
+# DECLINE-AUDIT (P8e-6): hatch inside a NON-MAIN sub with a scalar param
+# capture. This was a real selfhost decline at P8e-3 (native accepts) until the
+# P8e-5 declaration-order fix (helpers after user typedefs + sub forwards)
+# closed it. The audit must classify this COVERED — a regression back to the
+# old ordering would surface here as a GAP.
+sub worker($n: Int): Int {
+    $ch: Chan[Int] = channel(0)
+    hatch {
+        $ch.send($n * 2)
+    }
+    $ch.recv().unwrap()
+}
+sub main(): Int {
+    print(worker(21))
+    0
+}

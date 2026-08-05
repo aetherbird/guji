@@ -1,0 +1,28 @@
+# P08: topic/parameter lambdas, higher-order calls, returned closures, capture lifetime.
+sub apply($function, $value: Int): Int {
+    $function($value)
+}
+
+sub apply_twice($function, $value: Int): Int {
+    $function($function($value))
+}
+
+sub make_adder($base: Int) {
+    sub($number: Int): Int { $base + $number }
+}
+
+sub main(): Int {
+    @doubled = [1, 2, 3].map({ $_ * 2 })
+    print(@doubled)
+
+    $add_three = make_adder(3)
+    print($add_three(4))
+    print(apply($add_three, 10))
+    print(apply_twice($add_three, 5))
+
+    $offset = 40
+    $capturing = sub($number: Int): Int { $number + $offset }
+    print(apply($capturing, 2))
+    print(apply(make_adder(5), 6))
+    0
+}

@@ -1,0 +1,12 @@
+# Recursive sub calls; fact(5) = 120. Exercises call frames + if-expression.
+sub fact($n: Int): Int {
+    if $n <= 1 {
+        1
+    } else {
+        $n * fact($n - 1)
+    }
+}
+sub main(): Int {
+    print(fact(5))
+    0
+}

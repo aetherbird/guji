@@ -1,0 +1,59 @@
+# C08c: `?` composes with indexing, field projection, and nested constructors
+# without duplicating or reordering their operands.
+class Box {
+    has $.value: Int
+}
+
+class Pair {
+    has $.first: Int
+    has $.second: Box
+}
+
+sub scalar($tag: Int, $n: Int): Result[Int, Str] {
+    print($tag)
+    Ok($n)
+}
+
+sub values(): Result[List[Int], Str] {
+    print(101)
+    Ok([4, 5, 6])
+}
+
+sub boxed(): Result[Box, Str] {
+    print(201)
+    Ok(Box(value: 7))
+}
+
+sub indexed(): Result[Int, Str] {
+    Ok(values()?[scalar(102, 1)?])
+}
+
+sub projected(): Result[Int, Str] {
+    Ok(boxed()?.value)
+}
+
+sub constructed(): Result[Pair, Str] {
+    Ok(Pair(
+        second: Box(value: scalar(302, 2)?),
+        first: scalar(301, 1)?
+    ))
+}
+
+sub main(): Int {
+    match indexed() {
+        Ok($n) { print($n) }
+        Err($e) { print($e) }
+    }
+    match projected() {
+        Ok($n) { print($n) }
+        Err($e) { print($e) }
+    }
+    match constructed() {
+        Ok($p) {
+            print($p.first)
+            print($p.second.value)
+        }
+        Err($e) { print($e) }
+    }
+    0
+}

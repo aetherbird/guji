@@ -1,0 +1,16 @@
+# P13: escaped/bare/braced markers and exact left-to-right marker evaluation.
+sub mark($tag: Int, $value: Int): Int {
+    print("marker { $tag }")
+    $value
+}
+
+sub main(): Int {
+    $name = "ada"
+    @scores = [10, 20]
+    %counts = {"x": 2}
+    print("bare $name @scores %counts")
+    print("escaped \$name \@scores \%counts \{literal}")
+    print("ordered { mark(1, 7) } then { mark(2, 8) }")
+    print('literal $name { mark(3, 9) }')
+    0
+}

@@ -1,0 +1,29 @@
+# P5b-2b: chained map `set`/`remove` — the receiver of a set/remove call is
+# itself a set/remove result. The self-hosted codegen materializes that result
+# into an owned guji_map_t value (`.vals = (void*)gv...` — the bindout->value
+# move), the next call in the chain copies it into its own arrays retaining every
+# kept slot (nested Map values keep `guji_retain((const void*)...`), then the
+# materialized receiver is released (`guji_release((const void*)gmv...`). The copy
+# loop iterates the materialized receiver (`< gmv...`), not a named binding.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".vals = (void*)gv"))
+            print(has_text($c, "guji_release((const void*)gmv"))
+            print(has_text($c, "< gmv"))
+            print(has_text($c, "guji_retain((const void*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

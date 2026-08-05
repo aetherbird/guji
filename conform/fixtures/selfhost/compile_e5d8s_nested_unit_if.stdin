@@ -1,0 +1,51 @@
+enum Choice { CLeft CRight }
+
+sub branch_value($outer: Bool, $flag: Bool): Int {
+    mut $score = 0
+    if $outer {
+        if $flag {
+            $score = $score + 1
+        } else if $score == 99 {
+            $score = $score + 100
+        } else {
+            $score = $score + 2
+        }
+        $score + 4
+    } else {
+        if $flag {
+            $score = $score + 8
+        } else {
+            $score = $score + 16
+        }
+        $score + 32
+    }
+}
+
+sub match_branch($choice: Choice, $flag: Bool): Int {
+    mut $score = 0
+    match $choice {
+        CLeft {
+            if $flag {
+                $score = $score + 3
+            } else if $score == 7 {
+                $score = $score + 100
+            } else {
+                $score = $score + 5
+            }
+            0
+        }
+        CRight {
+            if $flag {
+                $score = $score + 11
+            } else {
+                $score = $score + 13
+            }
+            0
+        }
+    }
+    $score
+}
+
+sub main(): Int {
+    branch_value(true, false) + match_branch(CRight, true)
+}

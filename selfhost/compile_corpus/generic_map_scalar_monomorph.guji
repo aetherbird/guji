@@ -1,0 +1,63 @@
+# P5b-2b(b-map): scalar-valued Map[Str, T] generic-sub monomorphization.
+# Covers Map[Str,T] params, Map[Str,T] returns, Int/Str/Bool/Float bindings,
+# a direct map-returning call used as a Map parameter, and a transitive
+# generic->generic map return. The body avoids `%m{"k"}` because the selfhost
+# parser still treats a block-leading map index as a topic block; `get` exercises
+# the same map storage without expanding parser scope in this slice.
+
+sub value_or[T](%m: Map[Str, T], $key: Str, $default: T): T {
+    match get(%m, $key) { Some($v) { $v } None { $default } }
+}
+
+sub map_count[T](%m: Map[Str, T]): Int {
+    %m.keys().count()
+}
+
+sub single[T]($k: Str, $v: T): Map[Str, T] {
+    {$k: $v}
+}
+
+sub double[T]($k1: Str, $v1: T, $k2: Str, $v2: T): Map[Str, T] {
+    {$k1: $v1, $k2: $v2}
+}
+
+sub relay[T]($k: Str, $v: T): Map[Str, T] {
+    single($k, $v)
+}
+
+sub main(): Int {
+    %scores = {"ada": 10, "grace": 20}
+    $score = value_or(%scores, "ada", 0)
+    print("{ $score }")
+    $missing = value_or(%scores, "linus", 99)
+    print("{ $missing }")
+
+    %names = {"first": "ada", "last": "lovelace"}
+    $name = value_or(%names, "first", "none")
+    print($name)
+    $name_count = map_count(%names)
+    print("{ $name_count }")
+
+    %flags = {"ready": true}
+    $flag_bonus = if value_or(%flags, "ready", false) { 4 } else { 0 }
+    print("{ $flag_bonus }")
+
+    %ratios = {"pi": 3.5}
+    $ratio_bonus = if value_or(%ratios, "pi", 0.0) == 3.5 { 5 } else { 0 }
+    print("{ $ratio_bonus }")
+
+    %one = single("x", 42)
+    $x = value_or(%one, "x", 0)
+    print("{ $x }")
+
+    %two = double("a", 1, "b", 2)
+    $two_count = map_count(%two)
+    print("{ $two_count }")
+
+    %via = relay("k", 7)
+    $relayed = value_or(%via, "k", 0)
+    print("{ $relayed }")
+
+    $code = $score + $missing + $x + $two_count + $relayed + $name_count + $flag_bonus + $ratio_bonus
+    if $code == 171 { 0 } else { 1 }
+}

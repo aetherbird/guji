@@ -1,0 +1,30 @@
+# §13.2 (I7a): literal and bound Regex `~~` — match vs no-match as Option[Match].
+# Pins .is_some() Bool consumption (lexer char-class shape) and Some/None arms
+# without capture accessors (those are I7b). Do not print Match: C still declines
+# Match display in this statement shape.
+sub is_digit($c: Str): Bool {
+    ($c ~~ /(?a)[0-9]/).is_some()
+}
+
+sub main(): Int {
+    match "hello123" ~~ /\w+/ {
+        Some($m) { print("hit") }
+        None { print("none") }
+    }
+    match "!!!" ~~ /\w+/ {
+        Some($m) { print("hit2") }
+        None { print("miss") }
+    }
+    print(is_digit("7"))
+    print(is_digit("x"))
+    $re = /\d+/
+    match "ab42cd" ~~ $re {
+        Some($m) { print("bound-hit") }
+        None { print("bound-miss") }
+    }
+    match "xyz" ~~ $re {
+        Some($m) { print("bound-hit2") }
+        None { print("bound-miss2") }
+    }
+    0
+}

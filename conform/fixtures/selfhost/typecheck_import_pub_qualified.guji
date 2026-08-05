@@ -1,0 +1,25 @@
+# gujiconform — selfhost slice 5 E5d-7c-1: path-aware typechecking resolves a
+# sibling import and exposes its pub qualified sub signature.
+import lexer
+
+sub main(): Int {
+    $lib = "pub sub inc(\$x: Int): Int \{ \$x + 1 }\nsub hidden(\$x: Int): Int \{ \$x }\n"
+    match write_file("/tmp/guji_typecheck_import_pub_lib.guji", $lib) {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match lexer::typecheck_verdict_at("/tmp/guji_typecheck_import_pub_main.guji", stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

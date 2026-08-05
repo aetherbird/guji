@@ -1,0 +1,5 @@
+# O4a: semicolon is an item separator, not type-argument layout (§2.7, §20).
+sub main(): Int {
+    @values: List[Int;] = []
+    0
+}

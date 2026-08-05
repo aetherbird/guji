@@ -1,0 +1,9 @@
+sub main(): Int {
+    @nums = [1, 2, 3, 4]
+    $sum = @nums.reduce(0, sub($acc: Int, $n: Int): Int { $acc + $n })
+    $product = reduce(@nums, 1, sub($p: Int, $n: Int): Int { $p * $n })
+    @words = ["go", "ju"]
+    $glued = @words.reduce("", sub($s: Str, $w: Str): Str { $s ~ $w })
+    print("{ $sum }/{ $product }/{ $glued }")
+    $sum + $product
+}

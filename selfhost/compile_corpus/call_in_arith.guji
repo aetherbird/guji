@@ -1,0 +1,6 @@
+sub dbl($x: Int): Int {
+    $x * 2
+}
+sub main(): Int {
+    dbl(3) + dbl(4) + 1
+}

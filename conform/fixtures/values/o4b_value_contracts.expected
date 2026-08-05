@@ -1,0 +1,45 @@
+2
+[{"a": [1, 2], "z": [3]}]
+true
+true
+Packet(items: [1, 2], lookup: {"a": [1], "b": [2, 3]}, secret: s, z: 9)
+true
+true
+Full(Packet(items: [1, 2], lookup: {"a": [1], "b": [2, 3]}, secret: s, z: 9), [x, y])
+Empty
+true
+true
+{"line\n": 1, "q\"": 2, "slash\\": 3, "tab\t": 4}
+true
+[1, 2, 3, 4]
+1|2|3|4|
+{"\a\b\v\f\r\x01\x7fé": 5}
+true
+false
+true
+true
+false
+true
+false
+false
+pattern-exact
+3
+regex-unicode
+true
+true
+true
+true
+{"a": 1, "a\x00b": 2, "b": 3}
+1
+2
+true
+true
+[1, 2, 3]
+1|2|3|
+true
+2
+{"a": 1, "a\x00b": 9, "b": 3}
+2
+{"a": 1, "b": 3}
+false
+true

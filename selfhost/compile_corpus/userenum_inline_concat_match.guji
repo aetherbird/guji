@@ -1,0 +1,21 @@
+# F2b: an inline-constructed enum scrutinee whose Str field is an OWNED temp (a
+# concat, not an immortal literal). The materialised owned value must drop its
+# field after the chain or it leaks; this case proves the owned-scrutinee release
+# is balanced (ASan/LSan clean). Observed via stdout + exit code.
+enum Msg {
+  Text($s: Str)
+  Other($s: Str)
+}
+
+sub main(): Int {
+  match Text("ab" ~ "cd") {
+    Text($x) {
+      print($x)
+      0
+    }
+    Other($x) {
+      print($x)
+      1
+    }
+  }
+}

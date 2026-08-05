@@ -1,0 +1,9 @@
+# T5: a well-typed program should be accepted.
+sub inc($x: Int): Int {
+    $x + 1
+}
+
+sub main(): Int {
+    $x = inc(41)
+    if $x == 42 { 0 } else { 1 }
+}

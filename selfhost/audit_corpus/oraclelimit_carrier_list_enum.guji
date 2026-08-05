@@ -1,0 +1,18 @@
+# Historical decline-audit row: a variant field of type List[another user enum].
+# Canonical C must resolve the nominal element against the declaration table,
+# compile it, and match canonical D exactly.
+enum Inr {
+    IS($s: Str)
+    IB
+}
+enum Outer {
+    Wrap(@gs: List[Inr])
+}
+sub run($s: Outer): Int {
+    match $s {
+        Wrap(@gs0) { @gs0.count() }
+    }
+}
+sub main(): Int {
+    run(Wrap([IS("hi"), IB]))
+}

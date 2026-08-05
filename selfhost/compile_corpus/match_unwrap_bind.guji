@@ -1,0 +1,30 @@
+# P6f: Option[Match] unwrap in BIND position (§13/§15.5). A bound carrier
+# (`$o.unwrap()` / `unwrap($o)`) guards, RETAINS the payload, and aliases it —
+# the carrier keeps its +1, so the carrier stays usable afterwards and scope
+# exit releases both. A FRESH inline receiver (`("s" ~~ /re/).unwrap()`)
+# guards and TRANSFERS ownership out of the consumed temp (no retain). The
+# bound CgMatch local feeds the existing $m.text / $m[i] / $m<name> lowerings,
+# whose capture names resolve at RUNTIME from the match object.
+sub main(): Int {
+    $o = "hey now" ~~ /(h\w+) (?<w>n\w+)/
+    $m = $o.unwrap()
+    $m2 = unwrap($o)
+    print($m.text)
+    print($m<w>.unwrap_or("-"))
+    print($m2[1].unwrap_or("-"))
+
+    # Carrier reused AFTER both unwraps: the aliases must not have consumed it.
+    match $o {
+        Some($m3) { print($m3[2].unwrap_or("-")) }
+        None { print("none") }
+    }
+
+    # Fresh inline receiver: nonparticipating group -> None -> unwrap_or default.
+    $f = ("ac" ~~ /a(b)?c/).unwrap()
+    print($f.text ~ ":" ~ $f[1].unwrap_or("-"))
+
+    # Annotated spelling.
+    $a: Match = ("k9" ~~ /([a-z])(\d)/).unwrap()
+    print($a[1].unwrap_or("-") ~ $a[2].unwrap_or("-"))
+    3
+}

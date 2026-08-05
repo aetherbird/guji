@@ -1,0 +1,25 @@
+# Differential fixture for the native split(s, "") NUL-safety fix (backlog item
+# discovered during Platform slice 3 / RUN3). The committed input
+# split_empty_nul.input holds EXACTLY the 3 bytes "a\0b" (61 00 62) -- one
+# interior NUL byte. The interpreter splits a length-counted Go string, so
+# split("") yields each byte as its own part (count 3; the NUL survives as the
+# valid rune U+0000). Before the fix, native split(s, "") iterated with a
+# `while (*p)` loop that stopped at the first NUL byte, yielding count 1 and
+# dropping every byte past it -- a divergence the gate (native vs interpreter
+# oracle) catches. Native now iterates by the Str's COUNTED byte length
+# (GUJI_HDR->count). We print the part count AND each part bracketed so both the
+# count and the preserved NUL byte are proven byte-identical across engines.
+sub main(): Int {
+    match read_file("split_empty_nul.input") {
+        Ok($s) {
+            @parts = split($s, "")
+            $n = count(@parts)
+            print("count=$n")
+            for $p in @parts {
+                print("P[" ~ $p ~ "]")
+            }
+        }
+        Err($e) { print("err: $e") }
+    }
+    0
+}

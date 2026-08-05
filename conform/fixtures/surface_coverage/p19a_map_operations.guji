@@ -1,0 +1,31 @@
+# Spec 15.2: canonical observation order, lookup/update/removal, persistence,
+# aliases, collection-valued branches, and nested values across a call.
+sub keep($m: Map[Str, List[Str]]): Map[Str, List[Str]] { $m }
+
+sub main(): Int {
+    %source = {"c": 3, "a": 1, "b": 2}
+    print("map=%source")
+    print("keys={ %source.keys() }")
+    print("values={ %source.values() }")
+    $has_a = %source.has_key("a")
+    $has_z = has_key(%source, "z")
+    $got_b = %source.get("b").unwrap_or(-1)
+    print("has=$has_a/$has_z")
+    print("get=$got_b")
+    print(match %source.get("z") { Some($v) { false } None { true } })
+
+    %updated = %source.set("b", 20).set("d", 4)
+    %removed = %updated.remove("a")
+    print("updated=%updated")
+    print("removed=%removed")
+    print("source=%source")
+
+    %nested = {"right": ["b", "c"], "left": ["a"]}
+    %alias = %nested
+    %branch = if true { %alias } else { {"unused": ["x"]} }
+    %returned = keep(%branch)
+    print("nested=%returned")
+    print("equal={ %nested == %returned }")
+    print("source-still=%nested")
+    0
+}

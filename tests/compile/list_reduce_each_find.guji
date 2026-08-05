@@ -1,0 +1,26 @@
+# Native list callback prelude (spec 15.1): reduce, each, and find, in both
+# method-style and ordinary data-first call forms.
+sub main(): Int {
+    @nums = [3, 1, 4, 1, 5]
+
+    # reduce folds left with a two-parameter (accumulator, element) lambda.
+    $total = @nums.reduce(0, sub($acc, $x) { $acc + $x })
+    print("total=$total")
+    $product = reduce(@nums, 1, sub($p, $y) { $p * $y })
+    print("product=$product")
+
+    # reduce may fold into a different accumulator type than the elements.
+    @words = ["go", "ju", "gi"]
+    $glued = @words.reduce("", sub($s, $w) { $s ~ $w ~ "." })
+    print("glued=$glued")
+
+    # each runs the callback once per element, for side effects only.
+    @nums.each(sub($n) { print("n=$n") })
+    each(@words, sub($word) { print("w=$word") })
+
+    # find returns Some(first hit) or None as Option[T].
+    print(match @nums.find(sub($a) { $a > 3 }) { Some($v) { $v } None { -1 } })
+    print(match find(@nums, sub($b) { $b > 99 }) { Some($v) { $v } None { -1 } })
+    print(match @words.find(sub($t) { $t == "ju" }) { Some($hit) { $hit } None { "missing" } })
+    0
+}

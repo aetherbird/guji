@@ -1,0 +1,34 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub count_text($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Each source-level Never expression reaches the intrinsic once.
+            print(count_text($c, "guji_panic(gt") == 6)
+            # Unary/binary operators around Never are themselves unreachable.
+            print(!has_text($c, "guji_neg(0LL)"))
+            print(!has_text($c, "guji_add(1LL, 0LL)"))
+            # A call argument uses the typed zero sentinel to keep the C call valid.
+            print(has_text($c, "gf_add(1LL, 0LL)"))
+            # An index does likewise, preserving the ordinary bounds-check shape.
+            print(has_text($c, "< 0 || gi"))
+            print(has_text($c, "guji_panic(\"list index out of bounds\")"))
+            # A Never field receiver produces no bogus field accessor.
+            print(!has_text($c, ".nope"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

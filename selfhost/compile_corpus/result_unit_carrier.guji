@@ -1,0 +1,36 @@
+# selfhost slice 5 E5d-7c-2d-11 — THREE-WAY corpus member.
+# A `Result[Unit, Str]` carrier whose Ok payload is `Unit`. NATIVE `guji build`
+# ACCEPTS both `Ok(())` construction and an `Ok($u)` NAME-bind pattern (Unit lowers
+# to an int64_t 0LL slot, so the carrier reuses the `guji_res_int_str` typedef), so
+# this clears the three-way bar (interp == native == selfhost). The `Ok(())` UNIT
+# PATTERN that the compiler's own source uses is native-REJECTED and lives in the
+# interp-oracle harness selfhost/result_unit_diff.sh instead.
+enum IntList {
+    INil
+    ICons($head: Int, $tail: IntList)
+}
+
+sub check_all($xs: IntList): Result[Unit, Str] {
+    match $xs {
+        INil { Ok(()) }
+        ICons($h, $t) {
+            if $h < 0 {
+                Err("negative")
+            } else {
+                check_all($t)
+            }
+        }
+    }
+}
+
+sub describe($xs: IntList): Str {
+    match check_all($xs) {
+        Ok($u) { "ok" }
+        Err($m) { "err: " ~ $m }
+    }
+}
+
+sub main(): Unit {
+    print(describe(ICons(1, ICons(2, ICons(3, INil)))))
+    print(describe(ICons(1, ICons(0 - 2, ICons(3, INil)))))
+}

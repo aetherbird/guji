@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 5 E4b-1 compiler codegen fixture.
+# List[Int] class fields are native-supported, so the selfhost compiler must
+# emit a real by-value guji_slice_t field with retain/release and field access.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct Bag"))
+            print(has_text($c, "guji_slice_t f0;"))
+            print(has_text($c, "guji_release((const void*)p->f0.data);"))
+            print(has_text($c, "guji_retain((const void*)p->f0.data);"))
+            print(has_text($c, "gp0.f0.len"))
+            print(has_text($c, "gp0.f0.data"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

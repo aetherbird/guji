@@ -1,0 +1,9 @@
+sub main(): Int {
+    if false {
+        1
+    } else {
+        $a = 10
+        $b = 20
+        $a + $b
+    }
+}

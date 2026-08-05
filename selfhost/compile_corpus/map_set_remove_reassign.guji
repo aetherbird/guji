@@ -1,0 +1,22 @@
+# P9-6b-12: mut map self-rebind via set/remove (scalar + nested List values)
+# plus alias-then-set so the copy+steal path must not observably mutate the alias.
+sub main(): Unit {
+    mut %m = {"seed": 0}.set("seed", 0)
+    %m = %m.set("k1", 10)
+    %m = %m.set("k2", 20)
+    %m = %m.remove("seed")
+    print(%m{"k1"})
+    print(%m.has_key("seed"))
+
+    mut %alias_src = {"x": "1"}.set("y", "2")
+    %kept = %alias_src
+    %alias_src = %alias_src.set("x", "9")
+    print(%kept{"x"})
+    print(%alias_src{"x"})
+
+    mut %rows = {"a": [1, 2]}.set("a", [1, 2])
+    %rows = %rows.set("b", [3])
+    %rows = %rows.set("a", [9])
+    print(%rows{"a"}.sum())
+    print(%rows{"b"}.sum())
+}

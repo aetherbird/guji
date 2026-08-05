@@ -1,0 +1,60 @@
+# Spec 14-14.2: token/rule/regex productions, whitespace, ordered choice,
+# repetition, Bush captures, values returned across calls, and full-input failure.
+grammar Pair {
+    rule TOP { <left> ':' <right> }
+    token left { [a-z]+ }
+    token right { [a-z]+ }
+}
+
+grammar Pick {
+    token TOP { <left> | <right> }
+    token left { 'same' }
+    token right { 'same' | 'other' }
+}
+
+grammar Digits {
+    regex TOP { [0-9]+ }
+}
+
+sub parse_pair($text: Str): Bush {
+    Pair.parse($text).unwrap()
+}
+
+sub bush_text($b: Bush): Str {
+    $b.text
+}
+
+sub main(): Int {
+    $b = parse_pair("alpha : beta")
+    print("root=" ~ bush_text($b))
+    match $b<left> {
+        Some($left) { print("left=" ~ $left.text) }
+        None { print("left-missing") }
+    }
+    match $b<right> {
+        Some($right) { print("right=" ~ $right.text) }
+        None { print("right-missing") }
+    }
+    match Pick.parse("same") {
+        Some($b) {
+            match $b<left> {
+                Some($left) { print("ordered-left=true") }
+                None { print("ordered-left=false") }
+            }
+            match $b<right> {
+                Some($right) { print("ordered-right=false") }
+                None { print("ordered-right=true") }
+            }
+        }
+        None { print("pick-miss") }
+    }
+    match Digits.parse("2048") {
+        Some($digits) { print("regex=" ~ $digits.text) }
+        None { print("regex-miss") }
+    }
+    match Pair.parse("alpha:beta!") {
+        Some($bad) { print("full-input=false") }
+        None { print("full-input=true") }
+    }
+    0
+}

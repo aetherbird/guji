@@ -1,0 +1,9 @@
+sub pieces($s: Str, $sep: Str): Int {
+    $s.split($sep).count()
+}
+
+sub main(): Int {
+    $n = pieces("a,b,c", ",")
+    print("{ $n }")
+    if "abc".split("").count() == 3 { 0 } else { 1 }
+}

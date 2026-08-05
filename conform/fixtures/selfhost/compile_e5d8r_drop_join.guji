@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 5 E5d-8r compiler codegen fixture.
+# Pins the real-source `drop_two` shape: a list-valued `drop` prelude producer
+# over a split-backed List[Str], folded with join(""). The drop-distinctive
+# markers are the result-length subtraction (`.len - gi`) and the source-offset
+# copy index (`gi + gi`), neither of which `take` codegen emits.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = (void*)guji_split("))
+            print(has_text($c, ".data = guji_arr_alloc(GUJI_KIND_ARR_STR, sizeof(const char*),"))
+            print(has_text($c, ".len - gi"))
+            print(has_text($c, " + gi"))
+            print(has_text($c, "guji_retain(((const char**)"))
+            print(has_text($c, " = guji_str_cat("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

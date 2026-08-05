@@ -1,0 +1,32 @@
+# §13: first-class spliced Regex values preserve the same interpolation,
+# capture-demotion, and named-capture behavior as a literal used directly by
+# `~~`. This row also pins ownership after the temporary compiled program dies.
+sub hit($o: Option[Match]): Bool { $o.is_some() }
+
+sub main(): Int {
+    $literal = "a.b+"
+    $from_text = /^<{ $literal }>$/
+    print("value:$from_text")
+    $text_yes = hit("a.b+" ~~ $from_text)
+    $text_no = hit("axb+" ~~ $from_text)
+    print("text:$text_yes:$text_no")
+
+    $inner = /(?<inner>a)(b)/
+    $composed = /^(?<host><{ $inner }>)(!)$/
+    match "ab!" ~~ $composed {
+        Some($m) {
+            $host = $m<host>.unwrap_or("?")
+            $bang = $m[2].unwrap_or("?")
+            $hidden = $m[3].unwrap_or("hidden")
+            print("composed:$host:$bang:$hidden")
+        }
+        None { print("composed:none") }
+    }
+
+    $named = /(?<word>\w+)/
+    match "word" ~~ $named {
+        Some($m) { print("named:" ~ $m<word>.unwrap_or("?")) }
+        None { print("named:none") }
+    }
+    0
+}

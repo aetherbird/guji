@@ -1,0 +1,11 @@
+sub main(): Int {
+    match open("/dev/null") {
+        Ok($h)  { print("opened:" ~ $h.slurp()) }
+        Err($e) { print($e) }
+    }
+    match open("gujiconform-open-missing") {
+        Ok($h)  { print($h.slurp()) }
+        Err($e) { print($e) }
+    }
+    0
+}

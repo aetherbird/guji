@@ -1,0 +1,40 @@
+# §11.1 I6d: basic `?` propagation through direct binds, scalar constructor
+# operands, final expressions, and ordinary call bodies. The failing calls must
+# skip the unreachable prints and return their original None/Err carrier.
+sub positive($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub option_bind($n: Int): Option[Int] {
+    $value = positive($n)?
+    print("option continued { $value }")
+    Some($value + 1)
+}
+
+sub option_final($n: Int): Option[Int] {
+    Some(positive($n)? * 2)
+}
+
+sub result_bind($s: Str): Result[Int, Str] {
+    $value = parse_int($s)?
+    print("result continued { $value }")
+    Ok($value + 3)
+}
+
+sub doubled($n: Int): Int { $n * 2 }
+
+sub result_final($s: Str): Result[Int, Str] {
+    Ok(doubled(parse_int($s)?))
+}
+
+sub main(): Int {
+    print(option_bind(4))
+    print(option_bind(0))
+    print(option_final(5))
+    print(option_final(-1))
+    print(result_bind("7"))
+    print(result_bind("bad"))
+    print(result_final("6"))
+    print(result_final("no"))
+    0
+}

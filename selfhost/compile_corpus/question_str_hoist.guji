@@ -1,0 +1,29 @@
+# Slice 6 P3b-2b-2c-4b: `?` with an owned Str success payload in
+# statement-hoisted value contexts. The synthetic bind must take ownership of the
+# carrier's `.ok` / `.val` slot so later Str consumers can retain/release it
+# normally.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok("tag:" ~ $s) }
+}
+
+sub find_s($n: Int): Option[Str] {
+    if $n == 0 { None } else { Some("n" ~ "!") }
+}
+
+sub res_suffix($s: Str): Result[Str, Str] { Ok(tag($s)? ~ "!") }
+sub opt_suffix($n: Int): Option[Str] { Some(find_s($n)? ~ "?") }
+sub res_bind($s: Str): Result[Str, Str] { $x = tag($s)?; Ok($x ~ ":b") }
+sub opt_bind($n: Int): Option[Str] { $x = find_s($n)?; Some($x ~ ":o") }
+
+sub main(): Int {
+    match res_suffix("ok") { Ok($a) { print($a) } Err($e) { print("ERR") } }
+    match res_suffix("bad") { Ok($b) { print($b) } Err($f) { print("ERR") } }
+    match opt_suffix(2) { Some($c) { print($c) } None { print("NONE") } }
+    match opt_suffix(0) { Some($d) { print($d) } None { print("NONE") } }
+    match res_bind("ok") { Ok($g) { print($g) } Err($h) { print("ERRB") } }
+    match res_bind("bad") { Ok($i) { print($i) } Err($j) { print("ERRB") } }
+    match opt_bind(2) { Some($k) { print($k) } None { print("NONEB") } }
+    match opt_bind(0) { Some($m) { print($m) } None { print("NONEB") } }
+    50
+}

@@ -1,0 +1,31 @@
+# §7.4/I4c: topic-block lambdas (`{ ... }` with implicit `$_`) are first-class
+# values. Pin direct calls, nested topic scopes (each `$_` is that block's
+# argument), immutable capture into a topic body, and scalar kind coverage.
+sub main(): Int {
+    $double = { $_ * 2 }
+    print($double(21))
+
+    $nested = {
+        $g = { $_ * 10 }
+        $g($_ + 1)
+    }
+    print($nested(5))
+
+    $t = 100
+    $add = { $_ + $t }
+    print($add(7))
+
+    $pos = { $_ > 0 }
+    print($pos(3))
+    print($pos(0 - 1))
+
+    $tag = { "<" ~ $_ ~ ">" }
+    print($tag("guji"))
+
+    $scale = { $_ * 1.5 }
+    print($scale(2.0))
+
+    $id: Func[Int, Int] = { $_ }
+    print($id(42))
+    0
+}

@@ -1,0 +1,13 @@
+[Red, Named(green)]
+true
+true
+colors=[Red, Named(green)]
+[Person(age: 36, name: Ada), Person(age: 28, name: Bob)]
+true
+true
+{"a": Red, "b": Named(blue)}
+true
+true
+{"a": Person(age: 36, name: Ada), "b": Person(age: 28, name: Bob)}
+true
+true

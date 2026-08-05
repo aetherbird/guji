@@ -1,0 +1,33 @@
+# P8d-2c-3a: closed buffered scalar channels drain through `for` without hatch.
+sub main(): Int {
+    $ints: Chan[Int] = channel(3)
+    $ints.send(10)
+    $ints.send(20)
+    $ints.send(30)
+    $ints.close()
+    mut $sum = 0
+    for $n in $ints {
+        $sum = $sum + $n
+    }
+
+    $bools: Chan[Bool] = channel(2)
+    $bools.send(true)
+    $bools.send(false)
+    $bools.close()
+    mut $truths = 0
+    for $b in $bools {
+        if $b { $truths = $truths + 1 }
+    }
+
+    $floats: Chan[Float] = channel(2)
+    $floats.send(1.5)
+    $floats.send(2.25)
+    $floats.close()
+    mut $total = 0.0
+    for $f in $floats {
+        $total = $total + $f
+    }
+
+    print("$sum,$truths,$total")
+    0
+}

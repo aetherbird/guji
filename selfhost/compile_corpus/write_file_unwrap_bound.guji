@@ -1,0 +1,10 @@
+# P9-4b — THREE-WAY: bound `Result[Unit, Str]` local then `.unwrap()` as a
+# discarded statement (native keeps the carrier for scope cleanup; only the
+# Unit Ok payload is void-discarded after the Err-tag panic guard).
+sub main(): Int {
+    $path = "/tmp/guji_selfhost_p94b_unwrap_bound.txt"
+    $r = write_file($path, "bound")
+    $r.unwrap()
+    print(read_file($path).unwrap())
+    0
+}

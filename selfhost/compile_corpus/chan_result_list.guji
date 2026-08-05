@@ -1,0 +1,26 @@
+# P9-11b-2b corpus twin: Chan[Result[List[Int], Str]] Ok/Err + buffered drop.
+sub classify($n: Int): Result[List[Int], Str] {
+    if $n < 0 {
+        Err("neg")
+    } else {
+        Ok([$n, $n * 2])
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Result[List[Int], Str]] = channel(3)
+    $ch.send(classify(3))
+    $ch.send(classify(-1))
+    $ch.send(classify(9))
+    $first = $ch.recv().unwrap()
+    print(match $first {
+        Ok(@xs) { @xs[0] + @xs[1] }
+        Err($e) { 0 }
+    })
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Ok(@xs) { @xs[0] }
+        Err($e) { 99 }
+    })
+    0
+}

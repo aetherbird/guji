@@ -1,0 +1,33 @@
+# E5d-8b: a literal `List[Str]` receiver consumed by `.contains($s)` in Bool
+# position — the exact shape of the selfhost lexer's `is_punct_char`/`is_op_char`
+# character predicates. Exercises: final Bool sub-body, Bool inside `&&`/`!`, and
+# both punctuation/operator literal sets including single-quoted chars.
+sub is_punct_char($c: Str): Bool {
+    ["(", ")", "[", "]", '{', '}', ",", ";"].contains($c)
+}
+
+sub is_op_char($c: Str): Bool {
+    ["+", "-", "*", "/", "%", "~", "<", ">", "=", "!", "?", ".", ":"].contains($c)
+}
+
+# `contains` nested under `&&` and `!` to prove the Bool temp threads through the
+# short-circuit lowering paths, not only the final-expression path.
+sub classify($c: Str): Int {
+    if is_punct_char($c) {
+        1
+    } else if is_op_char($c) && !is_punct_char($c) {
+        2
+    } else {
+        0
+    }
+}
+
+sub main(): Int {
+    $sum = classify("(") + classify("+") + classify("x") + classify("]") + classify(":")
+    # ( -> 1, + -> 2, x -> 0, ] -> 1, : -> 2  => 6
+    if $sum == 6 {
+        0
+    } else {
+        9
+    }
+}

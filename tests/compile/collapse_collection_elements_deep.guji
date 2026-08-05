@@ -1,0 +1,52 @@
+# A-collapse-collection-elements proof: nested collection elements carrying
+# counted enum/class leaves flow through the shared collection-element classifier.
+# The runtime ARR_* kind tags own copy/drop of the actual element graph.
+
+enum Tag {
+    Named($label: Str)
+    Anon
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub label($t: Tag): Str {
+    match $t {
+        Named($s) { $s }
+        Anon { "anon" }
+    }
+}
+
+sub main(): Int {
+    @rows = [
+        {"tags": [Named("a" ~ "1"), Anon], "more": [Named("b" ~ "2")]},
+        {"tags": [Named("c" ~ "3")]}
+    ]
+    print(@rows.count())
+    %first = @rows[0]
+    print(%first.keys().count())
+
+    %direct_tags = {"tags": [Named("a" ~ "1"), Anon], "more": [Named("b" ~ "2")]}
+    @tags = %direct_tags{"tags"}
+    print(@tags.count())
+    print(label(@tags[0]))
+    @more = %direct_tags{"more"}
+    print(label(@more[0]))
+
+    @people_rows = [
+        {"team": [Person(name: "A" ~ "da", age: 36)]},
+        {"team": [Person(name: "B" ~ "ob", age: 28), Person(name: "C" ~ "y", age: 5)]}
+    ]
+    print(@people_rows.count())
+    %first_people = @people_rows[0]
+    print(%first_people.keys().count())
+
+    %direct_people = {"team": [Person(name: "B" ~ "ob", age: 28), Person(name: "C" ~ "y", age: 5)]}
+    @team = %direct_people{"team"}
+    print(@team.count())
+    print(@team[0].name)
+    print(@team[1].age)
+    0
+}

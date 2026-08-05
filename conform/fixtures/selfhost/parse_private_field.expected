@@ -1,0 +1,1 @@
+Program(decls=[Class(public=false,name="Vault",tparams=[],fields=[Field(public=false,sigil="$",name="code",type=Some(Type(name="Int",args=[])))],subs=[Sub(public=false,name="peek",params=[Param(name="$self",type=None)],ret=Some(Type(name="Int",args=[])),body=BlockBody(stmts=[Expr(value=Binary(op="+",left=Name(value="$!code"),right=Int(text="1")))]))])])

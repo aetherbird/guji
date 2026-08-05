@@ -1,0 +1,7 @@
+# G6b-b-3-ii: variant constructor fields must match declared field types.
+enum Shape { Circle($radius: Int) }
+
+sub main(): Int {
+    $s = Circle("big")
+    0
+}

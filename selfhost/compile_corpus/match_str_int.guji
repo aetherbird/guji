@@ -1,0 +1,8 @@
+sub main(): Int {
+    $s = "go"
+    match $s {
+        "stop" { 1 }
+        "go" { 2 }
+        _ { 0 }
+    }
+}

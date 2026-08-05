@@ -1,0 +1,44 @@
+# Spec 15.5 Result prelude. Callback output proves Ok/Err laziness while the
+# transformations and conversions exercise both carrier arms.
+sub result_fallback($error: Str): Int {
+    print("result-fallback:$error")
+    9
+}
+
+sub ok_int($value: Int): Result[Int, Str] { Ok($value) }
+sub err_int($error: Str): Result[Int, Str] { Err($error) }
+sub bad_result_map($value: Int): Int { print("bad-map") $value * 2 }
+
+sub main(): Int {
+    $ok: Result[Int, Str] = ok_int(5)
+    $err: Result[Int, Str] = err_int("boom")
+    print("predicates={ $ok.is_ok() }/{ $ok.is_err() }/{ $err.is_ok() }/{ $err.is_err() }")
+    print("unwrap={ $ok.unwrap() }")
+    print("expect={ $ok.expect('unused') }")
+    print("unwrap-or={ $ok.unwrap_or(0) }/{ $err.unwrap_or(7) }")
+
+    $kept = $ok.unwrap_or_else(sub($e: Str): Int { result_fallback($e) })
+    $fallback = $err.unwrap_or_else(sub($e: Str): Int { result_fallback($e) })
+    print("lazy=$kept/$fallback")
+
+    $mapped_ok = $ok.map(sub($n: Int): Int { $n * 2 })
+    $mapped_err = $err.map(sub($n: Int): Int { bad_result_map($n) })
+    print("map={ $mapped_ok.unwrap_or(-1) }/{ $mapped_err.unwrap_or(-1) }")
+
+    match $err.map_err(sub($e: Str): Str { $e ~ "!" }) {
+        Ok($n) { print("map-err=$n") }
+        Err($e) { print("map-err=$e") }
+    }
+    match $ok.and_then(sub($n: Int): Result[Int, Str] { Ok($n + 1) }) {
+        Ok($n) { print("and-then=$n") }
+        Err($e) { print("and-then=$e") }
+    }
+    match $err.or_else(sub($e: Str): Result[Int, Str] { Ok(99) }) {
+        Ok($n) { print("or-else=$n") }
+        Err($e) { print("or-else=$e") }
+    }
+
+    print("ok-conversion={ $ok.ok().unwrap_or(-1) }/{ $err.ok().unwrap_or(-1) }")
+    print("err-conversion={ $ok.err().unwrap_or('none') }/{ $err.err().unwrap_or('none') }")
+    0
+}

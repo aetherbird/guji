@@ -1,0 +1,80 @@
+# Slice 6 P3b-2b-2c-4d: final `if` value branches whose carrier constructor
+# argument contains a hoistable `?`. Each taken branch emits the same synthetic
+# guard/payload bind as straight-line value hoists, but branch cleanup releases
+# only branch-local temporaries after assigning the shared if-result temp.
+
+sub maybe($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub parse_then($take: Bool, $s: Str): Result[Int, Str] {
+    if $take {
+        Ok(parse_int($s)? + 1)
+    } else {
+        Ok(10)
+    }
+}
+
+sub parse_else($take: Bool, $s: Str): Result[Int, Str] {
+    if $take {
+        Ok(20)
+    } else {
+        Ok(parse_int($s)? + 2)
+    }
+}
+
+sub opt_then($take: Bool, $n: Int): Option[Int] {
+    if $take {
+        Some(maybe($n)? + 3)
+    } else {
+        Some(30)
+    }
+}
+
+sub str_then($take: Bool, $s: Str): Result[Str, Str] {
+    if $take {
+        Ok(tag($s)? ~ "!")
+    } else {
+        Ok("idle")
+    }
+}
+
+sub main(): Int {
+    match parse_then(true, "4") {
+        Ok($a) { print("parse-then { $a }") }
+        Err($ea) { print("parse-then-err { $ea }") }
+    }
+    match parse_then(true, "x") {
+        Ok($b) { print("parse-then-bad { $b }") }
+        Err($eb) { print("parse-then-err { $eb }") }
+    }
+    match parse_else(false, "5") {
+        Ok($c) { print("parse-else { $c }") }
+        Err($ec) { print("parse-else-err { $ec }") }
+    }
+    match opt_then(true, 2) {
+        Some($d) { print("opt-then { $d }") }
+        None { print("opt-none") }
+    }
+    match opt_then(true, 0) {
+        Some($e) { print("opt-bad { $e }") }
+        None { print("opt-early-none") }
+    }
+    match str_then(true, "go") {
+        Ok($sf) { print("str-then { $sf }") }
+        Err($ef) { print("str-err { $ef }") }
+    }
+    match str_then(true, "bad") {
+        Ok($sg) { print("str-bad { $sg }") }
+        Err($eg) { print("str-early-err { $eg }") }
+    }
+    match str_then(false, "bad") {
+        Ok($sh) { print("str-else { $sh }") }
+        Err($eh) { print("str-else-err { $eh }") }
+    }
+    52
+}

@@ -1,0 +1,46 @@
+# §8/§9 (I3e): canonical user values render and compare structurally.
+# Field rendering is name-sorted (including private fields); nested class fields,
+# class-valued enum payloads, recursive enum payloads, nullary variants, equal
+# copies, changed nested leaves, and changed active tags all stay structural.
+
+class Point {
+    has $.y: Int
+    has $!secret: Str
+    has $.label: Str
+    has $.x: Int
+}
+
+class Segment {
+    has $.end: Point
+    has $.start: Point
+}
+
+enum Tree {
+    Leaf($point: Point)
+    Node($left: Tree, $right: Tree)
+    Empty
+}
+
+sub main(): Int {
+    $a = Point(y: 2, secret: "s", label: "p", x: 1)
+    $b = Point(y: 2, secret: "s", label: "p", x: 1)
+    $c = Point(y: 9, secret: "s", label: "p", x: 1)
+    print($a)
+    print($a == $b)
+    print($a != $c)
+
+    $s1 = Segment(end: $c, start: $a)
+    $s2 = Segment(end: $c, start: $b)
+    print($s1)
+    print($s1 == $s2)
+
+    $t1 = Node(Leaf($a), Leaf($c))
+    $t2 = Node(Leaf($b), Leaf($c))
+    $t3 = Node(Leaf($a), Leaf($a))
+    print($t1)
+    print(Empty)
+    print($t1 == $t2)
+    print($t1 != $t3)
+    print($t1 != Empty)
+    0
+}

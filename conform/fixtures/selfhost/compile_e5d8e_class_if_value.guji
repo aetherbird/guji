@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 5 E5d-8e compiler codegen fixture.
+# Pins class-valued expression-position `if` lowering where branches return a
+# user class from helper calls and a later call argument reads an Int class field.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static Run gf_choose(int64_t gp0, int64_t gp1)"))
+            print(has_text($c, "\tRun gc0 = \{0};"))
+            print(has_text($c, "\tif (gp0) \{"))
+            print(has_text($c, "gc2 = gf_mk(gt1, guji_add(gp1, 2LL));"))
+            print(has_text($c, "gc11 = gf_mk(gt10, guji_add(gv7.f1, 1LL));"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

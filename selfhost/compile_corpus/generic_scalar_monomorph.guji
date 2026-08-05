@@ -1,0 +1,32 @@
+# P5b-1 probe: scalar generic subs — direct, chained, and local-arg instantiations.
+sub id[T]($v: T): T { $v }
+
+sub pick[T]($a: T, $b: T, $flag: Bool): T {
+    if $flag { $a } else { $b }
+}
+
+sub show[T]($v: T): Str { "value={ $v }" }
+
+sub twice[T]($v: T): T { id(id($v)) }
+
+sub main(): Int {
+    $n = id(40)
+    print("{ $n + 2 }")
+    $m = id($n)
+    print("{ $m }")
+    $s = id("guji")
+    print($s)
+    $f = pick(1.5, 2.5, false)
+    print("{ $f }")
+    $label = show(true)
+    print($label)
+    print(show($s))
+    $c = id(id(4))
+    print("{ $c }")
+    $t = twice(9)
+    print("{ $t }")
+    $b = pick(true, false, true)
+    print("{ $b }")
+    print("interp={ id(58) + twice(1) }")
+    $n + $c + $t
+}

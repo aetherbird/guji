@@ -1,0 +1,64 @@
+# E5d-8d: value-position `match` over an `Option[<scalar>]` returned by the `get`
+# prelude, over both a `split(...)`-produced List[Str] (the real-source `first_char`
+# shape) and a bound List param receiver (`at`, used pervasively by the lexer's
+# per-character scanners). Exercises Some + None (in-range / out-of-range), Str and
+# Int element kinds, and a computed index. Native `guji build` supports this prelude,
+# so it is a THREE-WAY case (interp == native == selfhost).
+
+# The exact real-source blocker: match get(split(...), 0) over Option[Str].
+sub first_char($w: Str): Str {
+    match get(split($w, ""), 0) {
+        Some($c) { $c }
+        None { "" }
+    }
+}
+
+# Bound List[Str] param receiver: get(@chars, $i) -> Option[Str]. Borrowed receiver
+# (the binding owns the storage); the Some payload is retained into the carrier.
+sub at_str(@chars: List[Str], $i: Int): Str {
+    match get(@chars, $i) {
+        Some($c) { $c }
+        None { "?" }
+    }
+}
+
+# Int element kind over a List[Int] param: get(@xs, $i) -> Option[Int].
+sub at_int(@xs: List[Int], $i: Int): Int {
+    match get(@xs, $i) {
+        Some($n) { $n }
+        None { 0 - 1 }
+    }
+}
+
+# Compose the digit value of the first char, defaulting to 0 when absent.
+sub lead_digit_or_zero($w: Str): Int {
+    $c = first_char($w)
+    if $c == "7" {
+        7
+    } else {
+        0
+    }
+}
+
+sub main(): Int {
+    # first_char: "h" from "hello"; "" from empty -> at_str picks them up.
+    $a = first_char("hi")            # "h"
+    $b = first_char("")              # ""  (None -> "")
+    # at_str over a split list passed as a param: index 1 -> "b", index 9 -> "?".
+    $c1 = at_str(split("abc", ""), 1)   # "b"
+    $c2 = at_str(split("abc", ""), 9)   # "?"  (out of range -> None)
+    $c3 = at_str(split("abc", ""), 1 + 1)  # "c" (computed index)
+    # at_int: Some(20) at index 1, None -> -1 at index 9.
+    $n1 = at_int([10, 20, 30], 1)    # 20
+    $n2 = at_int([10, 20, 30], 9)    # -1 (None)
+    $lead = lead_digit_or_zero("7x") # 7
+
+    # Build an exit code that depends on every branch landing right.
+    mut $code = 0
+    if $a == "h" { $code = $code + 1 } else { $code = $code + 0 }
+    if $b == "" { $code = $code + 2 } else { $code = $code + 0 }
+    if $c1 == "b" { $code = $code + 4 } else { $code = $code + 0 }
+    if $c2 == "?" { $code = $code + 8 } else { $code = $code + 0 }
+    if $c3 == "c" { $code = $code + 16 } else { $code = $code + 0 }
+    $code + $n1 + $n2 + $lead
+}

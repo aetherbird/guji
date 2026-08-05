@@ -1,0 +1,43 @@
+# §11/§13 (I6f4): Regex value precursor — unspliced literals become first-class
+# values that survive Option/Result carriers, params/returns, display, and
+# equality. Matching (`~~`) and captures stay I7. Class fields of Regex and
+# direct Option[Regex] print stay out: C declines the former and renders the
+# latter as Some(<bare pattern>) via Str-rep Option display.
+sub pass($re: Regex): Regex { $re }
+sub wrap($re: Regex): Option[Regex] { Some($re) }
+sub take($o: Option[Regex]): Regex {
+    match $o {
+        Some($rx) { $rx }
+        None { /fallback/ }
+    }
+}
+sub ok_re($re: Regex): Result[Regex, Str] { Ok($re) }
+sub err_re($m: Str): Result[Regex, Str] { Err($m) }
+
+sub main(): Int {
+    $re = /\w+/
+    print($re)
+    print("$re")
+    print(pass($re))
+    $same = /\w+/
+    print($re == $same)
+    print($re != /x+/)
+    print(take(wrap($re)))
+    print(take(None))
+    $o: Option[Regex] = wrap(/a.b/)
+    match $o {
+        Some($rx) { print($rx) }
+        None { print(/none/) }
+    }
+    $r = ok_re($re)
+    match $r {
+        Ok($rx) { print("$rx") }
+        Err($m) { print("err:$m") }
+    }
+    $e = err_re("bad")
+    match $e {
+        Ok($rx) { print("$rx") }
+        Err($m) { print("err:$m") }
+    }
+    0
+}

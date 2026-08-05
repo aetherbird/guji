@@ -1,0 +1,18 @@
+# A method call on a bare nullary variant of a GENERIC enum (`Empty.describe()`)
+# selects the already-collected concrete spec (native nullaryVariantReceiverKey).
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub describe($self): Str {
+        match $self {
+            Wrap($v) { "wrap({ $v })" }
+            Empty { "empty" }
+        }
+    }
+}
+
+sub main(): Unit {
+    print(Wrap(42).describe())
+    print(Empty.describe())
+}

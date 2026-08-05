@@ -1,0 +1,56 @@
+# Section 17 native channel send/recv for recursive-box enums whose boxed
+# variants carry NESTED List/Map payload fields (H4c-rest slice).
+#
+# Each Link node stores a List[List[Int]] grid, a Map[Str, Map[Str, Int]] nest,
+# AND a boxed Chain child. Sending Chain over a channel must deep-clone the whole
+# boxed graph: guji_clone_<E>_value's nested-detach now copies the outer ARR_SLICE
+# / ARR_MAP arrays AND every inner row's storage in each boxed node, so the
+# receiver shares no list-/map-storage pointers with the sender's per-task heap.
+# The source is rebound to End after send; the received message must still decode
+# the original chain and release cleanly under ASan/LSan.
+enum Chain {
+    End
+    Link($grid: List[List[Int]], $nest: Map[Str, Map[Str, Int]], $next: Chain)
+}
+
+sub gridsum($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link($g, _, $n) {
+            mut $s = 0
+            for $row in $g {
+                for $x in $row {
+                    $s = $s + $x
+                }
+            }
+            $s + gridsum($n)
+        }
+    }
+}
+
+sub nestsum($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link(_, $m, $n) {
+            $inner = $m{"a"}
+            $v = $inner{"b"}
+            $v + nestsum($n)
+        }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Chain] = channel(1)
+    @g1 = [[1, 2], [3]]
+    %n1 = {"a": {"b": 10}}
+    @g2 = [[4]]
+    %n2 = {"a": {"b": 20}}
+    mut $c = Link(@g1, %n1, Link(@g2, %n2, End))
+    $ch.send($c)
+    $c = End
+
+    $got = $ch.recv().unwrap()
+    print("{ gridsum($got) }")
+    print("{ nestsum($got) }")
+    print("{ gridsum($c) }")
+}

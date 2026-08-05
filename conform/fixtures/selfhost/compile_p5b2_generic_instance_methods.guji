@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_Holder_identity__Holder_Int_Int(Holder gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_Holder_identity__Holder_Str_Str(Holder gp0, const char* gp1)"))
+            print(has_text($c, "static int64_t gf_Holder_identity__Holder_Bool_Bool(Holder gp0, int64_t gp1)"))
+            print(has_text($c, "static double gf_Holder_keep_first__Holder_Float_Float_Float(Holder gp0, double gp1, double gp2)"))
+            print(has_text($c, "static guji_slice_t gf_Holder_pair__Holder_Int_List_int(Holder gp0, int64_t gp1)"))
+            print(has_text($c, "gf_Holder_identity__Holder_Int_Int(gv0, 5LL)"))
+            print(has_text($c, "gf_Holder_pair__Holder_Int_List_int(gv0, 7LL)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

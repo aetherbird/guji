@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Option `ok_or` carrier-producing lowering over a bound Option local.
+# The fresh Result temp is filled per the source Option tag: Some fills `.ok` from
+# `opt.val` (tag != 0), None fills `.err` from the lowered err expr. A scalar err is
+# moved by value (`.err = 99LL`); a Str err is lowered to an owned tmp (`.err = gt`)
+# and retained into the Result slot; a Str Ok payload is likewise retained
+# (`guji_retain(gr`), so the fresh Result co-owns its heap payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag != 0LL) \{ gr"))
+            print(has_text($c, ".ok = gv"))
+            print(has_text($c, ".err = gt"))
+            print(has_text($c, ".err = 99LL"))
+            print(has_text($c, "guji_retain(gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

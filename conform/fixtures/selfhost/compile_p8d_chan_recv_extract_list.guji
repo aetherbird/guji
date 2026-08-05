@@ -1,0 +1,22 @@
+# P8d-2c-3d-2a: pin List receive-carrier extraction. Three fresh List unwraps
+# (two Int + one Str) plus one bound Option[List] unwrap. Fresh adoption retains
+# `.data` out of the carrier then releases+NULLs the carrier slot; bound unwrap
+# retains without releasing the named carrier.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, ".tag = guji_chan_recv(") == 4)
+            print(count_of($c, "guji_panic(\"unwrap on None\")") == 4)
+            print(count_of($c, ".val.data = NULL;") == 4)
+            print(count_of($c, "guji_retain((const void*)") == 4)
+            0
+        }
+    }
+}

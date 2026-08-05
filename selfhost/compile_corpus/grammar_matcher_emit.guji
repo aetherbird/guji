@@ -1,0 +1,12 @@
+# P7c-2b-1: declarations emit complete native-shaped matcher functions even
+# before the next slice makes Grammar.parse/Bush values callable from guji.
+grammar Pick {
+    rule TOP { <yes> ':' <no> | <no> }
+    token yes { 'y' [0-9]+ }
+    token no { 'n' [0-9]+ }
+}
+
+sub main(): Int {
+    print("grammar matchers linked")
+    0
+}

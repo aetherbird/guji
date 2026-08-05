@@ -1,0 +1,30 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P3c-b-3: a two-variable map `for` lowers through
+# guji_map_order, borrows sorted key/value slots into loop locals, and releases
+# both the heap order array and any owned guji_map_t iterator after the loop.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_map_order(gv"))
+            print(has_text($c, " = gv"))
+            print(has_text($c, "_keys[go"))
+            print(has_text($c, "_vals[go"))
+            print(has_text($c, "guji_map_order(gmv"))
+            print(has_text($c, "((int64_t*)gmv"))
+            print(has_text($c, "guji_release((const void*)go"))
+            print(has_text($c, ".keys = NULL;"))
+            print(has_text($c, ".vals = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,9 @@
+# gujiconform -- Phase 2 (Platform IO pass): Handle.lines returns a Chan[Str]
+# that yields chomped lines and is closed at EOF so a for-loop terminates.
+sub main(): Int {
+    $lines: Chan[Str] = stdin.lines()
+    for $line in $lines {
+        print("[" ~ $line ~ "]")
+    }
+    0
+}

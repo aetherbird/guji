@@ -1,0 +1,6 @@
+sub add($a: Int, $b: Int): Int {
+    $a + $b
+}
+sub main(): Int {
+    add(3, 4)
+}

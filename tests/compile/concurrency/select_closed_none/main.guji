@@ -1,0 +1,17 @@
+# §17.5 native `select`: a recv arm on a closed-and-drained channel is READY and
+# binds None (§17.5: "a closed channel makes its arm ready, binding None").
+# Fully sequential, so deterministic.
+sub main(): Int {
+    $a: Chan[Int] = channel(1)
+    $a.close()
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($n) { print("got { $n }") }
+                None     { print("a is closed") }
+            }
+        }
+        else { print("idle") }
+    }
+    0
+}

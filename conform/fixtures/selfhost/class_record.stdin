@@ -1,0 +1,9 @@
+pub class Box[T] {
+    has $.value: T
+    has @!items: List[Str]
+}
+
+sub main(): Int {
+    $box = Box(value: 7, items: ["x"])
+    $box.value
+}

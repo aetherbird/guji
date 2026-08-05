@@ -1,0 +1,37 @@
+# Spec 13.4: first-class construction, literal escaping, splicing, and private
+# splice captures. Expected output follows the specified capture boundaries.
+sub make($label: Str, $source: Str): Regex {
+    print("build:$label")
+    Regex.compile($source).unwrap()
+}
+
+sub main(): Int {
+    $data = "a+b?"
+    $literal = Regex.literal($data)
+    $literal_hit = ($data ~~ /^<{ $literal }>$/).is_some()
+    print("literal=$literal_hit")
+    $escaped_source = "^" ~ Regex.escape($data) ~ "$"
+    $escaped = Regex.compile($escaped_source).unwrap()
+    match $data ~~ $escaped {
+        Some($m) { print("escaped=true") }
+        None { print("escaped=false") }
+    }
+
+    $left = make("left", "(a)\\1")
+    $right = make("right", "(?<unit>b)\\k<unit>")
+    $joined = /^(?<whole><{ $left }><{ $right }>)$/
+    match "aabb" ~~ $joined {
+        Some($m) {
+            print("whole=" ~ $m<whole>.unwrap_or("missing"))
+            print("host-groups=" ~ $m[1].unwrap_or("missing"))
+            print("private-groups=" ~ $m[2].unwrap_or("hidden"))
+        }
+        None { print("no-match") }
+    }
+
+    match Regex.compile("(") {
+        Err($e) { print("invalid=true") }
+        Ok($re) { print("invalid=false") }
+    }
+    0
+}

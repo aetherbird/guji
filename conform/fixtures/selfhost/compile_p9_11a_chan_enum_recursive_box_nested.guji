@@ -1,0 +1,21 @@
+# P9-11a: pin recursive-box + nested collection channel ABI — clone helpers
+# (not the flat switch detach) own the nested List/Map graphs inside boxes.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "sizeof(Chain), guji_chan_drop_Chain") == 1)
+            print(count_of($c, "static Chain guji_clone_Chain_value") >= 1)
+            print(count_of($c, "static Chain* guji_clone_Chain_box") >= 1)
+            print(count_of($c, "guji_clone_Chain_value(&") >= 1)
+            print(count_of($c, "guji_retain_Chain_fields(&") >= 1)
+            0
+        }
+    }
+}

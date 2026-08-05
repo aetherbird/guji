@@ -1,0 +1,19 @@
+enum Msg {
+    Text($s: Str)
+    Other($s: Str)
+}
+
+sub mk(): Msg { Text("ab" ~ "cd") }
+
+sub main(): Int {
+    match mk() {
+        Text($x) {
+            print($x)
+            0
+        }
+        Other($x) {
+            print($x)
+            1
+        }
+    }
+}

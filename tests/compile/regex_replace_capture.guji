@@ -1,0 +1,7 @@
+# Spec §15.3: replace_with computes each replacement from the Match value.
+# This pins positional capture access used as a displayed Option[Str].
+sub main(): Unit {
+    $s = "a1b2c3"
+    print($s.replace(/\d/, "_"))
+    print($s.replace_with(/\d/, sub($m: Match): Str { "[{ $m[0] }]" }))
+}

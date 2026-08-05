@@ -1,0 +1,1 @@
+type error: binding $bad has type Int, expected Str

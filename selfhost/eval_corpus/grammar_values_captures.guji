@@ -1,0 +1,90 @@
+# spec 14.2 (I7f): named Bush lookup, nested/recursive captures, parse failure.
+# C already builds the capture tree; D now resolves $b<name> to Option[Bush].
+grammar Pair {
+    rule TOP { <left> ':' <right> }
+    token left { [a-z]+ }
+    token right { [a-z]+ }
+}
+
+grammar Pick {
+    rule TOP { <left> | <right> }
+    token left { l }
+    token right { r }
+}
+
+grammar Nest {
+    rule TOP { <expr> }
+    rule expr { '(' <expr> ')' | <atom> }
+    token atom { [a-z]+ }
+}
+
+sub main(): Int {
+    # Direct named captures on a successful rule TOP.
+    match Pair.parse("alpha:beta") {
+        Some($b) {
+            print("pair:{ $b.text }")
+            match $b<left> {
+                Some($l) { print("left:{ $l.text }") }
+                None { print("no-left") }
+            }
+            match $b<right> {
+                Some($r) { print("right:{ $r.text }") }
+                None { print("no-right") }
+            }
+        }
+        None { print("pair-miss") }
+    }
+
+    # Ordered choice: untaken alternatives leave that name as None.
+    match Pick.parse("r") {
+        Some($b) {
+            match $b<left> {
+                Some($l) { print("wrong-left") }
+                None { print("no-left-ok") }
+            }
+            match $b<right> {
+                Some($r) { print("right:{ $r.text }") }
+                None { print("no-right") }
+            }
+        }
+        None { print("pick-miss") }
+    }
+
+    # Recursive nested rules: descend through Option[Bush] children.
+    # '(' <expr> ')' captures an expr child; the atom lives one level deeper.
+    match Nest.parse("((x))") {
+        Some($b) {
+            print("nest:{ $b.text }")
+            match $b<expr> {
+                Some($e) {
+                    print("expr:{ $e.text }")
+                    match $e<expr> {
+                        Some($e2) {
+                            print("expr2:{ $e2.text }")
+                            match $e2<expr> {
+                                Some($e3) {
+                                    print("expr3:{ $e3.text }")
+                                    match $e3<atom> {
+                                        Some($a) { print("atom:{ $a.text }") }
+                                        None { print("no-atom") }
+                                    }
+                                }
+                                None { print("no-expr3") }
+                            }
+                        }
+                        None { print("no-expr2") }
+                    }
+                }
+                None { print("no-expr") }
+            }
+        }
+        None { print("nest-miss") }
+    }
+
+    # Full-input failure remains None (invalid input, not a compile reject).
+    match Pair.parse("alpha:beta!") {
+        Some($b) { print("prefix-wrong") }
+        None { print("parse-fail") }
+    }
+    0
+}

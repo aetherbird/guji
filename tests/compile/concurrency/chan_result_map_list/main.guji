@@ -1,0 +1,72 @@
+# Chan[Result[Map[Str, List[T]], Str]] must detach an active Ok Map[Str,List]
+# payload on send and adopt it on recv. The Ok map owns the same two arrays as a
+# flat Result[Map] carrier (.ok.keys + .ok.vals); the vals array is ARR_SLICE, so
+# releasing an unread Ok message cascades into each value list's storage. Buffered
+# unread Err messages prove the Err(Str) drop still shares the carrier-Str path.
+
+sub sum_map(%m: Map[Str, List[Int]]): Int {
+    %m{"a"}.sum() + %m{"b"}.sum()
+}
+
+sub join_map(%m: Map[Str, List[Str]]): Str {
+    %m{"x"}[0] ~ %m{"x"}[1] ~ %m{"y"}[0]
+}
+
+sub classify_counts($ok: Bool): Result[Map[Str, List[Int]], Str] {
+    if $ok {
+        Ok({"a": [1, 2], "b": [3, 4, 5]})
+    } else {
+        Err("no-grid")
+    }
+}
+
+sub classify_words($ok: Bool): Result[Map[Str, List[Str]], Str] {
+    if $ok {
+        Ok({"x": ["gu", "ji"], "y": ["!"]})
+    } else {
+        Err("no-words")
+    }
+}
+
+sub main(): Int {
+    $ints: Chan[Result[Map[Str, List[Int]], Str]] = channel(4)
+    $ints.send(classify_counts(true))
+    $ints.send(classify_counts(false))
+    # These buffered messages are never received: one active Ok Map[List] and
+    # one active Err Str must both be dropped by the channel.
+    $ints.send(classify_counts(true))
+    $ints.send(classify_counts(false))
+
+    $grid_one = $ints.recv().unwrap()
+    print(match $grid_one {
+        Ok(%m) { sum_map(%m) }
+        Err($e) { 0 }
+    })
+
+    $grid_two = $ints.recv().unwrap()
+    match $grid_two {
+        Ok(%m) { print(%m{"a"}[0]) }
+        Err($e) { print($e) }
+    }
+
+    $words: Chan[Result[Map[Str, List[Str]], Str]] = channel(3)
+    $words.send(classify_words(true))
+    $words.send(classify_words(false))
+    # Buffered active Ok with Str-valued lists: releasing the vals ARR_SLICE must
+    # cascade through copied list rows and their Str elements.
+    $words.send(classify_words(true))
+
+    $words_one = $words.recv().unwrap()
+    print(match $words_one {
+        Ok(%m) { join_map(%m) }
+        Err($e) { $e }
+    })
+
+    $words_two = $words.recv().unwrap()
+    print(match $words_two {
+        Ok(%m) { %m{"x"}[0] }
+        Err($e) { $e }
+    })
+
+    0
+}

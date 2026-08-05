@@ -1,0 +1,6 @@
+sub main(): Int {
+    mut @xs = [1, 2, 3]
+    @xs = [9]
+    print(@xs.sum())
+    0
+}

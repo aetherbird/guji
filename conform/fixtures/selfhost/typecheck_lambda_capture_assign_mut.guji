@@ -1,0 +1,8 @@
+# gujiconform — §7.4/I4e captured-mut assignment diagnostics.
+import lexer
+
+sub main(): Int {
+    $verdict = lexer::typecheck_to_string(stdin.slurp())
+    print($verdict)
+    if $verdict == "well-typed" { 0 } else { 1 }
+}

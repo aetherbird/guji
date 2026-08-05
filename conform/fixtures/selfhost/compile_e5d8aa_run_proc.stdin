@@ -1,0 +1,13 @@
+sub main(): Int {
+    match run("sh", ["-c", "printf out; printf err >&2; exit 5"]) {
+        Ok($p) {
+            if $p.exit_code == 0 {
+                0
+            } else {
+                note($p.stderr)
+                $p.exit_code
+            }
+        }
+        Err($e) { note($e) return 99 }
+    }
+}

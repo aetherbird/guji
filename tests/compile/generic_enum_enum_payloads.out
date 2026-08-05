@@ -1,0 +1,5 @@
+pair int 7 red 1
+pair str tag blue sky
+box int 42
+box str word
+box color

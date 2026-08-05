@@ -1,0 +1,7 @@
+sub main(): Int {
+    $x = 1
+    match $x {
+        1 { print("hit one") 5 }
+        _ { print("other") 9 }
+    }
+}

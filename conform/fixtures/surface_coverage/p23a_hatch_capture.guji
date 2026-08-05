@@ -1,0 +1,17 @@
+# Spec 17.1: immutable scalar/owned capture, creation-time snapshot, and parent/
+# child lifetime synchronized through unbuffered rendezvous.
+sub main(): Int {
+    $out: Chan[Str] = channel()
+    mut $changing = 1
+    $snapshot = $changing
+    $owned = "cap" ~ "tured"
+    @items = ["a", "b"]
+    $joined = @items.join(",")
+    hatch {
+        $out.send("$snapshot:$owned:$joined")
+    }
+    $changing = 2
+    print($out.recv().unwrap())
+    print("parent=$changing")
+    0
+}

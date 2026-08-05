@@ -1,0 +1,6 @@
+# Guji-canonical channels admit List/Map graphs recursively; this historical
+# Go-backend oracle limit is covered by the exact deep-collection channel row.
+sub main(): Int {
+    $ch: Chan[List[Map[Str, Int]]] = channel(1)
+    0
+}

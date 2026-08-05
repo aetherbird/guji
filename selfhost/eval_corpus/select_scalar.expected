@@ -1,0 +1,11 @@
+int 42
+bool true
+idle
+sent
+full
+9
+str sent
+hello
+send closed
+recv closed
+wake 2.5

@@ -1,0 +1,17 @@
+# P9-10b-3a: an ALL-return (Never-valued) match over an Option carrier. No
+# value arm remains to pin the result kind, so the dead match temp and binder
+# default to int64_t (native's shape); the bind itself is unreachable because
+# every arm returns through the ret-aware variant chain.
+sub opt_probe($o: Option[Int]): Int {
+    $out = match $o {
+        Some($v) { return $v * 10 }
+        None { return 0 }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(opt_probe(Some(4)))
+    print(opt_probe(None))
+    0
+}

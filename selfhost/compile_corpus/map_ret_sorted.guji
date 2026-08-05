@@ -1,0 +1,6 @@
+sub mk(): Map[Str, Int] {
+    {"z": 9, "a": 1, "m": 5}
+}
+sub main(): Unit {
+    print(mk())
+}

@@ -1,0 +1,19 @@
+# §15.5 / §11.2 `unwrap` of a `None` PANICS at runtime via the shared `guji_panic`
+# runtime with the fixed diagnostic "unwrap on None" (native == selfhost stderr,
+# byte-identical; interp errored-ness consistent). Empty/None Options come from a
+# `mki(-1)` helper (a bare annotated `None` local is fine, but the helper mirrors
+# option_unwrap.guji's construction). `print("before")` first so stdout is
+# non-trivially compared before the guard fires. THREE-WAY: exit 1, same stderr.
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub main(): Int {
+    $none: Option[Int] = mki(-1)
+    print("before")
+    # The comparison operand forces the value position; the guard fires because
+    # the carrier is None, so `guji_panic("unwrap on None")` exits before the `if`.
+    if unwrap($none) == 5 { print("unreachable") }
+    0
+}

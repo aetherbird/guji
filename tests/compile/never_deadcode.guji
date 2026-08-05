@@ -1,0 +1,29 @@
+# Exercise Never (bottom type) propagation in dead-code branches.
+# Every panic(...) expression is on an unreachable path, so the program
+# completes normally and prints the same output from interpreter and native.
+sub add($a: Int, $b: Int): Int { $a + $b }
+
+sub main(): Int {
+    $x = 42
+
+    # Binary with Never operand
+    $a = if true { $x } else { 1 + panic("dead binary") }
+
+    # Unary with Never operand
+    $b = if true { $x } else { -panic("dead unary") }
+
+    # Call argument with Never
+    $c = if true { $x } else { add(1, panic("dead arg")) }
+
+    # Index with Never index
+    $d = if true { $x } else { [1, 2][panic("dead index")] }
+
+    # Index with Never object
+    $e = if true { $x } else { panic("dead object")[0] }
+
+    # Field access with Never receiver (using a local class)
+    $f = if true { $x } else { panic("dead field").nope }
+
+    print("ok $a $b $c $d $e $f")
+    0
+}

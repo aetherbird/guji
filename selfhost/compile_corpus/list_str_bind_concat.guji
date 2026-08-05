@@ -1,0 +1,6 @@
+sub main(): Int {
+    @words: List[Str] = ["a", "bb"]
+    $first = @words[0]
+    print($first ~ @words[1])
+    7
+}

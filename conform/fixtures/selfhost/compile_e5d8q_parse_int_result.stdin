@@ -1,0 +1,17 @@
+sub to_int($c: Str): Int {
+    match parse_int($c) {
+        Ok($n) { $n }
+        Err($e) { 0 }
+    }
+}
+
+sub to_int_method($c: Str): Int {
+    match $c.parse_int() {
+        Ok($n) { $n }
+        Err($e) { 1 }
+    }
+}
+
+sub main(): Int {
+    to_int("42") + to_int_method("7") + to_int("bad")
+}

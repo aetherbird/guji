@@ -1,0 +1,9 @@
+# Spec §15.5/§11.2: Result expect discards Err text for the caller's message.
+sub bad(): Result[Int, Str] { Err("ignored") }
+
+sub main(): Int {
+    $bad: Result[Int, Str] = bad()
+    print("before")
+    print($bad.expect("custom" ~ ": err"))
+    0
+}

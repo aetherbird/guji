@@ -1,0 +1,10 @@
+sub main(): Int {
+    if true {
+        $s = "hello"
+        print($s)
+        print("\n")
+        3
+    } else {
+        4
+    }
+}

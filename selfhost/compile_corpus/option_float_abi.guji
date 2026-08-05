@@ -1,0 +1,13 @@
+sub scale($o: Option[Float], $by: Float): Float {
+    match $o {
+        Some($v) { $v * $by }
+        None { 0.0 }
+    }
+}
+sub wrap($n: Float): Option[Float] {
+    if $n > 0.0 { Some($n) } else { None }
+}
+sub main(): Int {
+    $r: Float = scale(wrap(2.5), 4.0)
+    if $r > 9.0 { 1 } else { 0 }
+}

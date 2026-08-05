@@ -1,0 +1,30 @@
+# Method-style calls are data-first calls (§7.2), so a counted receiver that a
+# method only borrows must remain releasable at the caller's scope exit.
+enum Tree {
+    Leaf($label: Str)
+    Node($left: Tree, $right: Tree)
+
+    sub size($self): Int {
+        match $self {
+            Leaf($s) { 1 }
+            Node($l, $r) { $l.size() + $r.size() }
+        }
+    }
+}
+
+class Badge {
+    has $.label: Str
+
+    sub label_text($self): Str {
+        $self.label
+    }
+}
+
+sub main(): Int {
+    $t = Node(Leaf("aa" ~ "bb"), Leaf("c" ~ "de"))
+    print($t.size())
+
+    $b = Badge(label: "xy" ~ "z")
+    print($b.label_text())
+    0
+}

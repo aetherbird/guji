@@ -1,0 +1,14 @@
+sub main(): Int {
+    @xs = [12, 22, 11, 21]
+    @ranked = @xs.sort_by(sub($n: Int): Int { $n % 10 })
+    print(@ranked)
+
+    @words = ["pear" ~ "", "fig" ~ "", "plum" ~ ""]
+    @alpha = sort_by(@words, sub($w: Str): Str { $w })
+    print(@alpha)
+
+    @rows = [[1, 2, 3], [4], [5, 6]]
+    @by_len = @rows.sort_by(sub($row: List[Int]): Int { count($row) })
+    print("{ @by_len[0][0] }/{ count(@by_len[2]) }")
+    0
+}

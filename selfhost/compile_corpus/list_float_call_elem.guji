@@ -1,0 +1,8 @@
+sub bump($x: Float): Float {
+    $x + 0.5
+}
+
+sub main(): Int {
+    @fs: List[Float] = [bump(1.0), 4.0]
+    if @fs[0] == 1.5 { 13 } else { 6 }
+}

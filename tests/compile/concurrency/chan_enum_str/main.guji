@@ -1,0 +1,33 @@
+# Section 17 native channel send/recv for Str-payload enums (H4c-rest slice).
+#
+# Str payloads must be deep-copied into the channel message so the receiver never
+# shares a heap string with the sender's task. The second buffered message is
+# intentionally left undelivered; LeakSanitizer then proves the per-enum channel
+# drop wrapper releases Str fields when the channel handle is freed.
+enum Msg {
+    Text($s: Str)
+    Pair($a: Str, $b: Str)
+    Done
+}
+
+sub show($m: Msg): Str {
+    match $m {
+        Text($s) { $s }
+        Pair($a, $b) { $a ~ "/" ~ $b }
+        Done { "done" }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Msg] = channel(2)
+    $first = Text("alpha" ~ "-one")
+    $drop = Pair("left" ~ "-two", "right" ~ "-three")
+
+    hatch {
+        $ch.send($first)
+        $ch.send($drop)
+    }
+
+    $got = $ch.recv().unwrap()
+    print(show($got))
+}

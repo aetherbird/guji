@@ -1,0 +1,15 @@
+# §15 higher-order list reduce, P2b-3a slice: fold scalar lists with a
+# two-parameter inline lambda. Covers method-style and ordinary data-first calls
+# plus a Str accumulator over a Str list, which exercises accumulator ownership.
+sub main(): Int {
+    @nums = [1, 2, 3, 4]
+    $sum = @nums.reduce(0, sub($acc: Int, $n: Int): Int { $acc + $n })
+    $product = reduce(@nums, 1, sub($p: Int, $n: Int): Int { $p * $n })
+
+    @words = ["go", "ju", "gi"]
+    $glued = @words.reduce("", sub($s: Str, $w: Str): Str { $s ~ $w ~ "." })
+
+    print("{ $sum }/{ $product }")
+    print($glued)
+    if $sum == 10 && $product == 24 && $glued == "go.ju.gi." { 34 } else { 1 }
+}

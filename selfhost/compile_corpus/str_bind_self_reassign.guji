@@ -1,0 +1,5 @@
+sub main(): Unit {
+    mut $s = "first" ~ " value"
+    $s = $s
+    print($s)
+}

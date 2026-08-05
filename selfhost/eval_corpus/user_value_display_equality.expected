@@ -1,0 +1,10 @@
+Point(label: p, secret: s, x: 1, y: 2)
+true
+true
+Segment(end: Point(label: p, secret: s, x: 1, y: 9), start: Point(label: p, secret: s, x: 1, y: 2))
+true
+Node(Leaf(Point(label: p, secret: s, x: 1, y: 2)), Leaf(Point(label: p, secret: s, x: 1, y: 9)))
+Empty
+true
+true
+true

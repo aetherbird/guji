@@ -1,0 +1,5 @@
+import cycle_b
+
+pub sub a(): Int {
+    1
+}

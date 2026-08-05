@@ -1,0 +1,8 @@
+sub main(): Int {
+    $o = "hey now" ~~ /(h\w+) (?<w>n\w+)/
+    $m = $o.unwrap()
+    print($m<w>.unwrap_or("-"))
+    $f = ("ac" ~~ /a(b)?c/).unwrap()
+    print($f.text)
+    0
+}

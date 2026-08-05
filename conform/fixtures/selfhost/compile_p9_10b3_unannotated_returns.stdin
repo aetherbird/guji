@@ -1,0 +1,48 @@
+# T2b: subs with NO return annotation compile natively using the checker's
+# recorded declaration signature (TypeInfo.SubSig). Before this, codegen
+# rejected every unannotated sub ("codegen requires sub ... to return Int,
+# Bool, Str, Float, ..."), even though the interpreter accepts them and the
+# checker infers their return types. Covers inferred Str/Float/Bool/Int/Unit
+# returns on top-level subs, class methods, and enum methods; calls are
+# exercised bound, nested in print, and inside string interpolation (whose
+# re-parsed bodies have no per-call-site TypeInfo and must type through the
+# callee's shared declaration). main itself is unannotated (inferred Unit).
+
+sub greet($name: Str) { "hello, { $name }" }
+sub half($x: Float) { $x / 2.0 }
+sub shout($s: Str) { print($s) }
+sub twice($n: Int) { $n * 2 }
+sub is_big($n: Int) { $n > 10 }
+
+class Counter {
+    has $.n: Int
+
+    sub positive($self) { $self.n > 0 }
+    sub label($self) { "counter" }
+}
+
+enum Direction {
+    North
+    South
+
+    sub flag($self) { true }
+}
+
+sub main() {
+    print(greet("world"))
+    $g = greet("guji")
+    print("greet-interp: { $g }")
+    $h = half(7.0)
+    print("half: { $h }")
+    shout("shouted")
+    print("twice: { twice(5) }")
+    $big = 42.is_big()
+    print("uniform-bound: { $big }")
+    print("interp-uniform: { 42.is_big() }")
+    print("interp-plain: { is_big(3) }")
+    $c = Counter(n: 3)
+    print("positive: { $c.positive() }")
+    print($c.label())
+    $d = North
+    print("flag: { $d.flag() }")
+}

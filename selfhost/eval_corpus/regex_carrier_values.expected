@@ -1,0 +1,10 @@
+/\w+/
+/\w+/
+/\w+/
+true
+true
+/\w+/
+/fallback/
+/a.b/
+/\w+/
+err:bad

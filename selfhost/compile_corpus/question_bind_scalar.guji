@@ -1,0 +1,52 @@
+# Slice 6 P3b-2a: straight-line `?` bind propagation for scalar payloads.
+sub maybe_int($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub maybe_bool($b: Bool): Option[Bool] {
+    if $b { Some(false) } else { None }
+}
+
+sub chain_option($n: Int): Option[Int] {
+    $x = maybe_int($n)?
+    $flag = maybe_bool($x > 1)?
+    Some(if $flag { 1 } else { $x + 100 })
+}
+
+sub parse_plus($s: Str): Result[Int, Str] {
+    $n = parse_int($s)?
+    Ok($n + 1)
+}
+
+sub maybe_float($ok: Bool): Result[Float, Str] {
+    if $ok { Ok(4.5) } else { Err("bad float") }
+}
+
+sub ratio($ok: Bool): Result[Float, Str] {
+    $d = maybe_float($ok)?
+    Ok($d / 1.5)
+}
+
+sub main(): Int {
+    match chain_option(5) {
+        Some($n) { print("some { $n }") }
+        None { print("none") }
+    }
+    match chain_option(-2) {
+        Some($n) { print("some { $n }") }
+        None { print("none") }
+    }
+    match parse_plus("41") {
+        Ok($n) { print("ok { $n }") }
+        Err($e) { print("err { $e }") }
+    }
+    match parse_plus("bad") {
+        Ok($n) { print("ok { $n }") }
+        Err($e) { print("err { $e }") }
+    }
+    match ratio(true) {
+        Ok($d) { print("ratio { $d }") }
+        Err($e) { print("ratio err { $e }") }
+    }
+    0
+}

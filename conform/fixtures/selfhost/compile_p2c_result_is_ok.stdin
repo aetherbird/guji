@@ -1,0 +1,17 @@
+sub ok_int($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+
+sub err_int($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub main(): Int {
+    $r: Result[Int, Str] = ok_int(5)
+    $e: Result[Int, Str] = err_int("bad" ~ "!")
+    mut $c = 0
+    if $r.is_ok() { $c = $c + 1 }
+    if is_err($e) { $c = $c + 2 }
+    if is_ok($r) { $c = $c + 4 } else { $c = $c + 0 }
+    $c
+}

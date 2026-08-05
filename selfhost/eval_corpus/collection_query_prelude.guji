@@ -1,0 +1,37 @@
+# I5b: §15.1/§15.2 collection query prelude — count/contains/get/has_key/keys/values.
+# Pins both data-first and method spellings, List and Map receivers, sorted-key
+# keys()/values() order, and Option Some/None from get (hit vs miss). Leaves
+# mutation (set/remove), string prelude, and HOF transforms to later I5 slices.
+sub main(): Int {
+    @xs = [10, 20, 30]
+    @names = ["ada", "grace"]
+    @empty: List[Int] = []
+    %m = {"b": 2, "a": 1}
+
+    print(@xs.count())
+    print(count(@names))
+    print(@empty.count())
+    print(@names.contains("ada"))
+    print(contains(@xs, 99))
+    print(%m.has_key("a"))
+    print(has_key(%m, "z"))
+    print(keys(%m))
+    print(%m.values())
+    match get(@xs, 1) {
+        Some($n) { print($n) }
+        None { print("miss") }
+    }
+    match @xs.get(9) {
+        Some($n) { print($n) }
+        None { print("oob") }
+    }
+    match %m.get("z") {
+        Some($n) { print($n) }
+        None { print("none") }
+    }
+    match get(%m, "a") {
+        Some($n) { print($n) }
+        None { print("none") }
+    }
+    0
+}

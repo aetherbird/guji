@@ -1,0 +1,6 @@
+sub main(): Int {
+    $x = 5
+    match $x {
+        _ { 42 }
+    }
+}

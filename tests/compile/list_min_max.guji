@@ -1,0 +1,28 @@
+sub main(): Int {
+    @nums = [3, 1, 4, 1, 5, 9, 2, 6]
+    @temps = [12.5, -3.0, 7.25, 0.0]
+    @names = ["grace", "ada", "linus", "ken"]
+
+    # min/max aggregate numeric lists (method form and ordinary form).
+    print("min: { @nums.min() }")
+    print("max: { max(@nums) }")
+    print("coldest: { @temps.min() }")
+    print("hottest: { max(@temps) }")
+
+    # contains tests element membership, returning Bool.
+    $has4 = @nums.contains(4)
+    $has7 = contains(@nums, 7)
+    $hasAda = @names.contains('ada')
+    $hasEve = @names.contains('eve')
+    print("has 4: { $has4 }")
+    print("has 7: { $has7 }")
+    print("has ada: { $hasAda }")
+    print("has eve: { $hasEve }")
+
+    # join concatenates a List[Str] with a separator.
+    $joined = @names.join(', ')
+    $packed = join(@names, '')
+    print("joined: { $joined }")
+    print("packed: { $packed }")
+    0
+}

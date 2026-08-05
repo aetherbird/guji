@@ -1,0 +1,40 @@
+# §7.4/I4d+I4d2: function values cross ordinary sub boundaries. Pin a callback
+# parameter invoked once and twice, closures returned from maker subs while
+# retaining the maker's lexical Int/Str captures, and a freshly returned closure
+# passed directly as another call's argument (no intervening bind). No
+# function-type annotation is needed: ordinary local inference carries every
+# higher-order boundary.
+sub apply($f, $x: Int): Int {
+    $f($x)
+}
+
+sub apply_twice($f, $x: Int): Int {
+    $f($f($x))
+}
+
+sub make_adder($base: Int) {
+    sub($n: Int): Int { $base + $n }
+}
+
+sub make_wrapper($left: Str, $right: Str) {
+    sub($text: Str): Str { $left ~ $text ~ $right }
+}
+
+sub main(): Int {
+    $add3 = make_adder(3)
+    print($add3(4))
+    print(apply($add3, 10))
+    print(apply_twice($add3, 5))
+
+    $offset = 40
+    $kept = sub($n: Int): Int { $n + $offset }
+    print(apply($kept, 2))
+    print(apply(sub($n: Int): Int { $n * 2 }, 21))
+
+    $wrap = make_wrapper("[", "]")
+    print($wrap("guji"))
+
+    # I4d2: returned closure temporary as Func call argument.
+    print(apply(make_adder(5), 6))
+    0
+}

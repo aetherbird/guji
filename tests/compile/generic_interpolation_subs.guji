@@ -1,0 +1,22 @@
+sub id[T]($x: T): T {
+    $x
+}
+
+sub choose[T]($a: T, $b: T, $take_first: Bool): T {
+    if $take_first { $a } else { $b }
+}
+
+sub main(): Int {
+    $n = 41
+    $s = "go"
+    $b = true
+
+    # Generic calls inside interpolation are re-parsed during native codegen,
+    # so they need specialization by concrete argument types, not AST identity.
+    print("int { id($n) }")
+    print("str { id($s) }")
+    print("bool { id($b) }")
+    print("nested { id(id($s)) }")
+    print("float { choose(1.5, 2.5, false) }")
+    0
+}

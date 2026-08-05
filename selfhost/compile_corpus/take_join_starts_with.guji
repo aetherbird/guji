@@ -1,0 +1,22 @@
+# E5d-8o: `starts_with` needs a List[Str] local from split plus
+# take(...).join("") in a Bool expression. Native supports this prelude shape, so
+# this is a normal three-way case.
+
+sub starts_with($s: Str, $p: Str): Bool {
+    @sc = split($s, "")
+    @pc = split($p, "")
+    if @pc.count() > @sc.count() {
+        false
+    } else {
+        take(@sc, @pc.count()).join("") == $p
+    }
+}
+
+sub main(): Int {
+    mut $score = 0
+    if starts_with("guji", "gu") { $score = $score + 1 } else { $score = $score + 0 }
+    if starts_with("guji", "ji") { $score = $score + 0 } else { $score = $score + 2 }
+    if starts_with("guji", "gujiguji") { $score = $score + 0 } else { $score = $score + 4 }
+    if take(split("abcd", ""), 2).join("") == "ab" { $score = $score + 8 } else { $score = $score + 0 }
+    $score
+}

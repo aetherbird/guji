@@ -1,0 +1,7 @@
+enum Color { Red Green Blue }
+
+sub main(): Int {
+    $d = Green
+    print("{ match $d { Red { 0 } Green { 1 } Blue { 2 } } }")
+    0
+}

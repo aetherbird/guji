@@ -1,0 +1,8 @@
+sub main(): Int {
+    %m: Map[Str, Int] = {"a": 1, "b": 2}
+    if has_key(%m, "b") {
+        if %m.has_key("z") { 9 } else { 3 }
+    } else {
+        0
+    }
+}

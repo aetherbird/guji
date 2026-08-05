@@ -1,0 +1,28 @@
+sub flag($x: Int): Option[Bool] {
+    if $x > 0 { Some(true) } else { None }
+}
+
+sub main(): Int {
+    @xs = [3, 1, 2]
+    $empty = @xs.is_empty()
+    $has = @xs.contains(1)
+    print("is_empty: { $empty }")
+    print("contains: { $has }")
+
+    $name = "  Guji  "
+    $clean = $name.trim().upper()
+    print("trim_upper: { $clean }")
+
+    %m = {"a": 1, "b": 2}
+    $hk = %m.has_key("a")
+    print("has_key: { $hk }")
+
+    $o = flag(5)
+    $some = $o.is_some()
+    $got = $o.unwrap()
+    $def = $o.unwrap_or(false)
+    print("is_some: { $some }")
+    print("unwrap: { $got }")
+    print("unwrap_or: { $def }")
+    0
+}

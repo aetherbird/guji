@@ -1,0 +1,96 @@
+# Slice 6 P3b-2b-2b: final carrier constructors whose argument CONTAINS a `?`
+# (non-direct question subexpressions). The left-spine `?` is hoisted into a
+# synthetic scalar bind (guard early-returns None/Err first, mirroring native's
+# left-to-right order), then the rebuilt `Some(...)`/`Ok(...)` lowers through
+# the general final carrier path.
+sub lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n * 2) } else { None }
+}
+
+sub bump($o: Option[Int]): Option[Int] {
+    Some($o? + 1)
+}
+
+sub chain3($n: Int): Option[Int] {
+    return Some(lookup($n)? * 3 + 1)
+}
+
+sub big($o: Option[Int]): Option[Bool] {
+    Some($o? > 5)
+}
+
+sub parse_plus($s: Str): Result[Int, Str] {
+    Ok(parse_int($s)? + 1)
+}
+
+sub parse_minus($s: Str): Result[Int, Str] {
+    return Ok(parse_int($s)? - 2)
+}
+
+sub parse_gt($s: Str): Result[Bool, Str] {
+    Ok(parse_int($s)? > 2)
+}
+
+sub maybe_float($ok: Bool): Result[Float, Str] {
+    if $ok { Ok(4.5) } else { Err("bad float") }
+}
+
+sub twice($ok: Bool): Result[Float, Str] {
+    Ok(maybe_float($ok)? * 2.0)
+}
+
+sub main(): Int {
+    match bump(Some(4)) {
+        Some($v) { print("bump some { $v }") }
+        None { print("bump none") }
+    }
+    match bump(None) {
+        Some($v) { print("bump some { $v }") }
+        None { print("bump none") }
+    }
+    match chain3(2) {
+        Some($v) { print("chain3 some { $v }") }
+        None { print("chain3 none") }
+    }
+    match chain3(0) {
+        Some($v) { print("chain3 some { $v }") }
+        None { print("chain3 none") }
+    }
+    match big(Some(9)) {
+        Some($b) { print("big some { $b }") }
+        None { print("big none") }
+    }
+    match big(Some(1)) {
+        Some($b) { print("big some { $b }") }
+        None { print("big none") }
+    }
+    match parse_plus("41") {
+        Ok($v) { print("plus ok { $v }") }
+        Err($e) { print("plus err { $e }") }
+    }
+    match parse_plus("nope") {
+        Ok($v) { print("plus ok { $v }") }
+        Err($e) { print("plus err { $e }") }
+    }
+    match parse_minus("10") {
+        Ok($v) { print("minus ok { $v }") }
+        Err($e) { print("minus err { $e }") }
+    }
+    match parse_gt("7") {
+        Ok($b) { print("gt ok { $b }") }
+        Err($e) { print("gt err { $e }") }
+    }
+    match parse_gt("1") {
+        Ok($b) { print("gt ok { $b }") }
+        Err($e) { print("gt err { $e }") }
+    }
+    match twice(true) {
+        Ok($d) { print("twice ok { $d }") }
+        Err($e) { print("twice err { $e }") }
+    }
+    match twice(false) {
+        Ok($d) { print("twice ok { $d }") }
+        Err($e) { print("twice err { $e }") }
+    }
+    43
+}

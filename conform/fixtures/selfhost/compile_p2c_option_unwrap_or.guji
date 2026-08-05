@@ -1,0 +1,35 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 `unwrap_or($o, $d)` / `$o.unwrap_or($d)` lowering over a bound
+# `Option[T]` local. A scalar payload lowers to native's pure borrow ternary —
+# `(opt.tag != 0 ? opt.val : <default>)` — with no retain/release. A Str result
+# follows the selfhost owned-tmp convention: the default lowers first to an owned
+# tmp, the result tmp retains whichever pointer the tag picks, and the default tmp
+# is released unconditionally, so refcounts balance on BOTH arms while the binding's
+# own scope-exit cleanup stays the only release of the Some payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Int method form in a comparison: the pure borrow ternary, default 9.
+            print(has_text($c, "gv0.tag != 0 ? gv0.val : 9LL"))
+            # Str function form: the result tmp RETAINS the picked pointer...
+            print(has_text($c, "gt11 = guji_retain((gv4.tag != 0 ? gv4.val : gt10))"))
+            # ...and the owned default tmp is released unconditionally right after.
+            print(has_text($c, "guji_release(gt10);"))
+            # The Str binding's own scope-exit cleanup is still the ONLY release of
+            # the Some payload (the ternary itself never touches gv4.val's count).
+            print(has_text($c, "guji_release(gv4.val); gv4.val = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

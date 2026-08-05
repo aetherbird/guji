@@ -1,0 +1,9 @@
+# I5f: §15.1 min/max over an empty numeric list panics with the C-shaped
+# diagnostic. Build emptiness via take(..., 0) so the happy-path fold row can
+# keep succeeding empty identity cases without sharing this Never exit.
+sub main(): Int {
+    @xs = [1, 2]
+    @empty = take(@xs, 0)
+    print("before")
+    @empty.min()
+}

@@ -1,0 +1,23 @@
+# P8d-2c-3c-15: Option[Str] is the one native-backed Option carrier iterator.
+sub main(): Int {
+    $ch: Chan[Option[Str]] = channel(2)
+    $some: Option[Str] = Some("a" ~ "b")
+    $none: Option[Str] = None
+    $ch.send($some)
+    $ch.send($none)
+    $ch.close()
+    for $item in $ch {
+        print(match $item { Some($s) { $s } None { "none" } })
+    }
+
+    $held_ch: Chan[Option[Str]] = channel(1)
+    $held_value: Option[Str] = Some("c" ~ "d")
+    $held_ch.send($held_value)
+    $held_ch.close()
+    $held = $held_ch.recv()
+    $first = $held.unwrap()
+    $second = $held.unwrap()
+    print($first.unwrap())
+    print($second.unwrap())
+    0
+}

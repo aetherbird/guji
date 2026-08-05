@@ -1,0 +1,30 @@
+# P06b: while plus List, Map, and Range for loops, including empty inputs.
+sub main(): Int {
+    mut $while_sum = 0
+    mut $counter = 1
+    while $counter <= 3 {
+        $while_sum = $while_sum + $counter
+        $counter = $counter + 1
+    }
+    print($while_sum)
+
+    mut $list_sum = 0
+    for $item in [2, 3, 4] { $list_sum = $list_sum + $item }
+    for $unused in [] { $list_sum = 999 }
+    print($list_sum)
+
+    mut $map_rows = ""
+    for $key, $value in {"b": 2, "a": 1} {
+        $map_rows = $map_rows ~ $key ~ "={ $value };"
+    }
+    for $key, $value in {} { $map_rows = "unreachable" }
+    print($map_rows)
+
+    mut $closed = ""
+    for $number in 2..4 { $closed = $closed ~ "{ $number }" }
+    mut $half = ""
+    for $number in 2..<4 { $half = $half ~ "{ $number }" }
+    print($closed)
+    print($half)
+    0
+}

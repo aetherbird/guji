@@ -1,0 +1,14 @@
+# Covers Stage T2: native codegen must use checker TypeInfo for scalar
+# identifiers that have no local declaration in a lifted closure body.
+sub apply($f, $x: Int): Int {
+    $f($x)
+}
+
+sub main(): Int {
+    $flag = true
+    $show = sub($n: Int): Int {
+        print($flag)
+        $n
+    }
+    apply($show, 0)
+}

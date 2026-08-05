@@ -1,0 +1,8 @@
+sub main(): Int {
+    @xs = [[1, 2], [3, 4, 5], [6]]
+    print(match @xs.find(sub($row: List[Int]): Bool { count($row) > 2 }) {
+        Some($r) { "found { count($r) }/{ $r[2] }" }
+        None { "missing" }
+    })
+    0
+}

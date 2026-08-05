@@ -1,0 +1,81 @@
+# O4a: explicit separators, delimiter layout, and static literal patterns.
+enum Marker { Start; End }
+
+sub identity[T]($value: T): T = $value;
+
+sub sum_pair(
+    @values
+    :
+    List
+    [
+        Int
+    ]
+): Int = @values[0] + @values[1];
+
+sub unit_value(): Result[Unit, Str] {
+    Ok(())
+}
+
+sub main(): Int {
+    $offset = 1
+    $increment = sub($n: Int) {
+        $n + $offset
+    }
+    $base = (
+        identity
+        (
+            1
+            +
+            $increment(1)
+        )
+    )
+    @values = [
+        $base,
+        39
+    ]
+    $sum = sum_pair(@values)
+    %answer = {
+        "value"
+        :
+        $sum
+    }
+    $map_value = (
+        %answer
+        {
+            "value"
+        }
+    )
+    $checked = (
+        if $map_value
+        == 42 {
+            (
+                -
+                -42
+            )
+        } else {
+            0
+        }
+    ); print($checked)
+
+    print(match 3 { 3 { "int" } _ { "bad" } })
+    print(match 3.0 { 3.0 { "float" } _ { "bad" } })
+    print(match "x" { "x" { "str" } _ { "bad" } })
+    print(match true { true { "bool" } _ { "bad" } })
+    print(match unit_value() {
+        Ok(
+            (
+            )
+        ) { "unit" }
+        Err($error) { $error }
+    })
+    print(match '$needle @items %table {literal}' {
+        "\$needle \@items \%table \{literal}" { "escaped" }
+        _ { "bad-escaped" }
+    })
+    print(match '$needle @items %table {literal}' {
+        '$needle @items %table {literal}' { "raw" }
+        _ { "bad-raw" }
+    })
+
+    match End { End { 0 } Start { 1 } }
+}

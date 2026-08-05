@@ -1,0 +1,4 @@
+sub main(): Int {
+    $b = if "a" < "b" { true } else { false }
+    if $b { 3 } else { 0 }
+}

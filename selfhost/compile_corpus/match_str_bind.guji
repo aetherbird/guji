@@ -1,0 +1,4 @@
+sub main(): Unit {
+    $s = "hi"
+    print(match $s { "x" { "ex" } $t { $t ~ "!" } })
+}

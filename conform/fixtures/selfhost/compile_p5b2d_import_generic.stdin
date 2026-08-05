@@ -1,0 +1,9 @@
+import guji_compile_import_generic_lib
+
+sub main(): Int {
+    print(guji_compile_import_generic_lib::identity(41) + 1)
+    print(guji_compile_import_generic_lib::identity("hi"))
+    print(guji_compile_import_generic_lib::twice_first(3, 4))
+    print(guji_compile_import_generic_lib::first_of_two(30, 40))
+    0
+}

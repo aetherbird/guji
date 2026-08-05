@@ -1,0 +1,52 @@
+# T3: unannotated subs returning compound types (Option, class, enum)
+# compile natively via TypeInfo.SubSig / CallSig instead of requiring AST
+# return annotations.  Result is omitted because Ok/Err alone are
+# polymorphic; the carrier type can’t be inferred without an annotation
+# or contextual usage.
+
+# ── Option ──
+sub make_opt() {
+    Some(42)
+}
+
+# ── Class ──
+class Point {
+    has $.x: Int
+    has $.y: Int
+}
+
+sub make_point() {
+    Point(x: 3, y: 4)
+}
+
+# ── Enum ──
+enum Status {
+    On,
+    Off
+}
+
+sub make_on() {
+    On
+}
+
+sub main(): Int {
+    # Option
+    $o = make_opt()
+    match $o {
+        Some($v) { print("opt: { $v }") }
+        None     { print("opt: none") }
+    }
+
+    # Class
+    $p = make_point()
+    print("point: { $p.x }, { $p.y }")
+
+    # Enum
+    $s = make_on()
+    match $s {
+        On  { print("status: on") }
+        Off { print("status: off") }
+    }
+
+    0
+}

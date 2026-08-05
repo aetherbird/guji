@@ -1,0 +1,27 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P6g-b: Option[Regex] shares guji_opt_str storage but keeps its Regex marker
+# through a local/parameter carrier and into Some($rx). The emitted program has
+# four Regex-valued match displays, three compiled Some-arm payload retains
+# (one in pick, two direct matches), and one Some/one None carrier literal.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, "static const char* gf_pick(guji_opt_str gp0)") == 2)
+            print(count_of($c, "(guji_opt_str)\{1LL") == 1)
+            print(count_of($c, "(guji_opt_str)\{0LL") == 1)
+            print(count_of($c, " = guji_retain(go") == 3)
+            print(count_of($c, 'guji_concat("/", ') == 4)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

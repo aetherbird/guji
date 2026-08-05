@@ -1,0 +1,5 @@
+sub main(): Int {
+  $f = 1.5
+  $g = 2.5
+  if $f < $g { 1 } else { 0 }
+}

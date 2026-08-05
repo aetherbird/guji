@@ -1,0 +1,4 @@
+sub main(): Int {
+    print(if true { {"a": 1} } else { {"b": 2} })
+    0
+}

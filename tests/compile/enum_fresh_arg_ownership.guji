@@ -1,0 +1,43 @@
+# RC1.6f-i: fresh enum values whose counted boxed children have no named
+# owner — constructor results passed as borrowed sub arguments, matched
+# directly as a subject, or produced by enum-returning calls and never bound —
+# must release their boxes at the statement boundary (and exactly once: an
+# over-eager release here is a sanitizer-visible double free, not just a leak).
+enum Tree {
+    Leaf($value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf($v) { $v }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub build($n: Int): Tree {
+    if $n <= 1 { Leaf($n) } else { Node(Leaf($n), Leaf($n - 1)) }
+}
+
+sub main(): Int {
+    # Fresh constructor passed as a borrowed argument (never bound).
+    print("arg: { sum(Node(Leaf(1), Node(Leaf(2), Leaf(3)))) }")
+    # Fresh constructor as a match subject: arms borrow, boundary releases.
+    $d = match Node(Leaf(4), Leaf(5)) {
+        Node($l, _) { sum($l) }
+        Leaf($v) { $v }
+    }
+    print("subject: { $d }")
+    # Enum-returning call result used read-only and discarded.
+    print("call: { sum(build(7)) }")
+    # Call result bound (transfer), then aliased into a new constructor
+    # (retain): both owners release independently at frame exit.
+    $t = build(3)
+    $u = Node($t, Leaf(9))
+    print("alias: { sum($u) } { sum($t) }")
+    # If-expression enum result: a fresh branch transfers its temp into the
+    # shared result, an alias-shaped consumer binding owns it afterwards.
+    $w = if sum($t) > 4 { Node(Leaf(1), Leaf(1)) } else { build(2) }
+    print("branch: { sum($w) }")
+    0
+}

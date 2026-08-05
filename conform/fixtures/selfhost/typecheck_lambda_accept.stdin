@@ -1,0 +1,9 @@
+# §7.4: a parameterized lambda and a topic block are both well-typed; a closure
+# capturing an IMMUTABLE binding ($t, snapshotted from mut $total) is allowed.
+sub main(): Int {
+    mut $total = 0
+    $t = $total
+    $scale = sub($n: Int): Int { $n * $t }
+    $bump = { $_ + 1 }
+    0
+}

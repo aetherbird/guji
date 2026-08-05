@@ -1,0 +1,9 @@
+# §16.1 transitive module graph (I8b): entry imports only the middle module;
+# that module's body resolves its own nested import. Nested symbols are not
+# required (or re-exported) at the entry.
+import eval_modules::graph_a
+
+sub main(): Int {
+    print(graph_a::value())
+    0
+}

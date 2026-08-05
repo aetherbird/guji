@@ -1,0 +1,12 @@
+sub choose($o: Option[Str]): Str {
+    match $o {
+        Some($v) if $v == "first" { "one" }
+        Some($v) if $v == "second" { "two" }
+        _ { "other" }
+    }
+}
+
+sub main(): Int {
+    print(choose(Some("second")))
+    0
+}

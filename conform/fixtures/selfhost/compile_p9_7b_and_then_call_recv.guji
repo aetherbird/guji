@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 6 P9-7b-3 compiler codegen fixture.
+# Pins §15.5 and_then/or_else over CALL-produced Option/Result receivers
+# (not just bound locals): the receiver is materialized into an owned temp
+# (`goN = gf_…` / `grN = gf_…`), the callback runs under the tag guard, and a
+# Result call-temp with a Str Err slot is released after the if/else.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = gf_opt_int("))
+            print(has_text($c, ".tag != 0) \{"))
+            print(has_text($c, " = gf_double_opt("))
+            print(has_text($c, " = gf_res_int("))
+            print(has_text($c, " = gf_ok99("))
+            print(has_text($c, "guji_retain(gr"))
+            print(has_text($c, "guji_release(gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,16 @@
+sub pass($o: Option[Str]): Option[Str] {
+    $o
+}
+
+sub make($s: Str): Option[Str] {
+    Some($s)
+}
+
+sub main(): Unit {
+    # Option[Str] params are borrowed; returns and call args own retained copies.
+    $o: Option[Str] = pass(make("ca" ~ "ll"))
+    print(match $o {
+        Some($v) { $v }
+        None { "none" }
+    })
+}

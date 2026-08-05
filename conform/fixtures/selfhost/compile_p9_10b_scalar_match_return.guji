@@ -1,0 +1,26 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static const char* gf_scalar_probe(const char* gp0)"))
+            print(has_text($c, "if ((strcmp(gt"))
+            # The owned scrutinee temp is released before the arm's C `return`.
+            print(has_text($c, "guji_release(gt"))
+            print(has_text($c, ");\n\treturn gt"))
+            # The binder catch-all keeps the plain arm-chain shape.
+            print(has_text($c, " else if (1) \{"))
+            print(has_text($c, "guji_retain(gv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,18 @@
+# I8b3: same-named Point/Tag as ident_right; methods encode module identity.
+pub class Point {
+    has $.x: Int
+    sub label($self): Str { "left-{ $self.x }" }
+}
+pub enum Tag {
+    Hot
+    Cold
+    sub pick($n: Int): Tag {
+        if $n > 0 { Hot } else { Cold }
+    }
+    sub mark($self): Str {
+        match $self {
+            Hot { "LH" }
+            Cold { "LC" }
+        }
+    }
+}

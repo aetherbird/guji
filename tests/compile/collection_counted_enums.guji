@@ -1,0 +1,59 @@
+# A-collection-elements-rest (enum with counted payloads slice): a flat List of
+# enum values whose payloads are reference-counted (here a Str payload) is now a
+# counted heap array (GUJI_KIND_<Enum>_ARR) whose drop releases each element's
+# payload fields. Proves construction (fresh constructor temps AND a non-fresh
+# alias element), .count(), for-loop iteration with `match` reading both the Str
+# payload (a const char* borrow) and the scalar payload, and clean release under
+# LeakSanitizer. The Str payloads are HEAP-allocated at runtime (`~` concat),
+# NOT immortal literals, so the per-element retain/release must balance exactly —
+# an immortal literal would hide leaks/double-frees.
+
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+sub main(): Int {
+    @tags = [Named("A" ~ "lpha"), Anon(7), Named("B" ~ "eta")]
+    print(@tags.count())
+
+    # for-loop borrows each element; match reads the Str payload as a borrow.
+    for $t in @tags {
+        $label = match $t {
+            Named($s) { $s }
+            Anon($n) { "anon" }
+        }
+        print($label)
+    }
+
+    # scalar payloads summed via match returning Int.
+    mut $sum = 0
+    for $t in @tags {
+        $d = match $t {
+            Named($s) { 0 }
+            Anon($n) { $n }
+        }
+        $sum = $sum + $d
+    }
+    print($sum)
+
+    # Non-fresh (alias) element: an existing value reused inside a literal. The
+    # array copies the struct by value, so it must retain its OWN +1 on the Str
+    # payload; the array drop and $g's own end-of-scope release balance it.
+    $g = Named("G" ~ "amma")
+    @more = [$g, Named("D" ~ "elta"), Anon(3)]
+    print(@more.count())
+    for $m in @more {
+        $w = match $m {
+            Named($s) { $s }
+            Anon($n) { "i" }
+        }
+        print($w)
+    }
+    $last = match $g {
+        Named($s) { $s }
+        Anon($n) { "x" }
+    }
+    print($last)
+    0
+}

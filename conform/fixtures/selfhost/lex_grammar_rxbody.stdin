@@ -1,0 +1,6 @@
+grammar Email {
+  rule TOP { <user> '@' <domain> }
+  token user { \w+ }
+  regex d { \d{2,4} }
+  token braces { '{' [}] \} }
+}

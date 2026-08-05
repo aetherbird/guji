@@ -1,0 +1,29 @@
+# P8f-3: pin retkind-aware statement select/match dispatch inside guard bodies.
+# The cleanup-order needles prove a nested owned scrutinee or adopted select
+# message is released before the early C return, not merely that compilation
+# stopped declining the source.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, " = guji_chan_try_recv(") == 4)
+            print(count_of($c, "return 2LL;") == 1)
+            print(count_of($c, "return 3LL;") == 1)
+            print(count_of($c, "return 5LL;") == 1)
+            print(count_of($c, "return 7LL;") == 1)
+            # Inner then outer owned Option[Str] scrutinee cleanup.
+            print(count_of($c, "go5.val = NULL; }\n\tif (go2.tag != 0LL)") >= 1)
+            # Outer match scrutinee then adopted select recv carrier cleanup.
+            print(count_of($c, "go2.val = NULL; }\n\tif (go14.tag != 0LL)") >= 1)
+            # Nested match scrutinee then its enclosing select carrier cleanup.
+            print(count_of($c, "go14.val = NULL; }\n\tif (go11.tag != 0LL)") >= 1)
+            0
+        }
+    }
+}

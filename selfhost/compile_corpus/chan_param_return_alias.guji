@@ -1,0 +1,26 @@
+# P9-11b-2a: an annotated `: Unit` user sub whose body ends in the `()` literal
+# compiles (int64_t C return, `return 0LL`), and a hatch task may call a
+# Chan-param sub in statement position (the caller retains, the callee's
+# scope-exit releases — the chan_param_alias convention). Deterministic: one
+# hatch, one blocking recv. Corpus twin of the gate fixture
+# tests/compile/concurrency/chan_param_return_alias.
+sub forward($ch: Chan[Int], $v: Int): Unit {
+    $alias = $ch
+    $alias.send($v);
+    ()
+}
+
+sub make_chan(): Chan[Int] {
+    channel()
+}
+
+sub main(): Int {
+    $ch: Chan[Int] = make_chan()
+    $alias = $ch
+    hatch {
+        forward($alias, 77)
+    }
+    print($ch.recv().unwrap())
+    $ch.close()
+    0
+}

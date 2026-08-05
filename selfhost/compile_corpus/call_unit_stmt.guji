@@ -1,0 +1,7 @@
+sub banner(): Unit {
+    print("==")
+}
+sub main(): Unit {
+    banner()
+    banner()
+}

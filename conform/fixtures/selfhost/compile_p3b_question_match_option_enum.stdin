@@ -1,0 +1,46 @@
+enum Tagd {
+    Named($label: Str)
+    Anon
+}
+
+sub opt_lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n * 2) } else { None }
+}
+
+sub mk_tag($s: Str): Tagd {
+    if $s == "anon" { Anon } else { Named($s ~ ":t") }
+}
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub opt_bind($n: Int, $q: Str): Result[Int, Str] {
+    $x = match opt_lookup($n) {
+        Some($v) { parse_int($q)? + $v }
+        None { 0 }
+    }
+    Ok($x + 1)
+}
+
+sub enum_str_bind($s: Str, $q: Str): Result[Str, Str] {
+    $x = match mk_tag($s) {
+        Named($l) { tag($q)? ~ "/" ~ $l }
+        Anon { "anon" }
+    }
+    Ok($x)
+}
+
+sub enum_reassign($n: Int, $q: Str): Result[Int, Str] {
+    mut $x = 1
+    $x = match opt_lookup($n) {
+        Some($sc) if $sc > 10 { parse_int($q)? + $sc }
+        Some($w) { $w }
+        None { 5 }
+    }
+    Ok($x * 2)
+}
+
+sub main(): Int {
+    0
+}

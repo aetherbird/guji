@@ -1,0 +1,94 @@
+# §13.4: first-class composition retains private backreference slots across
+# repeated/nested splices. Captures following tricky leading class members are
+# still private, and multiple materialized values cannot collide internally.
+sub __guji_regex_compile_internal($pattern: Str): Result[Regex, Str] {
+    Err("user-sub")
+}
+
+sub main(): Int {
+    $numeric = Regex.compile("(a)\\1").unwrap()
+    $first = /<{ $numeric }>/
+    match "aa" ~~ $first {
+        Some($m) { print("numeric:" ~ $m[1].unwrap_or("hidden")) }
+        None { print("numeric:none") }
+    }
+
+    $named = Regex.compile("(?<unit>b)\\k<unit>").unwrap()
+    $second = /<{ $named }>/
+    $joined = /<{ $first }><{ $second }>/
+    match "aabb" ~~ $joined {
+        Some($m) { print("nested:" ~ $m[1].unwrap_or("hidden")) }
+        None { print("nested:none") }
+    }
+
+    # Channel transfer must preserve compiler provenance in both D's WireEnum
+    # carrier and C's counted-Str copy.
+    $wire: Chan[Option[Regex]] = channel(1)
+    $payload: Option[Regex] = Some($joined)
+    $wire.send($payload)
+    match $wire.recv().unwrap() {
+        Some($re) {
+            match "aabb" ~~ $re {
+                Some($m) { print("wire:" ~ $m[1].unwrap_or("hidden")) }
+                None { print("wire:none") }
+            }
+        }
+        None { print("wire:empty") }
+    }
+
+    $replacement = Regex.compile("(q)\\1").unwrap()
+    print("replace:" ~ "qq-qq".replace(/<{ $replacement }>/, "X"))
+
+    $negated = Regex.compile("[^^](c)\\1").unwrap()
+    $negated_value = /<{ $negated }>/
+    match "xcc" ~~ $negated_value {
+        Some($m) { print("negated:" ~ $m[1].unwrap_or("hidden")) }
+        None { print("negated:none") }
+    }
+
+    $leading_right = Regex.compile("[]^](d)\\1").unwrap()
+    $leading_value = /<{ $leading_right }>/
+    match "]dd" ~~ $leading_value {
+        Some($m) { print("leading-right:" ~ $m[1].unwrap_or("hidden")) }
+        None { print("leading-right:none") }
+    }
+
+    # Reserved private names are provenance-gated, not a public syntax escape.
+    $reserved = Regex.compile("(?<0Huser>x)")
+    print("reserved:{ $reserved.is_err() }")
+
+    # The private compiler intrinsic is shadow-aware: a guest sub with the same
+    # spelling must execute normally in both D and C.
+    match __guji_regex_compile_internal("ignored") {
+        Err($e) { print("shadow:" ~ $e) }
+        Ok($re) { print("shadow:intrinsic") }
+    }
+
+    # (?x) comments are source text but contain no captures. Test both the direct
+    # parts compiler and first-class materialization, then scoped x restoration.
+    $verbose = Regex.compile("(?x)(a) # (fake)\n(b)\\2").unwrap()
+    match "abb" ~~ /^<{ $verbose }>$/ {
+        Some($m) { print("verbose-direct:" ~ $m[1].unwrap_or("hidden")) }
+        None { print("verbose-direct:none") }
+    }
+    $verbose_value = /^(?<host><{ $verbose }>)(!)$/
+    match "abb!" ~~ $verbose_value {
+        Some($m) {
+            print("verbose-value:" ~ $m<host>.unwrap_or("?") ~ ":" ~ $m[2].unwrap_or("?") ~ ":" ~ $m[3].unwrap_or("hidden"))
+        }
+        None { print("verbose-value:none") }
+    }
+    $scoped = Regex.compile("(?x:(a) # (fake)\n)(#)(b)\\3").unwrap()
+    $scoped_value = /<{ $scoped }>/
+    match "a#bb" ~~ $scoped_value {
+        Some($m) { print("verbose-scoped:" ~ $m[1].unwrap_or("hidden")) }
+        None { print("verbose-scoped:none") }
+    }
+
+    # Raw source cannot forge the compiler's 0H private-capture namespace.
+    print("forgery-before")
+    $forged = /(?<0Huser>x)/
+    $forged_hit = "x" ~~ $forged
+    print("forgery-after:{ $forged_hit.is_some() }")
+    0
+}

@@ -1,0 +1,89 @@
+# §5.4 / §6.3 range `for`: inclusive `..` and half-open `..<` iterate Int
+# bounds without materializing a list. Empty/reversed ranges yield nothing;
+# outer `mut` rebinds persist; nested loops compose; early `return` exits the
+# enclosing sub. Inclusive loops stop after yielding INT64_MAX (never
+# increment past it); half-open `..< INT64_MIN` is empty.
+sub lo(): Int { 2 }
+
+sub find_first_sq_ge($limit: Int): Int {
+    for $i in 1..100 {
+        if $i * $i >= $limit {
+            return $i
+        }
+    }
+    0 - 1
+}
+
+sub pair_count($n: Int): Int {
+    mut $count = 0
+    for $a in 1..$n {
+        for $b in 1..$a {
+            $count = $count + 1
+        }
+    }
+    $count
+}
+
+sub count_incl($lo: Int, $hi: Int): Int {
+    mut $n = 0
+    for $i in $lo .. $hi {
+        $n = $n + 1
+    }
+    $n
+}
+
+sub sum_half($lo: Int, $hi: Int): Int {
+    mut $s = 0
+    for $i in $lo ..< $hi {
+        $s = $s + 1
+    }
+    $s
+}
+
+sub main(): Int {
+    mut $sum = 0
+
+    for $i in 1..4 {
+        $sum = $sum + $i
+    }
+    print($sum)
+
+    for $j in lo()..<5 {
+        $sum = $sum + 10
+    }
+    print($sum)
+
+    for $k in 5..3 {
+        $sum = $sum + 100
+    }
+    for $e in 7..<7 {
+        $sum = $sum + 100
+    }
+    print($sum)
+
+    print(find_first_sq_ge(20))
+    print(pair_count(3))
+
+    $max = 9223372036854775807
+    mut $last = 0
+    for $b in ($max - 2)..$max {
+        $last = $b
+    }
+    print($last)
+    print(count_incl($max - 2, $max))
+    print(sum_half($max - 2, $max))
+
+    $min = 0 - 9223372036854775807 - 1
+    print(sum_half(5, $min))
+    print(count_incl(5, 3))
+    print(count_incl($max, $max))
+
+    for $t in 1..<3 {
+        print("t" ~ "{ $t }")
+    }
+
+    # Keep range iteration stack-bounded in D as well as in compiled guests.
+    print(count_incl(1, 10000))
+
+    0
+}

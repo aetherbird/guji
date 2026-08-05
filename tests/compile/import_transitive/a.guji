@@ -1,0 +1,5 @@
+import b
+
+pub sub value(): Int {
+    b::base() + 1
+}

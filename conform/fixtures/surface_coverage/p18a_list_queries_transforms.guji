@@ -1,0 +1,38 @@
+# Spec 15.1: queries, transforms, folds, ordering, persistence, aliases, and
+# nested owned list values. Empty failures are isolated in separate fixtures.
+sub main(): Int {
+    @source = [3, 1, 4, 1]
+    print("direct={ @source[0] }")
+    print("checked={ @source.get(2).unwrap_or(-1) }")
+    $has_four = @source.contains(4)
+    $has_nine = contains(@source, 9)
+    $source_empty = @source.is_empty()
+    print(match @source.get(99) { Some($v) { false } None { true } })
+    print("contains=$has_four/$has_nine")
+    print("count={ @source.count() }/$source_empty")
+    @empty: List[Int] = []
+    print("empty={ @empty.is_empty() }")
+
+    @mapped = @source.map(sub($n) { $n * 2 })
+    @filtered = @source.filter(sub($n) { $n > 1 })
+    print("mapped=@mapped")
+    print("filtered=@filtered")
+    print("empty-map={ @empty.map(sub($n) { $n + 1 }) }")
+    print("source=@source")
+
+    # reduce is intentionally kept out until both engines expose callable
+    # callback bodies in the release toolchain.
+    print("sum={ @source.sum() }")
+    print("min={ @source.min() } max={ max(@source) }")
+    print("sort={ @source.sort() }")
+    print("reverse={ @source.reverse() }")
+    print("take={ @source.take(2) } drop={ @source.drop(2) }")
+
+    @nested = [["a"], ["b", "c"]]
+    @alias = @nested
+    @returned = @alias
+    print("nested=@returned")
+    print("equal={ @nested == @returned }")
+    print("source-still=@nested")
+    0
+}

@@ -1,0 +1,32 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub count_text($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # The bare-`Func` parameter is a guji_fn_t pair by value.
+            print(has_text($c, "static guji_fn_t gf_id_func(guji_fn_t gp0)"))
+            # The escaped parameter is materialized and its env retained (+1 out).
+            print(has_text($c, "= gp0;"))
+            print(has_text($c, "guji_retain(gfv0.env);"))
+            print(has_text($c, "return gfv0;"))
+            # The bound result calls through the concrete substituted shape.
+            print(count_text($c, "((int64_t (*) (void*, int64_t))") == 2)
+            # The owned fn local's env is released at scope exit.
+            print(has_text($c, ".env);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

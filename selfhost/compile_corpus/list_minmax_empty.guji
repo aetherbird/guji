@@ -1,0 +1,9 @@
+# §15.1 `min`/`max` over an empty numeric list panics at runtime. Empty list
+# literals are outside the selfhost subset, so build an empty List[Int] with
+# `take(@xs, 0)` and let the final expression trigger the native-shaped panic.
+sub main(): Int {
+    @xs = [1, 2]
+    @empty = take(@xs, 0)
+    print("before")
+    @empty.min()
+}

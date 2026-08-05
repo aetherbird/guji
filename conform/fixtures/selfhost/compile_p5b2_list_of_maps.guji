@@ -1,0 +1,41 @@
+# P5b-2b(nested-list-of-maps): a `List[Map[Str, V]]` binding lowers to a
+# `GUJI_KIND_ARR_MAP` backing of `guji_map_t` (mirroring native, measured via a
+# throwaway GenerateC dumper). Each element map literal is materialized to an owned
+# `guji_map_t` value (reusing the existing map-value path) and MOVED into the array
+# slot, nulling the temp's keys/vals so the ARR_MAP drop frees it exactly once.
+# Verifies the ARR_MAP backing, the moved-in slot stores, the null-out after each
+# move, the Str-valued map's ARR_STR value array, the outer-slice release, and
+# (NEGATIVE) that a flat list-of-maps never emits an ARR_SLICE backing (that shape
+# is reserved for nested list ELEMENTS).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # the outer list backing is an ARR_MAP array of guji_map_t
+            print(has_text($c, "gl0.data = guji_arr_alloc(GUJI_KIND_ARR_MAP, sizeof(guji_map_t), 2);"))
+            # each element map is materialized then MOVED into the array slot
+            print(has_text($c, "((guji_map_t*)gl0.data)[0] = gmv2;"))
+            print(has_text($c, "((guji_map_t*)gl0.data)[1] = gmv4;"))
+            # the moved-out temp is nulled so the ARR_MAP drop owns the map alone
+            print(has_text($c, "gmv2.keys = NULL;"))
+            print(has_text($c, "gmv2.vals = NULL;"))
+            # a Str-valued element map lays its value array out as ARR_STR
+            print(has_text($c, "gmv8.vals = guji_arr_alloc(GUJI_KIND_ARR_STR, sizeof(const char*), 1);"))
+            # scope-exit releases the outer slice (the ARR_MAP drop cascades to the maps)
+            print(has_text($c, "guji_release((const void*)gl0.data);"))
+            # NEGATIVE: a flat list-of-maps never uses the nested-list ARR_SLICE backing
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_SLICE"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

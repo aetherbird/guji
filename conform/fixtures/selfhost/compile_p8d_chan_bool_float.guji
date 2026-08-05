@@ -1,0 +1,24 @@
+# P8d-2a: pin the non-owning Bool/Float channel ABI beside P8d-1's Int path.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_chan_new(2LL, sizeof(int64_t), NULL)") >= 1)
+            print(count_of($c, "guji_chan_new(2LL, sizeof(double), NULL)") >= 1)
+            print(count_of($c, "int64_t gb") >= 1)
+            print(count_of($c, "double gd") >= 1)
+            print(count_of($c, "guji_opt_bool") >= 1)
+            print(count_of($c, "guji_opt_float") >= 1)
+            print(count_of($c, "guji_chan_send(") >= 4)
+            print(count_of($c, "guji_chan_recv(") >= 6)
+            print(count_of($c, "guji_chan_release(") >= 2)
+            0
+        }
+    }
+}

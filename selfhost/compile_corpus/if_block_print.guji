@@ -1,0 +1,9 @@
+sub main(): Int {
+    if true {
+        print("in then\n")
+        7
+    } else {
+        print("in else\n")
+        9
+    }
+}

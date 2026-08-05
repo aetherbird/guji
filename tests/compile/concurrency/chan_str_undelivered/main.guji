@@ -1,0 +1,8 @@
+sub main(): Int {
+    $ch: Chan[Str] = channel(3)
+    $ch.send("kept");
+    $ch.send("dropped-one");
+    $ch.send("dropped-two");
+    print($ch.recv().unwrap())
+    0
+}

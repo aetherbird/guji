@@ -1,0 +1,40 @@
+# Declaration-aware enum metadata preserves nominal List elements both for a
+# different user enum and for a recursive List[the declaring enum] payload.
+enum Item {
+    Text($s: Str)
+    Empty
+}
+
+enum Bundle {
+    Items(@items: List[Item])
+}
+
+enum Tree {
+    Leaf($n: Int)
+    Node(@kids: List[Tree])
+}
+
+sub bundle_count($b: Bundle): Int {
+    match $b {
+        Items(@items) { @items.count() }
+    }
+}
+
+sub tree_width($t: Tree): Int {
+    match $t {
+        Leaf(_) { 1 }
+        Node(@kids) { @kids.count() }
+    }
+}
+
+sub main(): Int {
+    $bundle = Items([Text("owned" ~ "-text"), Empty])
+    $tree = Node([Leaf(3), Leaf(4), Node([Leaf(5)])])
+    print($bundle)
+    print($tree)
+    print($bundle == Items([Text("owned-text"), Empty]))
+    print($tree == Node([Leaf(3), Leaf(4), Node([Leaf(5)])]))
+    print(bundle_count($bundle))
+    print(tree_width($tree))
+    0
+}

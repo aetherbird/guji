@@ -1,0 +1,19 @@
+# gujiconform parser fixture for selfhost slice 6 P4a: class methods (§8.3) and
+# associated functions (§7.5). Pins the AST boundary — a `sub` inside a class body
+# is collected into ClassDecl.subs (an instance method has a `$self` first param;
+# an associated function does not), while method-call typecheck/codegen stay out of
+# subset for a later P4 slice.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

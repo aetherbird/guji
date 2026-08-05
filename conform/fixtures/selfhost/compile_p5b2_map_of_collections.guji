@@ -1,0 +1,41 @@
+# P5b-2b(nested-map-collection): a map whose VALUES are collections lays its
+# value array out as GUJI_KIND_ARR_SLICE of guji_slice_t (List values) or
+# GUJI_KIND_ARR_MAP of guji_map_t (Map values), mirroring native's emitted C.
+# Each value is materialized to an owned collection temp and MOVED into the
+# value array slot (nulling the temp); the interned key Strs are MOVED into the
+# ARR_STR keys array by g7_map_key_assigns — the regression this fixture pins
+# hardest: the collection-valued branches must write the keys array (an
+# unwritten NULL keys array segfaults in guji_map_order).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # List-valued map: value array is ARR_SLICE of guji_slice_t
+            print(has_text($c, "gv2_vals = (guji_slice_t*)guji_arr_alloc(GUJI_KIND_ARR_SLICE, sizeof(guji_slice_t), 2);"))
+            # the KEYS are written (moved) into the ARR_STR keys array
+            print(has_text($c, "gv2_keys[0] = gt0;"))
+            print(has_text($c, "gv2_keys[1] = gt1;"))
+            # each list value is built then MOVED into its slot, temp nulled
+            print(has_text($c, "((guji_slice_t*)gv2_vals)[0] = gl3;"))
+            print(has_text($c, "gl3.data = NULL;"))
+            # Map-valued map (unannotated, V inferred): value array is ARR_MAP
+            print(has_text($c, "gv6_vals = (guji_map_t*)guji_arr_alloc(GUJI_KIND_ARR_MAP, sizeof(guji_map_t), 1);"))
+            print(has_text($c, "((guji_map_t*)gv6_vals)[0] = gmv9;"))
+            print(has_text($c, "gmv9.keys = NULL;"))
+            # scope exit releases both arrays; the value-array drop cascades
+            print(has_text($c, "guji_release((const void*)gv2_vals);"))
+            print(has_text($c, "guji_release((const void*)gv6_vals);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,46 @@
+# Spec §15.5: Some becomes Ok and None becomes Err. The error expression is
+# eager on both paths; Str payload/error values make sanitizer ownership visible.
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    if $n > 0 { Some("v" ~ "al{ $n }") } else { None }
+}
+
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ni: Option[Int] = mki(-1)
+    $ss: Option[Str] = mks(9)
+    $ns: Option[Str] = mks(-1)
+    mut $code = 0
+
+    $a: Result[Int, Str] = $si.ok_or("missing")
+    $b: Result[Int, Str] = ok_or($ni, "missing")
+    if $a.is_ok() { $code = $code + 1 }
+    if $b.is_err() { $code = $code + 2 }
+    if $a.unwrap_or(0) == 5 { $code = $code + 4 }
+    if $b.unwrap_or(41) == 41 { $code = $code + 8 }
+
+    $c: Result[Int, Int] = $ni.ok_or(99)
+    $d: Result[Int, Float] = ok_or($ni, 1.5)
+    $e: Result[Int, Bool] = $ni.ok_or(true)
+    if $c.is_err() { $code = $code + 16 }
+    if $d.is_err() { $code = $code + 32 }
+    if $e.is_err() { $code = $code + 64 }
+    $f: Result[Int, Int] = $si.ok_or(99)
+    if $f.unwrap_or(0) == 5 { $code = $code + 512 }
+
+    $g: Result[Str, Str] = $ss.ok_or("fallback")
+    $h: Result[Str, Str] = ok_or($ns, "fallback")
+    print($g.unwrap_or("x"))
+    print($h.unwrap_or("y"))
+
+    $he = "er" ~ "ror{ 7 }"
+    $i: Result[Int, Str] = $si.ok_or($he)
+    $j: Result[Int, Str] = ok_or($ni, $he)
+    if $i.is_ok() { $code = $code + 128 }
+    if $j.is_err() { $code = $code + 256 }
+
+    print("{ $code }")
+    $code
+}

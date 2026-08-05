@@ -1,0 +1,13 @@
+class Account {
+    has $.balance: Int
+    has $!pin: Str
+
+    sub check_pin($self, $guess: Str): Bool { $!pin == $guess }
+    sub rotated($self, $next: Str): Account {
+        Account(balance: $self.balance, pin: $next ~ $!pin)
+    }
+}
+sub main(): Int {
+    $a = Account(balance: 1, pin: "77")
+    if $a.check_pin("77") { 0 } else { 1 }
+}

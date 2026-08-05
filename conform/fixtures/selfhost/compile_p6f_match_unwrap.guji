@@ -1,0 +1,28 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P6f: Option[Match] unwrap in bind position. Pin the native-shaped ownership
+# split: BOTH unwraps guard with guji_panic("unwrap on None") (count 2); the
+# BOUND carrier path retains its payload (guji_retain((const void*)…) count
+# exactly 1) while the FRESH inline receiver TRANSFERS ownership out of the
+# consumed temp (a second cast-retain would mean the transfer regressed into a
+# leaky copy); the unwrap-bound local resolves named captures at RUNTIME via
+# guji_match_cap.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, "guji_panic(\"unwrap on None\")") == 2)
+            print(count_of($c, "guji_retain((const void*)") == 1)
+            print(count_of($c, "guji_match_cap(") > 0)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,30 @@
+# List and Map recv arms in native select adopt detached heap messages, bind
+# Option[List]/Option[Map], and release the adopted payload at arm exit.
+sub main(): Int {
+    $lists: Chan[List[Str]] = channel(1)
+    $maps: Chan[Map[Str, Str]] = channel(1)
+
+    $lists.send(["a" ~ "b", "c" ~ "d"])
+    select {
+        $got = $lists.recv() {
+            match $got {
+                Some(@xs) { print("{ @xs[0] }/{ @xs[1] }") }
+                None { print("list closed") }
+            }
+        }
+        else { print("list idle") }
+    }
+
+    $maps.send({"k": "v" ~ "w"})
+    select {
+        $got = $maps.recv() {
+            match $got {
+                Some(%xs) { print(%xs{"k"}) }
+                None { print("map closed") }
+            }
+        }
+        else { print("map idle") }
+    }
+
+    0
+}

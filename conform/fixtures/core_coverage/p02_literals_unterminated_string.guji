@@ -1,0 +1,5 @@
+# A double-quoted literal must end before the item can be parsed.
+sub main(): Int {
+    print("unterminated)
+    0
+}

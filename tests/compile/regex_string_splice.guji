@@ -1,0 +1,15 @@
+# X6d-2b-ii: native regex literals with Str splices must escape the spliced
+# value as literal text in match, replace, and replace_with contexts.
+sub main(): Int {
+    $needle = "a.b"
+    $matched = match "xxa.byy" ~~ /x<{ $needle }>y/ {
+        Some($m) { $m[0].unwrap_or("missing") }
+        None { "none" }
+    }
+    $replaced = "a.b aab".replace(/<{ $needle }>/, "[$0]")
+    $wrapped = "a.b aab".replace_with(/<{ $needle }>/, sub($m: Match): Str {
+        "<" ~ $m.text ~ ">"
+    })
+    print("$matched|$replaced|$wrapped")
+    0
+}

@@ -1,0 +1,63 @@
+# I10g3: compiler-accepted nested List/Map channel payloads beyond
+# List[Int]/Map[Str,Str]. D routes them through recursive WireEnum collection
+# nodes; C already uses the slice/map channel ABI. Covers recv, for, select,
+# source alias safety, hatch deep-copy capture, and counted Str teardown.
+sub main(): Int {
+    @src: List[List[Int]] = [[1, 2], [3]]
+    $lists: Chan[List[List[Int]]] = channel(2)
+    $lists.send(@src)
+    $lists.send([[40, 50, 60]])
+    $lists.close()
+    print(@src[0][0])
+    $first = $lists.recv().unwrap()
+    print($first[0][1] + $first[1][0])
+    mut $picked = 0
+    for $rows in $lists {
+        $picked = $picked + $rows[0][2] + $rows.count()
+    }
+    print($picked)
+
+    $words: Chan[List[List[Str]]] = channel(1)
+    $words.send([["al" ~ "pha", "beta"], ["gamma"]])
+    select {
+        $got = $words.recv() {
+            @wrows = $got.unwrap()
+            print(@wrows[0][1] ~ @wrows[1][0])
+        }
+        else { print("wrong list else") }
+    }
+
+    %src_map: Map[Str, List[Int]] = {"a": [4, 5], "b": [6]}
+    $maps: Chan[Map[Str, List[Int]]] = channel(1)
+    $maps.send(%src_map)
+    $maps.close()
+    select {
+        $sent = $maps.send({"z": [0]}) { print($sent.is_err()) }
+        else { print("wrong send else") }
+    }
+    for %m in $maps {
+        print(%m{"a"}[1] + %m{"b"}[0])
+    }
+    print(%src_map{"a"}[0])
+
+    %nested: Map[Str, Map[Str, Int]] = {"outer": {"x": 8, "y": 9}}
+    $nested_ch: Chan[Map[Str, Map[Str, Int]]] = channel(1)
+    $nested_ch.send(%nested)
+    $nested_ch.close()
+    %got = $nested_ch.recv().unwrap()
+    print(%got{"outer"}{"x"} + %got{"outer"}{"y"})
+
+    # Immutable hatch capture deep-copies nested List rows into the task env.
+    @cap: List[List[Int]] = [[7, 1], [2]]
+    $done: Chan[Int] = channel()
+    hatch {
+        $done.send(@cap[0][0] + @cap[1][0])
+    }
+    print($done.recv().unwrap())
+    print(@cap[0][1])
+
+    # Buffered heap payloads prove channel teardown drops detached copies.
+    $drop: Chan[List[List[Str]]] = channel(1)
+    $drop.send([["lea" ~ "k-check"], ["x"]])
+    0
+}

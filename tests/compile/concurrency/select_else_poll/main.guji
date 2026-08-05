@@ -1,0 +1,34 @@
+# §17.5 native `select`: non-blocking poll with `else`. Only $a holds a buffered
+# value, so exactly one arm is ready — the choice is deterministic across both
+# engines (the native poll picks in arm order; the interpreter picks the single
+# ready arm). The second select finds nothing ready and runs `else`.
+sub main(): Int {
+    $a: Chan[Int] = channel(1)
+    $b: Chan[Int] = channel(1)
+    $a.send(42)
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($n) { print("a { $n }") }
+                None     { print("a closed") }
+            }
+        }
+        $w = $b.recv() {
+            match $w {
+                Some($n) { print("b { $n }") }
+                None     { print("b closed") }
+            }
+        }
+        else { print("idle") }
+    }
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($n) { print("a { $n }") }
+                None     { print("a closed") }
+            }
+        }
+        else { print("idle") }
+    }
+    0
+}

@@ -1,0 +1,71 @@
+# A-collection-elements-rest (boxed recursive enum payload slice): a flat List of
+# enum values whose variant payloads include a BOXED recursive self-reference now
+# works. The outer enum lowers to a counted heap array (GUJI_KIND_<Enum>_ARR);
+# its guji_release_<Enum>_fields cascade releases each boxed payload by a single
+# guji_release(ptr) on the box pointer, and the
+# box's own generated drop (guji_drop_<Tree> -> guji_release_<Tree>_fields -> free)
+# cascades through its entire internal graph — so the box manages itself and the
+# array element only owns one reference-counted pointer. Construction transfers a
+# fresh element's box +1 via takeEnumTemp and retains an alias element's own +1 via
+# guji_retain_<Enum>_fields, exactly like the Str/List/Map/plain-enum slices. Match
+# dereferences a boxed payload as a borrowed by-value view that
+# is never registered owned, so the read does not suppress the array's release.
+#
+# Tree is a binary tree: Leaf carries a Str payload, Node carries two boxed Tree
+# children. Construction nests boxes arbitrarily deep (Node(Node(...), Leaf)),
+# proving depth is unbounded with NO per-shape code — far deeper than any flat or
+# nested-collection payload shape the earlier slices reached.
+#
+# Every Str leaf is HEAP-allocated at runtime (`~` concat), NOT an immortal literal,
+# so the per-element retain/release of the boxes AND of the leaf strings they own
+# must balance exactly — an immortal literal would hide leaks/double-frees under
+# LeakSanitizer.
+
+enum Tree {
+    Leaf($label: Str)
+    Node($left: Tree, $right: Tree)
+}
+
+sub collect($t: Tree): Str {
+    match $t {
+        Leaf($label) { $label }
+        Node($l, $r) { collect($l) ~ collect($r) }
+    }
+}
+
+sub depth($t: Tree): Int {
+    match $t {
+        Leaf($label) { 1 }
+        Node($l, $r) {
+            $dl = depth($l)
+            $dr = depth($r)
+            if $dl >= $dr { $dl + 1 } else { $dr + 1 }
+        }
+    }
+}
+
+sub main(): Int {
+    # Fresh constructor elements, nested to depth 3 (Node(Node(...), Leaf)).
+    @trees = [
+        Node(Leaf("a" ~ "1"), Leaf("b" ~ "2")),
+        Leaf("c" ~ "3"),
+        Node(Node(Leaf("d" ~ "4"), Leaf("e" ~ "5")), Leaf("f" ~ "6"))
+    ]
+    print(@trees.count())
+    for $t in @trees {
+        print(collect($t))
+        print(depth($t))
+    }
+
+    # Non-fresh (alias) element: the array copies the struct by value, so it must
+    # retain its OWN +1 on the boxed Node children. $shared's own end-of-scope
+    # release and the array drop must balance exactly on every box and leaf Str.
+    $shared = Node(Leaf("x" ~ "1"), Node(Leaf("y" ~ "2"), Leaf("z" ~ "3")))
+    @more = [$shared, Leaf("lo" ~ "ne")]
+    print(@more.count())
+    for $t in @more {
+        print(collect($t))
+    }
+    print(collect($shared))
+    0
+}

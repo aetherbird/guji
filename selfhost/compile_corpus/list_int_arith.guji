@@ -1,0 +1,4 @@
+sub main(): Int {
+  @xs: List[Int] = [3, 5, 7, 9]
+  @xs[0] + @xs[3]
+}

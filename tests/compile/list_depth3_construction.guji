@@ -1,0 +1,17 @@
+# List[List[List[T]]] construction/read support: this used to be rejected by
+# codegen as "one level of list nesting only" even though the runtime ARR_SLICE
+# drop/copy machinery is recursive.
+sub main(): Int {
+    @cube = [[[1, 2], [3]], [[4], [5, 6]]]
+    mut $sum = @cube[0][0][1] + @cube[1][1][0]
+
+    for @plane in @cube {
+        for @row in @plane {
+            $sum = $sum + @row.count()
+        }
+    }
+
+    @words = [[["a", "b"]], [["c"]]]
+    print("{ $sum }:{ @words[1][0][0] }")
+    0
+}

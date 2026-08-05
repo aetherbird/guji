@@ -1,0 +1,34 @@
+# P09a: declaration-order construction, field access, privacy, and call crossing.
+class Record {
+    has $.first: Int
+    has $.second: Int
+    has $!secret: Str
+
+    sub reveal($self): Str { $!secret }
+}
+
+sub mark_int($tag: Int, $value: Int): Int {
+    print($tag)
+    $value
+}
+
+sub mark_str($tag: Int, $value: Str): Str {
+    print($tag)
+    $value
+}
+
+sub relay($record: Record): Record { $record }
+
+sub main(): Int {
+    # Written argument order is reversed; field declaration order is normative.
+    $record = Record(
+        secret: mark_str(3, "kept"),
+        second: mark_int(2, 20),
+        first: mark_int(1, 10)
+    )
+    $other = relay($record)
+    print($other.first)
+    print($other.second)
+    print($other.reveal())
+    0
+}

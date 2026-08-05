@@ -1,0 +1,11 @@
+sub unwrap_or($o: Option[Int], $d: Int): Int {
+    match $o {
+        Some($v) { $v }
+        None { $d }
+    }
+}
+sub main(): Int {
+    $a: Option[Int] = Some(8)
+    $b: Option[Int] = None
+    $a.unwrap_or(0) + $b.unwrap_or(42)
+}

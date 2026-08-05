@@ -1,0 +1,1 @@
+type error: cannot assign to captured mut binding $x inside a closure; bind it immutably first (§7.4)

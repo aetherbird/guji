@@ -1,0 +1,55 @@
+# P8d-2c-3c-10: counted Option[Map] channel elements. Active Some payloads
+# cross the channel as detached PAIRED key/value arrays; inner None remains
+# distinct from the outer recv None that means closed-and-drained. Heap Str
+# values, nested List rows, and Map rows make the copy/drop path genuinely
+# deep. Extraction uses bound `.unwrap()`/`.is_none()` (collection match binds
+# on Option[Map] are P8d-2c-3d-2, and native's fixtures use unwrap too).
+sub main(): Int {
+    $ints: Chan[Option[Map[Str,Int]]] = channel(3)
+    %mi = {"alpha": 4, "beta": 5}
+    $oi: Option[Map[Str,Int]] = Some(%mi)
+    $ni: Option[Map[Str,Int]] = None
+    $ints.send($oi)
+    $ints.send($ni)
+    $ints.close()
+    $got_i: Option[Map[Str,Int]] = $ints.recv().unwrap()
+    %vi = $got_i.unwrap()
+    print(%vi{"alpha"} + %vi{"beta"})
+    $got_n: Option[Map[Str,Int]] = $ints.recv().unwrap()
+    print($got_n.is_none())
+    # Sending leaves the source map live and independently owned.
+    print(%mi{"alpha"})
+
+    $strs: Chan[Option[Map[Str,Str]]] = channel(2)
+    %ms = {"greet": "he" ~ "llo", "who": "wor" ~ "ld"}
+    $os: Option[Map[Str,Str]] = Some(%ms)
+    $strs.send($os)
+    $strs.close()
+    $got_s: Option[Map[Str,Str]] = $strs.recv().unwrap()
+    %vs = $got_s.unwrap()
+    print(%vs{"greet"} ~ ":" ~ %vs{"who"})
+
+    $rows: Chan[Option[Map[Str,List[Int]]]] = channel(3)
+    %mr = {"left": [7, 8], "right": [9]}
+    $or: Option[Map[Str,List[Int]]] = Some(%mr)
+    $rows.send($or)
+    $rows.send($or)
+    $held = $rows.recv()
+    $got_r: Option[Map[Str,List[Int]]] = unwrap($rows.recv())
+    %vr = $got_r.unwrap()
+    print(%vr{"left"}[1] + %vr{"right"}[0])
+
+    $nested: Chan[Option[Map[Str,Map[Str,Int]]]] = channel(2)
+    %mn = {"outer": {"x": 3, "y": 4}}
+    $on: Option[Map[Str,Map[Str,Int]]] = Some(%mn)
+    $nested.send($on)
+    $got_m: Option[Map[Str,Map[Str,Int]]] = $nested.recv().unwrap()
+    %vm = $got_m.unwrap()
+    %inner = %vm{"outer"}
+    print(%inner{"x"} + %inner{"y"})
+
+    # One final Some stays buffered: releasing the channel must invoke the
+    # Option[Map] drop hook. `$held` separately proves outer-carrier cleanup.
+    $rows.send($or)
+    15
+}

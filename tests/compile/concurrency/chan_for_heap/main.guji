@@ -1,0 +1,83 @@
+# §17.4 native channel `for` over heap elements. Each loop variable adopts a
+# detached channel message and must release it before the next iteration; the
+# final delivered value must also be released after the loop.
+enum Msg {
+    Text($s: Str)
+    Done
+}
+
+sub show($m: Msg): Str {
+    match $m {
+        Text($s) { $s }
+        Done { "_" }
+    }
+}
+
+sub main(): Int {
+    $strs: Chan[Str] = channel(2)
+    $strs.send("a" ~ "1")
+    $strs.send("b" ~ "2")
+    $strs.close()
+    mut $joined = ""
+    for $s in $strs {
+        $joined = $joined ~ $s
+    }
+    print($joined)
+
+    $lists: Chan[List[Str]] = channel(2)
+    @left = ["g", "u"]
+    @right = ["j", "i"]
+    $lists.send(@left)
+    $lists.send(@right)
+    $lists.close()
+    mut $letters = ""
+    for @xs in $lists {
+        for $x in @xs {
+            $letters = $letters ~ $x
+        }
+    }
+    print($letters)
+
+    $maps: Chan[Map[Str, Str]] = channel(2)
+    %first = {"k": "m"}
+    %second = {"k": "p"}
+    $maps.send(%first)
+    $maps.send(%second)
+    $maps.close()
+    mut $seen = ""
+    for %m in $maps {
+        $seen = $seen ~ %m{"k"}
+    }
+    print($seen)
+
+    $opts: Chan[Option[Str]] = channel(3)
+    $some: Option[Str] = Some("hi")
+    $none: Option[Str] = None
+    $bang: Option[Str] = Some("!")
+    $opts.send($some)
+    $opts.send($none)
+    $opts.send($bang)
+    $opts.close()
+    mut $decoded = ""
+    for $o in $opts {
+        $part = match $o {
+            Some($v) { $v }
+            None { "_" }
+        }
+        $decoded = $decoded ~ $part
+    }
+    print($decoded)
+
+    $msgs: Chan[Msg] = channel(3)
+    $msgs.send(Text("E"))
+    $msgs.send(Done)
+    $msgs.send(Text("N"))
+    $msgs.close()
+    mut $out = ""
+    for $msg in $msgs {
+        $out = $out ~ show($msg)
+    }
+    print($out)
+
+    0
+}

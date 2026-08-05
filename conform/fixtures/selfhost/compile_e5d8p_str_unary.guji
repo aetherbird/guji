@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 5 E5d-8p compiler codegen fixture.
+# Pins the real-source `hex_digit_val` shape: the unary Str->Str string prelude
+# calls `lower`/`upper`/`trim` lower through the same `strUnaryCall` shape the
+# native compiler emits — `guji_<name>(<recv>)` over an owned receiver temp that
+# is released right after (the helper reads, never consumes, its argument).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = guji_lower("))
+            print(has_text($c, " = guji_upper("))
+            print(has_text($c, " = guji_trim("))
+            print(has_text($c, " = guji_upper(gt"))
+            print(has_text($c, " = guji_trim(gt"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

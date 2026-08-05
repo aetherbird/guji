@@ -1,0 +1,20 @@
+class Inner {
+    has $.label: Str
+    has $.pos: Int
+}
+
+class Outer {
+    has $.tag: Int
+    has $.inner: Inner
+}
+
+sub take($i: Inner): Int {
+    $i.pos
+}
+
+sub main(): Int {
+    $o = Outer(tag: 1, inner: Inner(label: "x", pos: 9))
+    $a = take($o.inner)
+    $b = $o.inner
+    return $a + $b.pos
+}

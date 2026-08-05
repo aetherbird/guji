@@ -1,0 +1,13 @@
+# §6 `if` is an expression; exercise both the then- and else-branch.
+sub label($b: Bool): Str {
+    if $b {
+        "yes"
+    } else {
+        "no"
+    }
+}
+sub main(): Int {
+    print(label(true))
+    print(label(false))
+    0
+}

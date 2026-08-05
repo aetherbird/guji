@@ -1,0 +1,70 @@
+# C3 (2026-06-22): native ownership of a `match` over a FRESH carrier temp whose
+# FAILING arm early-returns. The dogfood grep tool leaked here three ways:
+#   (1) An arm's explicit `return` runs the frame-exit cleanup with mark 0, which
+#       releases AND DROPS every outstanding temp — including the borrowed match
+#       scrutinee carrier owned by the enclosing statement. The fall-through
+#       SUCCESS path then never released read_file's Ok Str / Regex.compile's Ok
+#       Regex at the statement boundary (leak).
+#   (2) Regex.compile's Ok value (tyRegex) was never tracked for release at all,
+#       because the carrier-Str release path only frees a tyStr payload.
+#   (3) Regex.compile reused its argument pointer as the Ok Regex, so releasing
+#       that Ok value double-freed (UAF) whenever the argument was an alias of a
+#       caller-owned local.
+# Output is byte-identical interp==native; the gate's ASan/leak run is the guard.
+# The committed regex_compile_match_ownership.input is read by relative name; the
+# gate runs from the fixture directory so it resolves for both engines.
+
+sub grep_count($pattern: Str, $text: Str): Int {
+    # Fresh str_cat argument ("(?a)" ~ $pattern) + early-returning Err arm: this
+    # is exactly the dogfood grep shape that leaked the compiled Regex on success
+    # and orphaned the pattern Str on the bad-pattern failure path.
+    $re = match Regex.compile("(?a)" ~ $pattern) {
+        Ok($r)  { $r }
+        Err($e) { return 0 - 1 }
+    }
+    mut $n = 0
+    for $line in $text.lines() {
+        match $line ~~ /<{ $re }>/ {
+            Some($m) { $n = $n + 1 }
+            None { }
+        }
+    }
+    $n
+}
+
+sub main(): Int {
+    # read_file with an early-returning Err arm: bind the Ok Str OUT of the match
+    # and iterate it after the match (the success path must still free it).
+    $text = match read_file("regex_compile_match_ownership.input") {
+        Ok($s)  { $s }
+        Err($e) { print("read error: $e"); return 2 }
+    }
+
+    # ALIAS-argument compile (Regex.compile($local)): would UAF if Ok reused the
+    # argument pointer instead of owning an independent copy.
+    $pat = "a+"
+    $alias_re = match Regex.compile($pat) {
+        Ok($r)  { $r }
+        Err($e) { print("alias bad: $e"); return 2 }
+    }
+    mut $alias_hits = 0
+    for $line in $text.lines() {
+        match $line ~~ /<{ $alias_re }>/ {
+            Some($m) { $alias_hits = $alias_hits + 1 }
+            None { }
+        }
+    }
+
+    # Compute into locals first: a `"..."` literal inside a `{ }` interpolation
+    # would close the outer string, so the grep_count calls stay out of the
+    # interpolations.
+    $a_hits = grep_count("a+", $text)
+    $b_hits = grep_count("b+", $text)
+    # Bad pattern takes the Err arm (early-return drop on the failure path).
+    $bad_hits = grep_count("(", $text)
+    print("a+ -> { $a_hits }")
+    print("b+ -> { $b_hits }")
+    print("alias a+ -> { $alias_hits }")
+    print("bad -> { $bad_hits }")
+    0
+}

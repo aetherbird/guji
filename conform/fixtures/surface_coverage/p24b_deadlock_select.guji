@@ -1,0 +1,6 @@
+# Spec 17.6: global select deadlock has one exact bounded failure.
+sub main(): Int {
+    $ch: Chan[Int] = channel()
+    select { $got = $ch.recv() { print("unreachable") } }
+    0
+}

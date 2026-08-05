@@ -1,0 +1,45 @@
+# Section 17 native channel send/recv for Map-payload enums (H4c-rest slice).
+#
+# A variant carrying Map[Str, Int] or Map[Str, Str] must be deep-copied into the
+# channel message: hatchCopyEnum now replaces each active Map field with a fresh
+# hatchCopyMap deep copy, so the receiver shares no map-storage (and, for
+# Map[Str, Str], no key/value-string) pointers with the sender's per-task heap.
+# The second buffered message (a Map[Str, Str] variant) is left undelivered so
+# LeakSanitizer proves the per-enum channel drop (guji_chan_drop_<E> ->
+# guji_release_<E>_fields releasing both counted arrays) frees the undelivered
+# copy. Map values are read by key, not iteration, so output is deterministic.
+enum Rec {
+    Counts($c: Map[Str, Int])
+    Labels($l: Map[Str, Str])
+    Done
+}
+
+sub show($r: Rec): Str {
+    match $r {
+        Counts($c) {
+            $av = $c{"a"}
+            $bv = $c{"b"}
+            "a={ $av } b={ $bv }"
+        }
+        Labels($l) {
+            $l{"x"} ~ "/" ~ $l{"y"}
+        }
+        Done { "done" }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Rec] = channel(2)
+    %nums = {"a": 1, "b": 2}
+    %words = {"x": "left", "y": "right"}
+    $first = Counts(%nums)
+    $drop = Labels(%words)
+
+    hatch {
+        $ch.send($first)
+        $ch.send($drop)
+    }
+
+    $got = $ch.recv().unwrap()
+    print(show($got))
+}

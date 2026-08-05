@@ -1,0 +1,18 @@
+enum Pack {
+    Nums(@xs: List[Int])
+    Words(@ws: List[Str])
+    Table(%m: Map[Str,Int])
+    Tag($n: Int)
+}
+
+sub main(): Int {
+    $ch: Chan[Pack] = channel(3)
+    $src: Pack = Nums([1, 2])
+    $ch.send($src)
+    $ch.send(Words(["a" ~ "b"]))
+    $ch.send(Table({"k": 5}))
+    $got = $ch.recv().unwrap()
+    $held = $ch.recv()
+    $got2 = $held.unwrap()
+    0
+}

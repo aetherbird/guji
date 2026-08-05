@@ -1,0 +1,29 @@
+# E5d-8y: a non-final local binding whose RHS is a value-position match
+# producing a class record. Native currently rejects this shape, so the selfhost
+# compiler is checked against the interpreter in class_match_diff.sh.
+
+class Box {
+    has $.n: Int
+    has $.label: Str
+}
+
+enum Pick {
+    UseArg
+    UseNew($n: Int)
+}
+
+sub choose($p: Pick, $fallback: Box): Box {
+    $selected = match $p {
+        UseArg { $fallback }
+        UseNew($n) { Box(n: $n, label: "new") }
+    }
+    Box(n: $selected.n + 3, label: $selected.label)
+}
+
+sub main(): Int {
+    $base = Box(n: 4, label: "old")
+    $a = choose(UseArg, $base)
+    $b = choose(UseNew(8), $base)
+    print($a.label ~ ":" ~ $b.label)
+    $a.n + $b.n
+}

@@ -1,0 +1,9 @@
+# gujiconform — selfhost slice 3 T3a type checker.
+# This wrapper feeds stdin source to the dogfood checker and prints its verdict.
+import lexer
+
+sub main(): Int {
+    $verdict = lexer::typecheck_to_string(stdin.slurp())
+    print($verdict)
+    if $verdict == "well-typed" { 0 } else { 1 }
+}

@@ -1,0 +1,87 @@
+# Option[List[List[scalar]]] NESTED value construct + match-binding + RC ownership
+# (H4c-rest). A nested counted List carrier payload still reduces to ONE counted
+# ARR_SLICE storage pointer (`.val.data`): Some(@grid) materializes a fresh owned
+# outer slice that retains each inner row, a binding/sub-return transfers that +1,
+# a match BORROWS it (reads via nested iteration and double indexing), and a
+# discarded or rebound carrier releases it — the outer ARR_SLICE drop cascades
+# into every inner row (and, for Str rows, the inner ARR_STR drop cascades into
+# each element). The sanitizer gate (LSan/ASan) is the memory oracle; the
+# interpreter is the semantic oracle.
+
+sub sum_grid(@g: List[List[Int]]): Int {
+    mut $t = 0
+    for @row in @g {
+        $t = $t + @row.sum()
+    }
+    $t
+}
+
+sub count_rows(@g: List[List[Str]]): Int {
+    @g.count()
+}
+
+sub wrap_grid(@g: List[List[Int]]): Option[List[List[Int]]] {
+    Some(@g)
+}
+
+sub wrap_words(@g: List[List[Str]]): Option[List[List[Str]]] {
+    Some(@g)
+}
+
+sub main(): Unit {
+    # Construct from a local, match-borrow, read via nested iteration.
+    @grid = [[1, 2], [3, 4], [5]]
+    $a: Option[List[List[Int]]] = Some(@grid)
+    print(match $a {
+        Some(@rows) { sum_grid(@rows) }
+        None { 0 }
+    })
+
+    # Inner double-indexing through the borrowed view (the same carrier, matched
+    # again — borrows never consume the payload).
+    print(match $a {
+        Some(@rows) { @rows[1][0] }
+        None { -1 }
+    })
+
+    # Str inner elements: the fresh outer ARR_SLICE retains each inner ARR_STR row,
+    # and releasing the carrier cascades through both levels.
+    @words = [["alpha", "beta"], ["gamma"]]
+    $w: Option[List[List[Str]]] = Some(@words)
+    print(match $w {
+        Some(@rows) { count_rows(@rows) }
+        None { 0 }
+    })
+
+    # None arm: NULL payload, no storage owned.
+    $none: Option[List[List[Int]]] = None
+    print(match $none {
+        Some(@rows) { sum_grid(@rows) }
+        None { -1 }
+    })
+
+    # Sub-return transfers the owned nested payload to the caller.
+    @more = [[10, 20], [30]]
+    $r = wrap_grid(@more)
+    print(match $r {
+        Some(@rows) { sum_grid(@rows) }
+        None { 0 }
+    })
+
+    $rw = wrap_words(@words)
+    print(match $rw {
+        Some(@rows) { count_rows(@rows) }
+        None { 0 }
+    })
+
+    # Discarded carrier result: its fresh nested payload must be freed, not leaked.
+    wrap_grid(@grid)
+
+    # mut rebind: the old nested payload is released before the new one is stored.
+    mut $cur: Option[List[List[Int]]] = wrap_grid(@grid)
+    $cur = wrap_grid(@more)
+    print(match $cur {
+        Some(@rows) { sum_grid(@rows) }
+        None { 0 }
+    })
+}

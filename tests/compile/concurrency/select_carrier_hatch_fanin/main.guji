@@ -1,0 +1,23 @@
+# §17.5 native `select` recv arm over Chan[Option[Str]] driven by a BLOCKING park:
+# both channels are unbuffered and empty at the select, so the arm parks on the
+# scheduler progress counter (guji_select_wait) until a hatch sends a fresh
+# cross-heap Str, then wakes and adopts/releases it (LSan-clean, 10x deterministic).
+sub main(): Int {
+    $a: Chan[Option[Str]] = channel()
+    $b: Chan[Option[Str]] = channel()
+    hatch {
+        $msg: Option[Str] = Some("hel" ~ "lo")
+        $a.send($msg)
+    }
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            print(match $inner { Some($s) { "a " ~ $s } None { "a none" } })
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            print(match $inner { Some($s) { "b " ~ $s } None { "b none" } })
+        }
+    }
+    0
+}

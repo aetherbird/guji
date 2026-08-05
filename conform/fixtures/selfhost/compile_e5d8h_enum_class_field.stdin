@@ -1,0 +1,26 @@
+class Tok {
+    has $.kind: Str
+    has $.lex: Str
+}
+
+enum Step {
+    SEmit($t: Tok, $n: Int)
+    SEof($t: Tok, $n: Int)
+}
+
+sub classify($c: Str, $i: Int): Step {
+    SEmit(Tok(kind: "ch", lex: $c), $i + 1)
+}
+
+sub label($s: Step): Str {
+    match $s {
+        SEof($t, $n) { "eof:" ~ $t.lex }
+        SEmit($t, $n) { "emit:" ~ $t.lex }
+    }
+}
+
+sub main(): Int {
+    $a = classify("z", 0)
+    print(label($a))
+    0
+}

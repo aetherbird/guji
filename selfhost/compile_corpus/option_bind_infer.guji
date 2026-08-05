@@ -1,0 +1,33 @@
+# Unannotated Option-carrier bindings: `$o = wrap(21)` infers its CgOpt* kind
+# from the RHS (Option-returning user-sub call, generic spec call, bound-name
+# copy, if-value, match-value) instead of requiring `: Option[T]`.
+sub wrap($v: Int): Option[Int] { Some($v) }
+
+sub find_name($k: Str): Option[Str] {
+  if $k == "a" { Some("al" ~ "pha") } else { None }
+}
+
+sub half($f: Float): Option[Float] {
+  if $f > 1.0 { Some($f / 2.0) } else { None }
+}
+
+sub wrap_opt[A]($v: A): Option[A] { Some($v) }
+
+sub main() {
+  $o = wrap(21)
+  print("{ match $o { Some($a) { $a * 2 } None { 0 } } }")
+  $s = find_name("a")
+  print(match $s { Some($b) { $b } None { "none" } })
+  $t = find_name("z")
+  print(match $t { Some($d) { $d } None { "none" } })
+  $c = $s
+  print(match $c { Some($e) { $e ~ "!" } None { "none" } })
+  $f = half(5.0)
+  print("{ match $f { Some($w) { $w } None { 0.0 } } }")
+  $g = wrap_opt(33)
+  print("{ match $g { Some($n) { $n + 1 } None { 0 } } }")
+  $h = if 2 > 1 { wrap(3) } else { wrap(0) }
+  print("{ match $h { Some($i) { $i } None { 0 } } }")
+  $m = match 4 { 4 { find_name("a") } _ { find_name("z") } }
+  print(match $m { Some($j) { $j } None { "none" } })
+}

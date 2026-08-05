@@ -1,0 +1,5 @@
+sub main(): Int {
+  $x = 5
+  print("hi\n")
+  $x + 1
+}

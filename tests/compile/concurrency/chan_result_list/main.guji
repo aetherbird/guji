@@ -1,0 +1,63 @@
+# Chan[Result[List[scalar|Str], Str]] -- a counted list-storage Ok payload over
+# a channel (H4c-rest, sec 17). Send is copy-on-send: an active Ok list is
+# deep-copied into a detached message and any Err(Str) is copied through the
+# carrier-Str path. Each channel leaves one buffered message undelivered so
+# elem_drop must release the copied Ok storage / Err Str under LSan.
+#
+# Results are built through sub returns because `Ok([..])` alone leaves the Err
+# arm polymorphic (so an annotated `Result[List[Int],Str]` literal would not
+# typecheck).
+
+sub classify_ints($n: Int): Result[List[Int], Str] {
+    if $n < 0 {
+        Err("negative")
+    } else {
+        Ok([$n, $n * 2, $n * 3])
+    }
+}
+
+sub classify_words($s: Str): Result[List[Str], Str] {
+    if $s == "" {
+        Err("empty")
+    } else {
+        Ok([$s, $s ~ "!"])
+    }
+}
+
+sub main(): Int {
+    $ints: Chan[Result[List[Int], Str]] = channel(3)
+    $ints.send(classify_ints(5))
+    $ints.send(classify_ints(-1))
+    $ints.send(classify_ints(9))
+
+    $first = $ints.recv().unwrap()
+    print(match $first {
+        Ok(@xs) { @xs[0] + @xs[2] }
+        Err($e) { 0 }
+    })
+
+    $second = $ints.recv().unwrap()
+    print(match $second {
+        Ok(@xs) { @xs[0] }
+        Err($e) { 99 }
+    })
+
+    $words: Chan[Result[List[Str], Str]] = channel(3)
+    $words.send(classify_words("gu"))
+    $words.send(classify_words(""))
+    $words.send(classify_words("drop"))
+
+    $w_first = $words.recv().unwrap()
+    print(match $w_first {
+        Ok(@ys) { @ys[0] ~ @ys[1] }
+        Err($e) { $e }
+    })
+
+    $w_second = $words.recv().unwrap()
+    print(match $w_second {
+        Ok(@ys) { @ys[0] }
+        Err($e) { $e }
+    })
+
+    0
+}

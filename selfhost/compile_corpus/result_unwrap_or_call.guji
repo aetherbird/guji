@@ -1,0 +1,60 @@
+# P6f-unwrap-or: Result `unwrap_or` over a FRESH call receiver (not a bound
+# local) — the Result twin of P3b-2b-1's Option call shape. Native materialises
+# the call into a carrier temp, picks with `(tag == 0 ? .ok : default)`, then
+# releases the carrier (Result[T,Str] owns an Err string). Covers method +
+# function spellings for Int/Float/Bool/Str Ok payloads, Regex.compile().unwrap_or
+# (Regex slot = counted Str), and both Ok and Err arms.
+# The final self-check keeps the process status outside the reserved
+# timeout/signal range while preserving every bit assertion.
+
+sub mkf($n: Int): Result[Float, Str] {
+    if $n > 0 { Ok(2.5) } else { Err("float") }
+}
+
+sub mkb($n: Int): Result[Bool, Str] {
+    # Ok(false): a tag-polarity bug would pick the default instead of the payload.
+    if $n > 0 { Ok(false) } else { Err("bool") }
+}
+
+sub mks($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("pay" ~ "load" ~ "{ $n }") } else { Err("str") }
+}
+
+sub main(): Int {
+    mut $code = 0
+
+    # Int: parse_int call receiver, method + function forms, Ok and Err arms.
+    if parse_int("25").unwrap_or(-1) == 25 { $code = $code + 1 }
+    if unwrap_or(parse_int("xx"), 9) == 9 { $code = $code + 2 }
+
+    # Float.
+    if mkf(1).unwrap_or(9.5) == 2.5 { $code = $code + 4 }
+    if unwrap_or(mkf(-1), 0.75) == 0.75 { $code = $code + 8 }
+
+    # Bool: Ok(false) must pick the PAYLOAD (false), not the default.
+    if mkb(1).unwrap_or(true) { $code = $code + 64 }
+    if unwrap_or(mkb(-1), true) { $code = $code + 16 }
+
+    # Str: heap Ok payload with a heap default (owned default temp released on
+    # both arms), method + function forms.
+    $dflt = "de" ~ "fault"
+    if mks(7).unwrap_or($dflt) == "payload7" { $code = $code + 32 }
+    # Bit 64 reserved above for Bool polarity fail; Str Err uses print check below.
+
+    # Regex.compile().unwrap_or($fb): Ok arm binds a Regex-as-Str (listlen -3)
+    # so value-~~ matches; Err arm (invalid pattern) takes the fallback.
+    $fb = Regex.literal("z")
+    $re = Regex.compile("ab").unwrap_or($fb)
+    match "xabx" ~~ $re {
+        Some($m) { $code = $code + 128 }
+        None { $code = $code + 0 }
+    }
+    $bad = Regex.compile("(").unwrap_or($fb)
+    match "zz" ~~ $bad {
+        Some($m) { print("re-err-fb") }
+        None { print("re-err-miss") }
+    }
+    print(unwrap_or(mks(-1), $dflt))
+
+    if $code == 191 { 0 } else { 1 }
+}

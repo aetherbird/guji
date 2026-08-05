@@ -1,0 +1,24 @@
+# P8d-2c-3c-4: pin fresh channel-iterator materialization — RChan call into an
+# owned temp, recv-until-None drain, then guji_chan_release of that temp after
+# the loop (native materializeForChanIter). Str fors insert a binder release
+# between the loop close and the handle release; pin the handle releases by
+# the gch* temp prefix used for materialized iterators.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "= gf_make_ints();") == 1)
+            print(count_of($c, "= gf_make_strs();") == 1)
+            print(count_of($c, "= gf_make_empty();") == 1)
+            print(count_of($c, ".tag = guji_chan_recv(") == 3)
+            print(count_of($c, "guji_chan_release(gch") == 3)
+            0
+        }
+    }
+}

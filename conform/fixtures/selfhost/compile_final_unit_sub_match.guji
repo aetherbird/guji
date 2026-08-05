@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# Pins FINAL-UNIT-MATCH-2: a final expression-statement match inside a user
+# Unit-returning sub reaches statement-match lowering before RUnit's no-value
+# return kind can decline it.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gf_show_flag"))
+            print(has_text($c, ".tag == 0LL"))
+            print(has_text($c, ".tag == 1LL"))
+            print(has_text($c, "non-exhaustive match"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

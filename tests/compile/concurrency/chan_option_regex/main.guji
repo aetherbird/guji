@@ -1,0 +1,44 @@
+# Chan[Option[Regex]] -- counted Regex carrier payload over a channel (H4c-rest,
+# sec 17). Regex values are header-backed counted const char* values. Send must
+# copy the active Some payload into a detached message, recv adopts that copy, and
+# the 4th buffered message is intentionally left undelivered so LeakSanitizer
+# verifies guji_chan_drop_opt_regex releases it.
+# Expected output: /a\.b/ / none / /c\+d/.
+sub main(): Int {
+    $ch: Chan[Option[Regex]] = channel(4)
+    $r1 = Regex.literal("a.b")
+    $r3 = Regex.literal("c+d")
+    $r4 = Regex.literal("drop*")
+
+    $o1: Option[Regex] = Some($r1)
+    $o2: Option[Regex] = None
+    $o3: Option[Regex] = Some($r3)
+    $o4: Option[Regex] = Some($r4)
+
+    $ch.send($o1)
+    $ch.send($o2)
+    $ch.send($o3)
+    $ch.send($o4)
+
+    # recv() yields Option[Option[Regex]]: outer Some = a message arrived, inner
+    # is the sent Option[Regex]. unwrap() peels the outer presence wrapper.
+    $first = $ch.recv().unwrap()
+    match $first {
+        Some($r) { print($r) }
+        None { print("none") }
+    }
+
+    $second = $ch.recv().unwrap()
+    match $second {
+        Some($r) { print($r) }
+        None { print("none") }
+    }
+
+    $third = $ch.recv().unwrap()
+    match $third {
+        Some($r) { print($r) }
+        None { print("none") }
+    }
+
+    0
+}

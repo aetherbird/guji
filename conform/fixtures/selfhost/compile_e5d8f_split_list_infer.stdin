@@ -1,0 +1,9 @@
+sub two_char_prefix($text: Str): Str {
+    @nc = split($text, "")
+    @nc[0] ~ @nc[1]
+}
+
+sub main(): Int {
+    print(two_char_prefix("0xFF"))
+    0
+}

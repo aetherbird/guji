@@ -1,0 +1,9 @@
+sub main(): Int {
+    %m = {"a": {"b": {"c": 1}}, "e": {"f": {"g": 3}}}
+    %m3 = %m.set("z", {"y": {"w": 7}}).remove("e")
+    print(%m3{"z"}{"y"}{"w"})
+    %s = {"a": 1, "b": 2}
+    %s2 = %s.set("c", 3).remove("a")
+    print(%s2{"b"})
+    0
+}

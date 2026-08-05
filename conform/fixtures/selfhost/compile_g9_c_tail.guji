@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 4 G9 compiler codegen fixture.
+# The stdin source is inside the current codegen subset. The fixture checks
+# stable, human-auditable facts about the generated program-specific C tail
+# rather than snapshotting the whole tail.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_main(void)"))
+            print(has_text($c, "guji_print"))
+            print(has_text($c, "guji_drop_table"))
+            print(has_text($c, "return 7LL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

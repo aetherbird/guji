@@ -1,0 +1,31 @@
+# G3b-2 slice: a method on one generic class can return a different generic
+# class instantiated with the owner's type parameter.
+class Sink[T] {
+    has $.value: T
+
+    sub get($self): T {
+        $self.value
+    }
+
+    sub same($self): Sink[T] {
+        $self
+    }
+}
+
+class Source[T] {
+    has $.value: T
+
+    sub to_sink($self): Sink[T] {
+        Sink(value: $self.value)
+    }
+}
+
+sub main(): Int {
+    $si = Source(value: 11)
+    print("{ $si.to_sink().same().get() }")
+
+    $ss = Source(value: "other")
+    print($ss.to_sink().get())
+
+    0
+}

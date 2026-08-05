@@ -1,0 +1,5 @@
+sub main(): Int {
+  %m: Map[Str, Bool] = {"on": true, "off": false}
+  print(%m)
+  0
+}

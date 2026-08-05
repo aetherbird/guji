@@ -1,0 +1,20 @@
+# E5d-8g: `count()` over an INLINE `split(...)` receiver. The real-source
+# blocker is `has_char($s, $ch): Bool { split($s, $ch).count() > 1 }`: the
+# receiver is an ECall, not a bound list local or class list-field. Native
+# supports this prelude shape, so this is a THREE-WAY case.
+
+sub has_char($s: Str, $ch: Str): Bool {
+    split($s, $ch).count() > 1
+}
+
+sub comma_count($s: Str): Int {
+    count(split($s, ","))
+}
+
+sub main(): Int {
+    mut $code = 0
+    if has_char("alpha.beta", ".") { $code = $code + 1 } else { $code = $code + 0 }
+    if has_char("alphabet", ".") { $code = $code + 0 } else { $code = $code + 2 }
+    if split("a:b:c", ":").count() == 3 { $code = $code + 4 } else { $code = $code + 0 }
+    $code + comma_count("x,y,z")
+}

@@ -1,0 +1,30 @@
+# I8c: §15.4 args(), note(), stdin.slurp(), and stdout/stderr write.
+# args() excludes the program/source name and keeps empty-string arguments
+# verbatim (.args sidecar). note writes display form + newline to stderr
+# (.stderr sidecar) while print stays on stdout. stdin.slurp() reads the
+# piped .stdin verbatim (terminators intact); a second slurp sees the shared
+# stream already drained and yields "". stdout.write / write(stdout, …) and
+# stderr.write append raw text with no added newline (unlike print/note).
+# Handle display/`lines` and file open/create stay in their focused rows
+# (Handle display -> handle_display; Chan lines -> I8c2 / I10; files -> I8d).
+sub main(): Int {
+    print("stdout stays clean")
+    @argv = args()
+    print("{ @argv.count() }")
+    print(@argv.join("|"))
+    note("diagnostic line")
+    note(7)
+    note([1, 2, 3])
+    note({"k": 9})
+    print("first:[" ~ stdin.slurp() ~ "]")
+    print("second:[" ~ stdin.slurp() ~ "]")
+    stdout.write("a")
+    stdout.write("b")
+    print("")
+    write(stdout, "c")
+    stdout.write("d\n")
+    stderr.write("raw-err")
+    note("")
+    print("done")
+    0
+}

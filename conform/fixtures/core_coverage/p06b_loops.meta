@@ -1,0 +1,2 @@
+engines: both
+spec: 5.4, 6.3, 20:for_stmt, 20:for_binding, 20:while_stmt

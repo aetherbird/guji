@@ -1,0 +1,34 @@
+# Enum scalar payloads (Stage S2): Str and Bool payloads in native enum
+# storage, including a first payload slot that mixes Str and Bool across
+# variants and must destructure back to the right guji type.
+enum Token {
+    Word($s: Str)
+    Flag($ok: Bool)
+    Pair($name: Str, $enabled: Bool)
+}
+
+sub label($t: Token): Str {
+    match $t {
+        Word($s) { "word:" ~ $s }
+        Flag($ok) { if $ok { "flag:true" } else { "flag:false" } }
+        Pair($name, $enabled) { if $enabled { $name ~ ":on" } else { $name ~ ":off" } }
+    }
+}
+
+sub truth($t: Token): Bool {
+    match $t {
+        Word(_) { false }
+        Flag($ok) { $ok }
+        Pair(_, $enabled) { $enabled }
+    }
+}
+
+sub main(): Int {
+    print(label(Word("guji")))
+    print(label(Flag(false)))
+    print(label(Pair("native", true)))
+    $yes = Pair("x", true)
+    $no = Word("x")
+    print("truth: { truth($yes) } / { truth($no) }")
+    0
+}

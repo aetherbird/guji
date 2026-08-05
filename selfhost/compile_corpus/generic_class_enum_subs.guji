@@ -1,0 +1,46 @@
+# G2b slice: generic subs instantiated with user class and enum type arguments
+# monomorphize natively. Class/enum params and returns are already supported by
+# codegen; this proves the monomorphizer emits one specialization per distinct
+# concrete type argument and routes each call to the right one.
+class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub sum($self): Int { $self.x + $self.y }
+}
+
+enum Color {
+    Red
+    Green
+    Blue
+
+    sub name($self): Str {
+        match $self {
+            Red { "red" }
+            Green { "green" }
+            Blue { "blue" }
+        }
+    }
+}
+
+# Identity over any type T: instantiated at Point and at Color below.
+sub identity[T]($v: T): T { $v }
+
+# A second generic sub that also takes a class argument, proving distinct
+# templates each get their own specialization set.
+sub describe[T]($v: T): Str { "got it" }
+
+sub main(): Unit {
+    $p = identity(Point(x: 3, y: 4))
+    print("{ $p.sum() }")
+
+    $c = identity(Green)
+    print($c.name())
+
+    # A second Point instantiation reuses the identity[Point] specialization.
+    $p2 = identity(Point(x: 10, y: 20))
+    print("{ $p2.x }")
+
+    print(describe(Point(x: 1, y: 1)))
+    print(describe(Blue))
+}

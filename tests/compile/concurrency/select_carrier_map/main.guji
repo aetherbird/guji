@@ -1,0 +1,28 @@
+# §17.5 native `select` recv arm over Chan[Option[Map[Str, Str]]]. The adopted
+# Some owns the two counted map arrays at .val.val.{keys,vals}; the vals ARR_*
+# drop cascades into each counted value Str. The arm releases both once at exit.
+sub main(): Int {
+    $a: Chan[Option[Map[Str, Str]]] = channel(1)
+    $b: Chan[Option[Map[Str, Str]]] = channel(1)
+    %ws = {"first": "gu", "second": "ji"}
+    $some: Option[Map[Str, Str]] = Some(%ws)
+    $a.send($some)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            print(match $inner {
+                Some(%m) { %m{"first"} ~ %m{"second"} }
+                None { "none" }
+            })
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            print(match $inner {
+                Some(%m) { %m{"first"} }
+                None { "bnone" }
+            })
+        }
+        else { print("idle") }
+    }
+    0
+}

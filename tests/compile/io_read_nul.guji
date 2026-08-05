@@ -1,0 +1,44 @@
+# D1 differential fixture: native read paths must preserve embedded NUL bytes,
+# exactly like the interpreter. The committed input io_read_nul.input holds the
+# bytes  "alpha\0beta\ngamma\0\ndelta\n"  -- two interior NUL (\0) bytes plus
+# newlines. Before the D1 fix, native truncated any Str at its first \0 the
+# moment it flowed through a consuming op (lines(), `~`, interpolation, print),
+# because those lowered to strlen-based C helpers; the interpreter (length-counted
+# Go strings) kept every byte. This fixture reads the file three ways
+# (read_file, open()+slurp, open()+lines), counts/echoes the bytes, and prints a
+# per-line dump -- so any first-NUL truncation in EITHER engine diverges the gate.
+sub main(): Int {
+    # read_file -> lines() count (truncation would drop interior lines)
+    match read_file("io_read_nul.input") {
+        Ok($s)  {
+            @ls = lines($s)
+            $n = count(@ls)
+            print("read_file lines=$n")
+            # interpolation (guji_str_cat) must keep every byte of $s
+            print("read_file raw=[$s]")
+            for $ln in @ls {
+                # `~` concat must keep interior NULs in each chomped line
+                print("L[" ~ $ln ~ "]")
+            }
+        }
+        Err($e) { print("read_file err: $e") }
+    }
+    # open()+slurp -> print the verbatim bytes
+    $h = open("io_read_nul.input").unwrap()
+    $t = $h.slurp()
+    @ls2 = lines($t)
+    $m = count(@ls2)
+    print("slurp lines=$m")
+    print("slurp raw=[" ~ $t ~ "]")
+    # open()+lines (streaming Handle channel) must yield the same chomped lines.
+    # Bind the channel to a local first (the expression-iterator form is D4).
+    $h2 = open("io_read_nul.input").unwrap()
+    $ch: Chan[Str] = $h2.lines()
+    mut $k = 0
+    for $line in $ch {
+        print("C[" ~ $line ~ "]")
+        $k = $k + 1
+    }
+    print("chan lines=$k")
+    0
+}

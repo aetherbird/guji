@@ -1,0 +1,10 @@
+# gujiconform -- Phase 2 (Platform IO pass): note($value) writes the display
+# form + newline to STDERR (Section 15.4). It is print's diagnostic twin, so
+# stdout stays clean (only the print line) while the note lines land on stderr.
+# Both engines must agree on stdout AND stderr. Expected output is derived from
+# the spec (print's display rendering, redirected to stderr), not captured.
+sub main() {
+    print("out")
+    note("note line")
+    note(42)
+}

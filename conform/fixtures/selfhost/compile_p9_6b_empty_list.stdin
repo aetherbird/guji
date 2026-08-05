@@ -1,0 +1,4 @@
+sub main(): Unit {
+    @empty = []
+    print(@empty)
+}

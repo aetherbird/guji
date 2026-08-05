@@ -1,0 +1,32 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P5b-2b(carrier-higher-order): UNANNOTATED binds of §15.5 Option `map`/`filter`
+# infer their carrier kind and lower through the SAME guarded shapes the
+# annotated forms already used — pin the inferred decl kinds (map's result
+# payload comes from the LAMBDA body, so the cross-kind map declares
+# guji_opt_str; filter keeps the receiver kind), the borrowed Some binder, the
+# map fill (owned Str body result MOVED into the fresh slot), and filter's
+# predicate-conditional fill with the co-owning retain.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_int gv7 = \{0};"))
+            print(has_text($c, "guji_opt_str gv13 = \{0};"))
+            print(has_text($c, "guji_opt_str gv19 = \{0};"))
+            print(has_text($c, "gi6 = gv1.val;"))
+            print(has_text($c, "go5.tag = 1; go5.val = guji_mul(gi6, 2LL);"))
+            print(has_text($c, "go8.tag = 1; go8.val = gt12;"))
+            print(has_text($c, "if (gb18) \{ go14.tag = 1; go14.val = gv4.val; guji_retain(go14.val); }"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

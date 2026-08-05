@@ -1,0 +1,15 @@
+sub classify($text: Str): Result[Match, Str] {
+    match $text ~~ /(?<left>[a-z]+)-(?<right>[a-z]+)/ {
+        Some($m) { Ok($m) }
+        None { Err("none") }
+    }
+}
+sub main(): Int {
+    mut $current = classify("aa-bb")
+    $current = classify("bad")
+    print(match $current {
+        Ok($m) { $m.text }
+        Err($e) { $e }
+    })
+    0
+}

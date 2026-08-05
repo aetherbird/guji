@@ -1,0 +1,63 @@
+# Slice 6 P3b-2b-2c-4p: guarded Result-scrutinee match-value arms whose
+# final expression contains a hoistable `?`. The Int guard uses the variant
+# payload, so codegen must combine the variant test with the guard before
+# lowering the arm body through the retkind-aware `?` path; the Str case uses a
+# Bool guard because Str comparisons are not in the pure-guard subset.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub parse_price($s: Str): Result[Int, Str] {
+    parse_int($s)
+}
+
+sub guarded_int($s: Str, $q: Str): Result[Int, Str] {
+    $x = match parse_price($s) {
+        Ok($v) if $v > 5 { parse_int($q)? + $v }
+        Ok($v) { $v + 1 }
+        Err($e) { 3 }
+    }
+    Ok($x + 1)
+}
+
+sub guarded_str($s: Str, $q: Str, $take: Bool): Result[Str, Str] {
+    $x: Str = match tag($s) {
+        Ok($t) if $take { tag($q)? ~ $t }
+        Ok($t) { $t ~ ":plain" }
+        Err($e) { "none" }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    match guarded_int("7", "8") {
+        Ok($n) { print("i1 { $n }") }
+        Err($e) { print("bad-int") }
+    }
+    match guarded_int("4", "9") {
+        Ok($n) { print("i2 { $n }") }
+        Err($e) { print("bad-int2") }
+    }
+    match guarded_int("bad", "1") {
+        Ok($n) { print("i3 { $n }") }
+        Err($e) { print("bad-int3") }
+    }
+    match guarded_int("7", "x") {
+        Ok($n) { print("bad-int4") }
+        Err($e) { print("i4 { $e }") }
+    }
+    match guarded_str("go", "q", true) {
+        Ok($s) { print("s1 { $s }") }
+        Err($e) { print("bad-str") }
+    }
+    match guarded_str("skip", "q", false) {
+        Ok($s) { print("s2 { $s }") }
+        Err($e) { print("bad-str2") }
+    }
+    match guarded_str("go", "bad", true) {
+        Ok($s) { print("bad-str3") }
+        Err($e) { print("s3 { $e }") }
+    }
+    73
+}

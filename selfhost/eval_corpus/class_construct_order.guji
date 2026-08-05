@@ -1,0 +1,18 @@
+# §8.2 construction arguments evaluate in FIELD-DECLARATION order (the oracle's
+# constructClass walks Decl.Fields), not written named-arg order; public field
+# reads; instances display inside collections with sorted field names.
+class P {
+    has $.x: Int
+    has $.y: Int
+}
+sub loud($n: Int, $tag: Str): Int {
+    print($tag)
+    $n
+}
+sub main(): Int {
+    $p = P(y: loud(2, "y-arg"), x: loud(1, "x-arg"))
+    print($p.x)
+    print($p.y)
+    print([$p, P(x: 3, y: 4)])
+    0
+}

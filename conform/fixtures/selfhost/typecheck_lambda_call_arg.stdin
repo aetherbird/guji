@@ -1,0 +1,5 @@
+# A local function value keeps its inferred parameter type at the call site.
+sub main(): Int {
+    $f = sub($n: Int): Int { $n + 1 }
+    $f("bad")
+}

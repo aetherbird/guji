@@ -1,0 +1,14 @@
+sub pick($n: Int): Int {
+    if $n < 0 {
+        exit(4)
+    } else {
+        $n + 1
+    }
+}
+
+sub main(): Unit {
+    $v = pick(5)
+    print("picked $v")
+    exit(3 + 4)
+    print("unreachable")
+}

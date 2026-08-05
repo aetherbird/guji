@@ -1,0 +1,51 @@
+# Native and local build artifacts
+/guji
+*.exe
+*.test
+*.out
+*.o
+*.a
+*.so
+*.dylib
+*.dSYM/
+# golden test files are NOT build artifacts — a fresh clone must pass the gate
+!tests/**/*.out
+/dist/
+/bin/
+
+# IO write fixtures intentionally create these files while proving write APIs.
+tests/compile/*.generated
+conform/fixtures/io/*.generated
+
+# Coverage and profiling outputs
+coverage.out
+*.prof
+
+# Local development logs and scratch work
+*.log
+/*/run.log
+/.*-focus-audit/
+/dogfood/
+/scratch/
+
+# Local environment and credentials (never commit real secret material)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Editor, OS, and local agent state
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+/.idea/
+/.vscode/
+/.claude/
+/.codex/
+/.agents/
+/.p9_cc/

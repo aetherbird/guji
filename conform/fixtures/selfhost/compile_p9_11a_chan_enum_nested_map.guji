@@ -1,0 +1,23 @@
+# P9-11a: pin nested Map-value enum channel ABI — Map field detach replaces
+# BOTH keys and vals arrays via guji_copy_arr (nested rows cascade); non-box
+# enums do not emit guji_clone_*.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "sizeof(Rec), guji_chan_drop_Rec") == 1)
+            print(count_of($c, "static void guji_chan_drop_Rec") == 1)
+            print(count_of($c, ".keys = (const char**)guji_copy_arr(") >= 1)
+            print(count_of($c, ".vals = guji_copy_arr(") >= 1)
+            print(count_of($c, "guji_clone_Rec_value(&") == 0)
+            print(count_of($c, "guji_release_Rec_fields(&") >= 1)
+            0
+        }
+    }
+}

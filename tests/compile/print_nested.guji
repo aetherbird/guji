@@ -1,0 +1,36 @@
+# A-print: print/display of arbitrarily-nested List/Map values via generic
+# runtime-tag recursion. Before this, codegen rejected printing any List/Map;
+# here every shape -- scalar/Str leaves, depth-5 nesting, maps with sorted
+# quoted keys, list-of-map and map-of-list mixes -- displays byte-identically
+# to the interpreter with NO per-shape codegen. The depth-5 list is deeper than
+# any shape codegen previously handled for this operation (it handled none).
+sub main(): Unit {
+    @ints = [1, 2, 3]
+    print(@ints)
+    @strs = ["ada", "bob"]
+    print(@strs)
+    @bools = [true, false, true]
+    print(@bools)
+    @floats = [1.5, 2.0, 3.25]
+    print(@floats)
+    @empty = []
+    print(@empty)
+    @deep5 = [[[[[1]]]], [[[[2, 3]]]]]
+    print(@deep5)
+    @rows = [[1, 2], [], [3]]
+    print(@rows)
+    @nstr = [["a", "b"], ["c"]]
+    print(@nstr)
+    %scores = {"cy": 3, "ada": 1, "bob": 2}
+    print(%scores)
+    %words = {"y": "yo", "x": "hi"}
+    print(%words)
+    %nested = {"a": {"b": {"c": [1, 2, 3]}}}
+    print(%nested)
+    %listval = {"nums": [1, 2], "more": [3]}
+    print(%listval)
+    @maps = [{"k": [1, 2]}, {"j": [3]}]
+    print(@maps)
+    %mlist = {"k": [{"x": 1}, {"y": 2}]}
+    print(%mlist)
+}

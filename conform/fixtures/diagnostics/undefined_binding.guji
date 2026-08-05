@@ -1,0 +1,7 @@
+# D6: front-end diagnostics are emitted once. Both the interpreter command and
+# native build path should report the located typecheck error directly, with no
+# extra `guji:` wrapper and no duplicate line.
+sub main(): Int {
+    print($undefined_thing)
+    0
+}

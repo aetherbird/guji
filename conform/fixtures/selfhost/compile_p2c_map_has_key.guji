@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.2 `has_key(%m, key)` / `%m.has_key(key)` lowering over a bound
+# map local: lower the key once, scan the key array with strcmp, and release
+# the owned key temp after the scan.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "for (gi"))
+            print(has_text($c, "strcmp(gv"))
+            print(has_text($c, "break;"))
+            print(has_text($c, "guji_release(gt"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

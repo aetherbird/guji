@@ -1,0 +1,21 @@
+# RC1.4b: Option[Match] payloads are owned and released; match-expression
+# results borrowed from the payload survive until they are bound.
+sub main(): Int {
+    $line = 'ada@example.com'
+    $user = match $line ~~ /(?<user>\w+)@(?<host>\w+)/ {
+        Some($m) { $m<user>.unwrap_or("none") }
+        None { "none" }
+    }
+    $host = match $line ~~ /(?<user>\w+)@(?<host>\w+)/ {
+        Some($m) { $m<host>.unwrap_or("none") }
+        None { "none" }
+    }
+    $text = match $line ~~ /(?<user>\w+)@(?<host>\w+)/ {
+        Some($m) { $m.text }
+        None { "none" }
+    }
+    print($user)
+    print($host)
+    print($text)
+    0
+}

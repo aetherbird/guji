@@ -1,0 +1,7 @@
+grammar Pick {
+    rule TOP { <yes> ':' <no> | <no> }
+    token yes { 'y' [0-9]+ }
+    token no { 'n' [0-9]+ }
+}
+
+sub main(): Int { 0 }

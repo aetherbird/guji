@@ -1,0 +1,8 @@
+# Binding whose value is a Str-arg call composed with arithmetic.
+sub score($s: Str): Int {
+    if $s == "ok" { 7 } else { 3 }
+}
+sub main(): Int {
+    $n = score("ok") + 3
+    $n * 2
+}

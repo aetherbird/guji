@@ -1,0 +1,8 @@
+sub main(): Int {
+    @rows = [{"a": "one", "b": "two"}]
+    %added = @rows[0].set("c", "three")
+    %removed = @rows[0].remove("a")
+    print(%added{"c"})
+    print(%removed{"b"})
+    0
+}

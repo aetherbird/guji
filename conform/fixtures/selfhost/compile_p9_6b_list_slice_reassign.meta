@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost heap-backed List reassignment moves an owned guji_slice_t

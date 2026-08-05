@@ -1,0 +1,6 @@
+# T3a: a call with the wrong number of arguments is rejected on arity.
+sub g($a: Int, $b: Int): Int { 0 }
+
+sub main(): Int {
+    g(1)
+}

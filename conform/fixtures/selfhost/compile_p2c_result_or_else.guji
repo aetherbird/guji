@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Result `or_else` carrier-producing lowering over a bound Result
+# local (the polarity swap of `and_then`). The Err arm binds the source `.err`
+# and assigns the callback's whole Result carrier; the Ok arm keeps the SOURCE
+# carrier by-value and retains its active slot (a whole-struct copy plus the
+# generic Result retain — `.ok` under `tag == 0LL`, `.err` under `tag != 0LL`).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag != 0) \{"))
+            print(has_text($c, ".err;"))
+            print(has_text($c, " = gf_rec_s("))
+            print(has_text($c, ".tag == 0LL) \{ guji_retain(gr"))
+            print(has_text($c, ".tag != 0LL) \{ guji_retain(gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

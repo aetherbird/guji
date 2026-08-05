@@ -1,0 +1,18 @@
+# I2g: §11.2 panic($message: Str): Never. An untaken value-position panic must
+# not constrain the Int branch type; a taken statement-position panic writes
+# "panic: <msg>" to stderr, keeps prior stdout, and exits 1 (matching guji_panic).
+sub pick($n: Int): Int {
+    if $n < 0 {
+        panic("neg")
+    } else {
+        $n + 1
+    }
+}
+
+sub main(): Int {
+    $v = pick(5)
+    print("picked $v")
+    print("before")
+    panic("boom " ~ "now")
+    0
+}

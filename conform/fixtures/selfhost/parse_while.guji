@@ -1,0 +1,18 @@
+# gujiconform parser fixture for selfhost slice 5 E5a `while` loops (§6.3, §20).
+# The expected output is the canonical AST: a `while` statement carries a Bool
+# condition expression and a child statement-list body. The stdin source is run
+# through the guji-written front end (lex -> parse -> canonical render).
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

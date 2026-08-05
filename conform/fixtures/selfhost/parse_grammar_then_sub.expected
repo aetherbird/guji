@@ -1,0 +1,1 @@
+Program(decls=[Grammar(public=false,name="G",productions=[Production(kind="token",name="x",body="'a'")]),Sub(public=false,name="main",params=[],ret=Some(Type(name="Int",args=[])),body=BlockBody(stmts=[Expr(value=Int(text="0"))]))])

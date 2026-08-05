@@ -1,0 +1,29 @@
+# P9-10a: value-position if/match branches that are explicit-return-only
+# (§11.2 Never). Must not synthesize a bogus result-temp assign after the
+# return; mirrors tests/compile/explicit_return_branches.guji.
+enum Pick { Left, Right }
+
+sub choose($x: Int): Option[Int] {
+    if $x > 0 { return Some($x) } else { return None }
+}
+
+sub label($p: Pick): Str {
+    match $p {
+        Left { return "left" }
+        Right { return "right" }
+    }
+}
+
+sub main(): Int {
+    match choose(3) {
+        Some($v) { print("{ $v }") }
+        None { print("none") }
+    }
+    match choose(0) {
+        Some($v) { print("{ $v }") }
+        None { print("none") }
+    }
+    print(label(Left))
+    print(label(Right))
+    0
+}

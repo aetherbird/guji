@@ -1,0 +1,5 @@
+sub main(): Int {
+    $base = 7
+    $f = sub($n: Int): Int { $n + $base }
+    $f(5)
+}

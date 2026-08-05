@@ -1,0 +1,14 @@
+# DECLINE-AUDIT seed (slice 4b). match-over-enum where the scrutinee is a CALL
+# RESULT (match mk(), mk(): N). Both oracles accept; the selfhost compiler
+# used to DECLINE (rc 4) because CgRet had no enum return kind, so an
+# enum-returning sub had no in-subset signature. F2c must keep this COVERED.
+enum N { A($v: Int), B }
+
+sub mk(): N { A(7) }
+
+sub main(): Int {
+    match mk() {
+        A($v) { $v }
+        B { 0 }
+    }
+}

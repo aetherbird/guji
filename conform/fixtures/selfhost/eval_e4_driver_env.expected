@@ -1,0 +1,7 @@
+big
+--- guji selfhost env ---
+$first = 10
+$total = 15
+@items = [1, 2, 15]
+%scores = {"a": 15, "z": 1}
+$choice = big

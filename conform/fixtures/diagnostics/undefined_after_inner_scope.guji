@@ -1,0 +1,22 @@
+# Child-scope, loop, and match-pattern bindings do not escape their scope.
+# Diagnostics must skip every valid same-name use and point at the final use.
+sub main(): Int {
+    if true {
+        $scoped = 1
+        print([$scoped].map(sub($scoped: Int): Int { $scoped }).first().unwrap())
+    }
+
+    for $scoped in [2] {
+        print($scoped)
+    }
+
+    match Some(3) {
+        Some($scoped) if $scoped > 0 { print($scoped) }
+        None { 0 }
+    }
+
+    if true {
+        print($scoped)
+    }
+    0
+}

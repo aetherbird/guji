@@ -1,0 +1,6 @@
+bare ada [10, 20] {"x": 2}
+escaped $name @scores %counts {literal}
+marker 1
+marker 2
+ordered 7 then 8
+literal $name { mark(3, 9) }

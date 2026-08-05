@@ -1,0 +1,14 @@
+class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub manhattan($self): Int {
+        $self.x + $self.y
+    }
+}
+
+sub main(): Int {
+    $p = Point(x: 3, y: 4)
+    print("manhattan: { $p.manhattan() }")
+    0
+}

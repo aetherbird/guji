@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 5 E5d-8q compiler codegen fixture.
+# Pins value-position `match` over the Result[Int,Str] returned by the `parse_int`
+# prelude. The selfhost compiler must lower the prelude call to `guji_parse_int`,
+# materialise the Result carrier, bind the Ok payload, and release the active Err
+# string after the match chain.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_res_int_str gr"))
+            print(has_text($c, " = guji_parse_int("))
+            print(has_text($c, ".tag = 0LL; } else"))
+            print(has_text($c, ".tag = 1LL; "))
+            print(has_text($c, ".err = gt"))
+            print(has_text($c, "guji_release(gt"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

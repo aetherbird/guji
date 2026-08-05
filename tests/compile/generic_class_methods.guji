@@ -1,0 +1,45 @@
+class Box[T] {
+    has $.value: T
+
+    sub get($self): T {
+        $self.value
+    }
+
+    sub describe($self): Str {
+        "a box"
+    }
+
+    sub plus($self, $by: Int): Int {
+        $by + 1
+    }
+}
+
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+
+    sub left($self): A {
+        $self.first
+    }
+
+    sub right($self): B {
+        $self.second
+    }
+}
+
+sub main(): Int {
+    $bi = Box(value: 42)
+    print("{ $bi.get() }")
+    print("{ $bi.describe() }")
+    print("{ $bi.plus(8) }")
+
+    $bs = Box(value: "hello")
+    print("{ $bs.get() }")
+    print("{ $bs.describe() }")
+
+    $p = Pair(first: 1, second: "one")
+    print("{ $p.left() }")
+    print("{ $p.right() }")
+
+    0
+}

@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Result `unwrap` lowering over a bound `Result[T,E]` local. The guard
+# uses Result polarity (`tag != 0` panics) and the panic message is COMPUTED from
+# the Err display: a Str err splices `.err` raw into the guji_concat chain, a
+# non-Str err renders through its kind's display helper (Int -> guji_int_str).
+# Scalar Ok payloads read `.ok` borrowed; Str Ok payloads retain into an owned
+# temp, with the Result binding cleanup staying the only Ok-payload release.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "tag != 0) \{ guji_panic(guji_concat(guji_concat(\"unwrap on Err(\", gv"))
+            print(has_text($c, "unwrap on Err(\", guji_int_str(gv"))
+            print(has_text($c, ".err), \")\"));"))
+            print(has_text($c, ".ok) == (5LL)"))
+            print(has_text($c, "guji_retain(gv"))
+            print(has_text($c, ".tag == 0LL) \{ guji_release"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

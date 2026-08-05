@@ -1,0 +1,5 @@
+# T2: annotated binding checks initializer against the annotation.
+sub main(): Int {
+    $x: Int = "s"
+    0
+}

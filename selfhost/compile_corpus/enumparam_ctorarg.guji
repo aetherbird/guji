@@ -1,0 +1,9 @@
+enum Dir { N, E, S, W }
+
+sub turns($d: Dir): Int {
+    match $d { N { 0 } E { 1 } S { 2 } W { 3 } }
+}
+
+sub main(): Int {
+    turns(W) + turns(N)
+}

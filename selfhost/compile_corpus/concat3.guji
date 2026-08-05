@@ -1,0 +1,3 @@
+sub main(): Unit {
+    print("a" ~ "b" ~ "c")
+}

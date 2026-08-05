@@ -1,0 +1,30 @@
+# Section 17.5 native select recv over a scalar-payload enum channel.
+#
+# Scalar-payload enums have no counted fields, so the select arm only needs the
+# Option[E] wrapper shape; no owned-payload release is required.
+enum Signal {
+    Stop
+    Go
+    Wait($secs: Int)
+}
+
+sub main(): Unit {
+    $ch: Chan[Signal] = channel(1)
+    $ch.send(Wait(7))
+
+    select {
+        $v = $ch.recv() {
+            if $v.is_some() {
+                $s = $v.unwrap()
+                print(match $s {
+                    Stop { 0 }
+                    Go { 1 }
+                    Wait($secs) { $secs }
+                })
+            } else {
+                print(-1)
+            }
+        }
+        else { print(99) }
+    }
+}

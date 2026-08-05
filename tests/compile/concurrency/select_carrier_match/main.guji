@@ -1,0 +1,28 @@
+# §17.5 native `select` recv arm over Chan[Option[Match]] (a COUNTED POINTER
+# payload). The adopted Some owns a deep-copied match graph at .val.val; the arm
+# releases that single pointer once at exit (its text/groups cascade from the
+# kind tag). Deterministic single ready arm.
+sub main(): Int {
+    $a: Chan[Option[Match]] = channel(1)
+    $b: Chan[Option[Match]] = channel(1)
+    $m1 = 'aa-bb' ~~ /(?<a>\w+)-(?<b>\w+)/
+    $a.send($m1)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            print(match $inner {
+                Some($m) { $m.text }
+                None { "none" }
+            })
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            print(match $inner {
+                Some($m) { $m.text }
+                None { "bnone" }
+            })
+        }
+        else { print("idle") }
+    }
+    0
+}

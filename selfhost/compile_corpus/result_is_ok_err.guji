@@ -1,0 +1,55 @@
+# §15.5 Result `is_ok`/`is_err`, function and method forms, over bound
+# `Result[T,E]` locals. These predicates read only the carrier tag (0=Ok, 1=Err),
+# so Str payload ownership is left to the binding cleanup.
+
+sub make_ok($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+
+sub make_err($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub make_float(): Result[Float, Str] {
+    Ok(1.5)
+}
+
+sub make_bool(): Result[Bool, Str] {
+    Ok(false)
+}
+
+sub make_str($s: Str): Result[Str, Str] {
+    Ok($s)
+}
+
+sub main(): Int {
+    $ri: Result[Int, Str] = make_ok(7)
+    $ei: Result[Int, Str] = make_err("bad" ~ "!")
+    $rf: Result[Float, Str] = make_float()
+    $rb: Result[Bool, Str] = make_bool()
+    $rs: Result[Str, Str] = make_str("a" ~ "b")
+    $from_call: Result[Int, Str] = make_ok(4)
+    $parsed: Result[Int, Str] = parse_int("12")
+    $failed: Result[Int, Str] = parse_int("no")
+
+    mut $code = 0
+    if $ri.is_ok() { $code = $code + 1 }            # method is_ok, Int Ok
+    if $ei.is_err() { $code = $code + 2 }           # method is_err, Str Err payload
+    if is_ok($rf) { $code = $code + 4 }             # function is_ok, Float Ok
+    if is_ok($rb) { $code = $code + 8 }             # function is_ok, Bool Ok
+    if $rs.is_ok() { $code = $code + 16 }           # method is_ok, Str Ok payload
+    if $from_call.is_ok() { $code = $code + 32 }    # user-call-produced Result
+    if is_ok($parsed) { $code = $code + 64 }        # builtin-call-produced Result
+
+    # Guards: every false predicate adds a large penalty so the clean exit code
+    # proves both tag directions.
+    if $ri.is_err() { $code = $code + 1000 }
+    if is_ok($ei) { $code = $code + 1000 }
+    if $failed.is_ok() { $code = $code + 1000 }
+    if is_err($failed) { $code = $code + 0 } else { $code = $code + 1000 }
+
+    # Bool binding position uses the same hook as `if` conditions.
+    $flag = $rs.is_ok()
+    if $flag { $code = $code + 0 } else { $code = $code + 1000 }
+    if $code == 127 { 0 } else { 1 }
+}

@@ -1,0 +1,6 @@
+# T3a: an argument whose type does not match the annotated parameter is rejected.
+sub g($s: Str): Int { 0 }
+
+sub main(): Int {
+    g(1)
+}

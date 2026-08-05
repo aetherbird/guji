@@ -1,0 +1,6 @@
+# T3a: Some(x) constructs Option[typeof x], so binding Some(3) to an annotated
+# Option[Str] is rejected.
+sub main(): Int {
+    $x: Option[Str] = Some(3)
+    0
+}

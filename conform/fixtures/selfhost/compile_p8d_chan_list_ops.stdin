@@ -1,0 +1,45 @@
+# P8d-2c-3c-1: owned List channel payloads (scalar + Str elements). Buffered
+# send/recv/close stays scheduler-independent. Copy-on-send + guji_chan_drop_list
+# must keep ASan/UBSan/LSan clean. Prefer match-bind over chained
+# `$ch.recv().unwrap()` (that chained form is P8d-2c-3d).
+sub main(): Int {
+    @src: List[Int] = [10, 20]
+    $ch: Chan[List[Int]] = channel(2)
+    $ch.send(@src)
+    $ch.send([30, 40, 50])
+    $ch.close()
+    print(@src.count())
+    $a = $ch.recv()
+    $ac = match $a {
+        Some($xs) { $xs.count() }
+        None { 0 }
+    }
+    print($ac)
+    $b = $ch.recv()
+    $bi = match $b {
+        Some($xs) { $xs[1] }
+        None { -1 }
+    }
+    print($bi)
+    $done = $ch.recv()
+    print($done.is_none())
+
+    # send consumes its detached copy even when the channel is closed.
+    $rejected = $ch.send([9])
+    print($rejected.is_err())
+
+    # Scope cleanup drops this buffered, never-received detached copy.
+    $left: Chan[List[Str]] = channel(2)
+    $left.send(["un" ~ "delivered", "x"])
+
+    $words: Chan[List[Str]] = channel(1)
+    $words.send(["al" ~ "pha", "beta"])
+    $words.close()
+    $w = $words.recv()
+    $ws = match $w {
+        Some($xs) { $xs[0] }
+        None { "?" }
+    }
+    print($ws)
+    0
+}

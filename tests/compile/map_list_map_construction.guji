@@ -1,0 +1,27 @@
+# Depth-3 Map[Str,List[Map[Str,T]]] construction/read support. This used to
+# stop at Map[Str,List[scalar|Str]], losing the map-row shape inside the list.
+sub main(): Int {
+    %buckets = {"left": [{"a": 1}], "right": [{"b": 2}, {"c": 3}]}
+    print(%buckets{"left"}[0]{"a"})
+
+    mut $sum = 0
+    for $bucket, @rows in %buckets {
+        for %row in @rows {
+            for $name, $v in %row {
+                $sum = $sum + $v
+            }
+        }
+    }
+    print($sum)
+
+    @groups = %buckets.values()
+    print(@groups[1][1]{"c"})
+
+    %more = %buckets.set("extra", [{"z": 4}]).remove("left")
+    print(%more{"extra"}[0]{"z"})
+
+    # Fresh Str payloads make LSan exercise nested ARR_MAP slot release.
+    %words = {"names": [{"first": "a" ~ "da"}]}
+    print(%words{"names"}[0]{"first"})
+    0
+}

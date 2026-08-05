@@ -1,0 +1,1 @@
+grammar BadRepeat token TOP: invalid regex atom "a{3,2}"

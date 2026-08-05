@@ -1,0 +1,37 @@
+# RC1.3b-ii-b: unbound/intermediate map temporaries are reclaimed — chained
+# set() releases its intermediate copy, map/list-returning subs release their
+# owned locals and trailing return-expression temps, and scalar bindings whose
+# initializer embeds a set() temp retain the value before the temp is freed.
+sub tag(): Map[Str, Str] {
+    %m = {"a": "x"}
+    $label = "tag" ~ "x"
+    print($label)
+    %m2 = %m.set("b", "y").set("c", "z")
+    %m2.set("d", "w")
+}
+
+sub pick(): Str {
+    %m = {"a": "x", "b": "y"}
+    $v = %m.set("c", "z"){"c"}
+    $v
+}
+
+sub keys_of(): List[Str] {
+    %m = {"a": "x"}
+    %m2 = %m.set("b", "y")
+    @k = %m2.keys()
+    @k
+}
+
+sub main(): Unit {
+    %r = tag()
+    print(%r{"d"})
+    print(%r{"a"})
+    print(pick())
+    @ks = keys_of()
+    print(@ks[0])
+    print(@ks[1])
+    %base = {"p": "1"}
+    $direct = %base.set("q", "2"){"q"}
+    print($direct)
+}

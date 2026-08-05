@@ -1,0 +1,28 @@
+# P5b-2b(h): generic methods on a non-generic class owner specialize per
+# receiver+argument kinds. The generated C names match native's method ABI:
+# gf_Holder_identity__Holder_Int_Int, gf_Holder_keep_first__Holder_Float_Float_Float,
+# and gf_Holder_pair__Holder_Int_List_int.
+class Holder {
+    has $.base: Int
+
+    sub identity[T]($self, $v: T): T { $v }
+
+    sub keep_first[T]($self, $a: T, $b: T): T {
+        $a
+    }
+
+    sub pair[T]($self, $v: T): List[T] {
+        [$v, $v]
+    }
+}
+
+sub main(): Unit {
+    $h = Holder(base: 10)
+    print("{ $h.identity(5) }")
+    print($h.identity("ok"))
+    print("{ $h.identity(true) }")
+    print("{ $h.keep_first(2.5, 9.0) }")
+    @xs = $h.pair(7)
+    print("{ @xs.count() }")
+    print("{ @xs[0] }")
+}

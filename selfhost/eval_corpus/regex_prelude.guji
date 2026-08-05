@@ -1,0 +1,45 @@
+# §13.4 / §15.3 (I7c): Regex.compile/escape/literal plus Str replace and
+# replace_with (template + Match->Str closure). Pins method and free forms,
+# named/positional template tokens, and empty-match replace_with. Keyword
+# `match` is not a callable spelling (`~~` remains). Bare top-level subs as
+# Func values are pinned by I7g (`replace_with_fn`).
+sub show_cap($c: Option[Str]): Str {
+    match $c {
+        Some($s) { $s }
+        None { "?" }
+    }
+}
+
+sub main(): Int {
+    $compiled = Regex.compile("([0-9]+)-([a-z]+)").unwrap()
+    match "id 42-zed" ~~ $compiled {
+        Some($m) { print("compiled:" ~ $m.text ~ ":" ~ show_cap($m[1])) }
+        None { print("compiled:none") }
+    }
+    print(Regex.escape("a+b"))
+    $lit = Regex.literal("a.b")
+    match "x a.b y" ~~ $lit {
+        Some($m) { print("literal:" ~ $m.text) }
+        None { print("literal:none") }
+    }
+    match Regex.compile("(") {
+        Ok($re) { print("bad-ok") }
+        Err($e) { print("bad-err") }
+    }
+
+    $a = "a1b22".replace(/(?<d>\d+)/, '[$<d>:$0]')
+    $b = replace("x-y", /(?<l>\w)-(\w)/, '$2$1')
+    $suffix = "!"
+    $template = '<$0>' ~ $suffix
+    $c = "m3n".replace(/\d/, $template)
+    print("$a|$b|$c")
+
+    $d = "a1b2c3".replace_with(/\d/, sub($m: Match): Str { "[" ~ show_cap($m[0]) ~ "]" })
+    print($d)
+    $shout = sub($m: Match): Str { "<" ~ $m.text ~ ">" }
+    $e = replace_with("a1b2", /\d/, $shout)
+    print($e)
+    $f = "abc".replace_with(/(x)?/, sub($m: Match): Str { "<" ~ $m.text ~ ">" })
+    print($f)
+    0
+}

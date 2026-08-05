@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 3 T4 type-checker driver verdict.
+# Mirrors selfhost/typecheck_driver.guji: lex -> parse -> type-check on the
+# stdin source, printing one classified verdict line and exiting 0/1/2.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

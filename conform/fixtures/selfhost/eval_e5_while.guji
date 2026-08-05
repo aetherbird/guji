@@ -1,0 +1,16 @@
+# gujiconform - selfhost slice 5 E5a evaluator driver fixture: §6.3 while loops.
+import lexer
+
+sub main(): Int {
+    match lexer::eval_main(stdin.slurp()) {
+        Ok($r) {
+            print(lexer::eval_env_delimiter())
+            print($r.dump)
+            $r.exit_code
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

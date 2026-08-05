@@ -1,0 +1,74 @@
+# RC1.5b-ii probe: deep `?` chains across call layers — each layer holds owned
+# locals when the failure propagates through it, and the Str error payload must
+# survive every layer's cleanup. Also: `?` in nested branch positions.
+sub leaf($fail: Bool): Result[Int, Str] {
+    if $fail { Err("deep" ~ "-err") } else { Ok(1) }
+}
+
+sub layer1($fail: Bool): Result[Int, Str] {
+    $held = "l1" ~ "-own"
+    @xs = ["a", "b"].reverse()
+    $n = leaf($fail)?
+    print($held)
+    print(@xs[0])
+    Ok($n + 10)
+}
+
+sub layer2($fail: Bool): Result[Int, Str] {
+    $held = "l2" ~ "-own"
+    %m = {"k": "v"}.set("x", "y")
+    $n = layer1($fail)?
+    print($held)
+    print(%m{"x"})
+    Ok($n + 100)
+}
+
+sub layer3($fail: Bool): Result[Int, Str] {
+    $held = "l3" ~ "-own"
+    $o: Option[Str] = Some("l3" ~ "-opt")
+    $n = layer2($fail)?
+    print($held)
+    match $o {
+        Some($v) { print($v) }
+        None { print("?") }
+    }
+    Ok($n + 1000)
+}
+
+sub branchy($mode: Int): Result[Int, Str] {
+    $own = "branch" ~ "-own"
+    if $mode == 0 {
+        $n = leaf(true)?
+        Ok($n)
+    } else {
+        mut $i = 0
+        while $i < 2 {
+            $inner = "it" ~ "er"
+            $n = layer1($i == 1)?
+            print("{ $inner } { $n }")
+            $i = $i + 1
+        }
+        print($own)
+        Ok(7)
+    }
+}
+
+sub main(): Int {
+    match layer3(true) {
+        Ok($n) { print("ok { $n }") }
+        Err($e) { print("err { $e }") }
+    }
+    match layer3(false) {
+        Ok($n) { print("ok { $n }") }
+        Err($e) { print("err { $e }") }
+    }
+    match branchy(0) {
+        Ok($n) { print("b0 ok { $n }") }
+        Err($e) { print("b0 err { $e }") }
+    }
+    match branchy(1) {
+        Ok($n) { print("b1 ok { $n }") }
+        Err($e) { print("b1 err { $e }") }
+    }
+    0
+}

@@ -1,0 +1,51 @@
+# A-collection-elements-map-of-map-records: Map[Str, Map[Str, class/enum]]
+# values must keep the inner map's concrete record value type so reads and
+# drops cascade through the nested ARR_MAP storage.
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub describe($t: Tag): Str {
+    match $t {
+        Named($s) { $s }
+        Anon($n) { "anon" }
+    }
+}
+
+sub main(): Int {
+    %teams = {
+        "east": {"lead": Named("A" ~ "da"), "bench": Anon(2)},
+        "west": {"lead": Named("B" ~ "ob")}
+    }
+    print(%teams.keys().count())
+    %east = %teams{"east"}
+    print(%east.keys().count())
+    $lead = %east{"lead"}
+    print(describe($lead))
+
+    $saved = Named("G" ~ "amma")
+    %aliases = {"row": {"x": $saved, "y": Anon(5)}}
+    %row = %aliases{"row"}
+    $x = %row{"x"}
+    print(describe($x))
+    print(describe($saved))
+
+    %people = {"dept": {"boss": Person(name: "C" ~ "y", age: 40)}}
+    %dept = %people{"dept"}
+    $boss = %dept{"boss"}
+    print($boss.name)
+    print($boss.age)
+
+    for $team, %tags in %teams {
+        for $role, $tag in %tags {
+            print($team ~ ":" ~ $role ~ ":" ~ describe($tag))
+        }
+    }
+    0
+}

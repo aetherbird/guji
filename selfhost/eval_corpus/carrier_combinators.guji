@@ -1,0 +1,67 @@
+# Spec §15.5 (I6c): carrier predicates and closure combinators.
+# Pins both data-first spellings, Option/Result map polarity, map_err,
+# and_then flat-map, and or_else recovery. Callbacks are ordinary VFunction
+# values (I4); None/Err arms must not invoke them.
+sub some_i($n: Int): Option[Int] { Some($n) }
+sub none_i(): Option[Int] { None }
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+sub double_opt($n: Int): Option[Int] { Some($n * 2) }
+sub none_opt(): Option[Int] { None }
+sub inc_res($n: Int): Result[Int, Str] { Ok($n + 1) }
+sub fail_res($m: Str): Result[Int, Str] { Err($m) }
+sub recover($m: Str): Result[Int, Str] { Ok(99) }
+
+sub main(): Int {
+    $some: Option[Int] = some_i(5)
+    $none: Option[Int] = none_i()
+    $ok: Result[Int, Str] = ok_i(7)
+    $err: Result[Int, Str] = err_i("bo" ~ "om")
+
+    print("{ $some.is_some() }|{ is_some($none) }|{ $none.is_none() }|{ is_none($some) }")
+    print("{ $ok.is_ok() }|{ is_ok($err) }|{ $err.is_err() }|{ is_err($ok) }")
+
+    print($some.map(sub($n: Int): Int { $n * 2 }).unwrap_or(0))
+    print(map($none, sub($n: Int): Int { $n + 1 }).unwrap_or(-1))
+    print($ok.map(sub($n: Int): Int { $n + 3 }).unwrap_or(0))
+    match map($err, sub($n: Int): Int { $n + 1 }) {
+        Ok($v) { print("bad:{ $v }") }
+        Err($e) { print("map-err:{ $e }") }
+    }
+
+    match $err.map_err(sub($e: Str): Str { $e ~ "!" }) {
+        Ok($v) { print("bad:{ $v }") }
+        Err($e) { print("me:{ $e }") }
+    }
+    print(map_err($ok, sub($e: Str): Str { "x" }).unwrap_or(0))
+
+    print($some.and_then(sub($n: Int): Option[Int] { double_opt($n) }).unwrap_or(-1))
+    print(and_then($some, sub($n: Int): Option[Int] { none_opt() }).unwrap_or(-1))
+    print($none.and_then(sub($n: Int): Option[Int] { double_opt($n) }).unwrap_or(-1))
+    match $ok.and_then(sub($n: Int): Result[Int, Str] { inc_res($n) }) {
+        Ok($v) { print("at-ok:{ $v }") }
+        Err($e) { print("at-err:{ $e }") }
+    }
+    match and_then($err, sub($n: Int): Result[Int, Str] { inc_res($n) }) {
+        Ok($v) { print("bad:{ $v }") }
+        Err($e) { print("at-prop:{ $e }") }
+    }
+    match $ok.and_then(sub($n: Int): Result[Int, Str] { fail_res("nope") }) {
+        Ok($v) { print("bad:{ $v }") }
+        Err($e) { print("at-fail:{ $e }") }
+    }
+
+    match $err.or_else(sub($m: Str): Result[Int, Str] { recover($m) }) {
+        Ok($v) { print("oe:{ $v }") }
+        Err($e) { print("bad:{ $e }") }
+    }
+    match or_else($ok, sub($m: Str): Result[Int, Str] { recover($m) }) {
+        Ok($v) { print("oe-keep:{ $v }") }
+        Err($e) { print("bad:{ $e }") }
+    }
+
+    # parse_int Result is a call-produced carrier; predicate still reads only the tag.
+    $pi = parse_int("4")
+    print("{ $pi.is_ok() }|{ is_err($pi) }")
+    0
+}

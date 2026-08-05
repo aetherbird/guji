@@ -1,0 +1,11 @@
+# Section 15.4 exit($code: Int): Never -- terminates the program with the given
+# code, flushing stdout first (like panic). The "before exit" line is flushed
+# and appears; the line after exit is unreachable and never prints. The chosen
+# code (5) becomes the process exit status, so both engines must agree on stdout
+# AND exit code. exit is Never-typed, so it satisfies main's Unit return without
+# producing a value.
+sub main(): Unit {
+    print("before exit")
+    exit(5)
+    print("unreachable after exit")
+}

@@ -1,0 +1,32 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # List[T] PARAM specs: the scalar-element list is passed as a borrowed
+            # guji_slice_t; native-shaped names lowercase the element tag (List_int).
+            print(has_text($c, "static int64_t gf_first_or__List_int_Int_Int(guji_slice_t gp0, int64_t gp1)"))
+            print(has_text($c, "static const char* gf_first_or__List_str_Str_Str(guji_slice_t gp0, const char* gp1)"))
+            print(has_text($c, "static int64_t gf_first_or__List_bool_Bool_Bool(guji_slice_t gp0, int64_t gp1)"))
+            # List[T] RETURN specs: heap-copied into a guji_slice_t; the ret tag
+            # (List_int / List_float) follows the param tags in the spec name.
+            print(has_text($c, "static guji_slice_t gf_pair__Int_Int_List_int(int64_t gp0, int64_t gp1)"))
+            print(has_text($c, "static guji_slice_t gf_wrap__Float_List_float(double gp0)"))
+            print(has_text($c, "static guji_slice_t gf_twice__Int_List_int(int64_t gp0)"))
+            # transitive: the generic body's call routes to the monomorphized spec.
+            print(has_text($c, "gf_wrap__Int_List_int(gp0)"))
+            # the template itself is NOT emitted as a generic function.
+            print(has_text($c, "gf_first_or("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

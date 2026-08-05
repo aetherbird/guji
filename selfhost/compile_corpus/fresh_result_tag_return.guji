@@ -1,0 +1,18 @@
+# A fresh Result receiver owns its active payload. Tag tests must consume that
+# carrier before control can return from an enclosing if branch.
+sub probe($path: Str): Str {
+    $out = if read_file($path).is_ok() {
+        return "present"
+    } else {
+        "missing"
+    }
+    $out
+}
+
+sub main(): Int {
+    print(probe("guji-spec.md"))
+    print(probe("fresh_result_tag_return.absent"))
+    print(is_ok(read_file("guji-spec.md")))
+    print(is_err(read_file("fresh_result_tag_return.absent")))
+    0
+}

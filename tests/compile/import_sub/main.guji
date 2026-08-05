@@ -1,0 +1,6 @@
+import ops
+
+sub main(): Int {
+    print(ops::add(3, 4))
+    0
+}

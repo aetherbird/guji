@@ -1,0 +1,5 @@
+sub nums(): Float {
+    $a = 1e3
+    $b = 1.5e3
+    $c = 1e-3
+}

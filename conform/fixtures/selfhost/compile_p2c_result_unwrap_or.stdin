@@ -1,0 +1,15 @@
+sub oki($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+sub errs($s: Str): Result[Str, Str] {
+    Err($s)
+}
+sub main(): Int {
+    $r: Result[Int, Str] = oki(5)
+    $s: Result[Str, Str] = errs("err")
+    $d = "fall" ~ "back"
+    mut $c = 0
+    if $r.unwrap_or(9) == 5 { $c = $c + 1 }
+    print(unwrap_or($s, $d))
+    $c
+}

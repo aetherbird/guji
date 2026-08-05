@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-2 compiler codegen fixture.
+# Pins `?` hoisting out of a general CALL argument (`f(x?)`): the hoist machinery
+# descends into the call's argument list, lifts the direct `?` into a synthetic
+# scalar bind (carrier guard early-returns None/Err first), then rebuilds
+# `Some(f(<local>))` / `Ok(f(<local>))` through the ordinary value path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = go0.val;"))
+            print(has_text($c, "(guji_opt_int)\{1LL, gf_dbl(gv1)"))
+            print(has_text($c, " = gr3.ok;"))
+            print(has_text($c, "(guji_res_int_str)\{0LL, gf_dbl(gv4)"))
+            print(has_text($c, "(guji_res_int_str)\{1LL, 0LL, gr3.err"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

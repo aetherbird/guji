@@ -1,0 +1,9 @@
+# gujiconform — Phase 1 (Platform IO pass): shadowing a PRELUDE BUILTIN with a
+# top-level `sub` is ALLOWED (§16.2) and resolves to the user sub identically in
+# both engines — it is NOT a duplicate definition. Here `sum` shadows the §15.1
+# list builtin with a different signature; the call resolves to this sub.
+sub sum($x: Int): Int { $x + 100 }
+
+sub main() {
+    print("{ sum(5) }")
+}

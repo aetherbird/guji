@@ -1,0 +1,5 @@
+# Spec 18: a program without main fails before any helper can execute.
+sub helper(): Int {
+    print("unreachable")
+    0
+}

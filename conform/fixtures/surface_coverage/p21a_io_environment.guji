@@ -1,0 +1,34 @@
+# Spec 15.4: guest argv, standard streams, whole-file and Handle IO, and exact
+# OS-reason-free filesystem failures in the fixture's isolated work directory.
+sub main(): Int {
+    @argv = args()
+    $joined = @argv.join("|")
+    print("args={ @argv.count() }:$joined")
+    $input = stdin.slurp()
+    print("stdin=[$input]")
+    print("stdin-again=[{ stdin.slurp() }]")
+    stdout.write("raw-")
+    print("stdout")
+    stderr.write("raw-")
+    note("stderr")
+
+    $root = "conform/fixtures/.work/p21a_io_environment"
+    $path = $root ~ "/data.txt"
+    write_file($path, "alpha").unwrap()
+    append_file($path, "|beta").unwrap()
+    print("file=" ~ read_file($path).unwrap())
+
+    $handle_path = $root ~ "/handle.txt"
+    $writer = create($handle_path).unwrap()
+    $writer.write("handle-data")
+    $reader = open($handle_path).unwrap()
+    print("handle=" ~ $reader.slurp())
+
+    $missing = $root ~ "/missing/file.txt"
+    match read_file($missing) { Ok($s) { print("bad-read") } Err($e) { print($e) } }
+    match write_file($missing, "x") { Ok($u) { print("bad-write") } Err($e) { print($e) } }
+    match append_file($missing, "x") { Ok($u) { print("bad-append") } Err($e) { print($e) } }
+    match open($missing) { Ok($h) { print("bad-open") } Err($e) { print($e) } }
+    match create($missing) { Ok($h) { print("bad-create") } Err($e) { print($e) } }
+    0
+}

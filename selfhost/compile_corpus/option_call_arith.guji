@@ -1,0 +1,12 @@
+sub mk($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub unwrap_or($o: Option[Int], $d: Int): Int {
+    match $o {
+        Some($v) { $v }
+        None { $d }
+    }
+}
+sub main(): Int {
+    unwrap_or(mk(5), 0) + unwrap_or(mk(-3), 9) * 2
+}

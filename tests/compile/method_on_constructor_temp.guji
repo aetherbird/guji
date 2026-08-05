@@ -1,0 +1,91 @@
+# Post-D11: a method call on a value-position CONSTRUCTOR TEMP (not a named
+# local) — `Push(1, Nil).depth()`, `Wrap(42).describe()`, `Point(x:1,y:2).sum()`.
+# Before this fix only a method on a NAMED local lowered; a constructor-temp
+# receiver fell through to the list-prelude path and errored
+# ("method ... is unsupported in value position for codegen").
+#
+# methodChainResultKey now resolves the static enum/class identity of a
+# value-producing constructor call (the receiver), so call() materializes the
+# temp and dispatches enum/classMethodCall — and chains it through a
+# class-returning method (`.moved().sum()`). strCallFresh learned the same
+# value-position receiver, so a Str-returning method's owned (+1) result is
+# materialized into a registered temp and released (no leak) under the gate.
+#
+# Exercises: a self-referential generic enum (Stack[T]) at Int and Str with the
+# recursive Int-returning depth() method; a generic enum (Box[T]) with a
+# Str-returning method at two instantiations; a counted non-generic recursive enum (Tree) whose
+# constructor temp owns heap-boxed children + heap Str leaves and whose method
+# only BORROWS $self (must stay leak-clean, composing with the receiver-release
+# fix); and a non-generic class temp with a scalar method plus a
+# class-returning -> scalar method chain. Expected output is the interpreter
+# oracle.
+
+enum Stack[T] {
+    Push($top: T, $rest: Stack[T])
+    Nil
+
+    sub depth($self): Int {
+        match $self {
+            Push($t, $rest) { 1 + $rest.depth() }
+            Nil { 0 }
+        }
+    }
+}
+
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub describe($self): Str {
+        match $self {
+            Wrap($v) { "wrap({ $v })" }
+            Empty { "empty" }
+        }
+    }
+}
+
+enum Tree {
+    Leaf($s: Str)
+    Node($l: Tree, $r: Tree)
+
+    sub size($self): Int {
+        match $self {
+            Leaf($s) { 1 }
+            Node($l, $r) { $l.size() + $r.size() }
+        }
+    }
+    sub label($self): Str {
+        match $self {
+            Leaf($s) { $s }
+            Node($l, $r) { $l.label() ~ "+" ~ $r.label() }
+        }
+    }
+}
+
+class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub sum($self): Int { $self.x + $self.y }
+    sub moved($self): Point { Point(x: $self.x + 1, y: $self.y + 1) }
+}
+
+sub main(): Unit {
+    # Self-referential generic enum constructor temp, recursive borrowed method.
+    print(Push(1, Push(2, Push(3, Nil))).depth())
+    print(Push("a", Push("b", Nil)).depth())
+
+    # Generic enum constructor temp: a Str-returning method at two
+    # instantiations (the owned Str result must be released — no leak).
+    print(Wrap(42).describe())
+    print(Wrap("hi").describe())
+
+    # Counted non-generic recursive enum: constructor temp owns heap-boxed
+    # children + heap Str leaves; the method only borrows $self.
+    print(Node(Leaf("a" ~ "1"), Node(Leaf("b" ~ "2"), Leaf("c" ~ "3"))).size())
+    print(Node(Leaf("x" ~ "1"), Leaf("y" ~ "2")).label())
+
+    # Non-generic class constructor temp + a class-returning -> scalar chain.
+    print(Point(x: 3, y: 4).sum())
+    print(Point(x: 3, y: 4).moved().sum())
+}

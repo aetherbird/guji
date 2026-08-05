@@ -1,0 +1,24 @@
+# Historical decline-audit row: hatch capture of an enum with a homogeneous
+# Option[Int] payload. The scalar tagged carrier is copied by value into the
+# task environment; canonical C must compile and agree exactly with D.
+enum Slot {
+    Holding($o: Option[Int])
+    Free
+}
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $s = Holding(Some(3))
+    hatch {
+        match $s {
+            Holding($o) {
+                match $o {
+                    Some($v) { $ch.send($v) }
+                    None { $ch.send(0 - 1) }
+                }
+            }
+            Free { $ch.send(0) }
+        }
+    }
+    print($ch.recv().unwrap())
+    0
+}

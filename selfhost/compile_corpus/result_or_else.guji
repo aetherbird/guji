@@ -1,0 +1,85 @@
+# §15.5 Result `or_else`, method form `$r.or_else(f)` and function form
+# `or_else($r, f)`, over bound `Result[T,E]` locals. The polarity swap of
+# `and_then`: the Err arm binds the borrowed `.err` and assigns the callback's
+# whole Result carrier (`Err(e)` -> `f(e)`); the Ok arm keeps the SOURCE carrier
+# by-value and retains its active slot (`Ok(v)` -> `Ok(v)`). Native/interp unify
+# the callback's return type with the source, so the output kind == the source
+# kind (T AND E preserved). Exit 255 (code 2047) iff every assertion holds.
+
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+sub ok_s($s: Str): Result[Str, Str] { Ok($s) }
+sub err_s($s: Str): Result[Str, Str] { Err($s) }
+sub ok_b($b: Bool): Result[Bool, Str] { Ok($b) }
+sub err_b($s: Str): Result[Bool, Str] { Err($s) }
+sub ok_si($s: Str): Result[Str, Int] { Ok($s) }
+sub err_si($n: Int): Result[Str, Int] { Err($n) }
+sub ok_ii($n: Int): Result[Int, Int] { Ok($n) }
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+
+# recovery callbacks return whole Result carriers (helper-returned; a direct
+# `Ok(...)`/`Err(...)` body inside the lambda is a native oracle-limit here).
+sub rec_i($e: Str): Result[Int, Str] { if $e == "boom" { Ok(99) } else { Err("still" ~ "bad") } }
+sub rec_s($e: Str): Result[Str, Str] { if $e == "boom" { Ok("rec" ~ "overed") } else { Err("no") } }
+sub rec_b($e: Str): Result[Bool, Str] { if $e == "boom" { Ok(true) } else { Err("no") } }
+sub rec_si($e: Int): Result[Str, Int] { if $e > 0 { Ok("pos") } else { Err(0 - $e) } }
+sub rec_ii($e: Int): Result[Int, Int] { if $e > 0 { Ok($e * 10) } else { Err(0 - $e) } }
+sub rec_add($e: Str, $bump: Int): Result[Int, Str] { ok_i($bump) }
+
+sub main(): Int {
+    $oi: Result[Int, Str] = ok_i(5)
+    $ei: Result[Int, Str] = err_i("bo" ~ "om")
+    $os: Result[Str, Str] = ok_s("kept" ~ "!")
+    $es: Result[Str, Str] = err_s("bo" ~ "om")
+    $ob: Result[Bool, Str] = ok_b(true)
+    $eb: Result[Bool, Str] = err_b("bo" ~ "om")
+    $osi: Result[Str, Int] = ok_si("keep" ~ "s")
+    $esi: Result[Str, Int] = err_si(7)
+    $oii: Result[Int, Int] = ok_ii(3)
+    $eii: Result[Int, Int] = err_ii(4)
+    $base = 90
+
+    mut $code = 0
+
+    # Int ok, Str err — Ok source keeps ok, Err source recovers via the callback
+    $a: Result[Int, Str] = $oi.or_else(sub($e_a: Str): Result[Int, Str] { rec_i($e_a) })
+    $b: Result[Int, Str] = or_else($ei, sub($e_b: Str): Result[Int, Str] { rec_i($e_b) })
+    if $a.unwrap_or(0) == 5 { $code = $code + 1 }
+    if $b.unwrap_or(0) == 99 { $code = $code + 2 }
+
+    # Str ok (the Ok/else branch retains `.ok` so the fresh carrier co-owns it)
+    $c: Result[Str, Str] = $os.or_else(sub($e_c: Str): Result[Str, Str] { rec_s($e_c) })
+    $d: Result[Str, Str] = or_else($es, sub($e_d: Str): Result[Str, Str] { rec_s($e_d) })
+    if $c.unwrap_or("x") == "kept!" { $code = $code + 4 }
+    if $d.unwrap_or("x") == "recovered" { $code = $code + 8 }
+
+    # Bool ok
+    $g: Result[Bool, Str] = $ob.or_else(sub($e_g: Str): Result[Bool, Str] { rec_b($e_g) })
+    $h: Result[Bool, Str] = $eb.or_else(sub($e_h: Str): Result[Bool, Str] { rec_b($e_h) })
+    if $g.unwrap_or(false) { $code = $code + 16 }
+    if $h.unwrap_or(false) { $code = $code + 32 }
+
+    # Str ok, Int err (both slots exercised — Str ok kept, Int err bound in callback)
+    $j: Result[Str, Int] = $osi.or_else(sub($e_j: Int): Result[Str, Int] { rec_si($e_j) })
+    $k: Result[Str, Int] = or_else($esi, sub($e_k: Int): Result[Str, Int] { rec_si($e_k) })
+    if $j.unwrap_or("x") == "keeps" { $code = $code + 64 }
+    if $k.unwrap_or("x") == "pos" { $code = $code + 128 }
+
+    # Int ok, Int err (fully scalar carrier)
+    $m: Result[Int, Int] = $oii.or_else(sub($e_m: Int): Result[Int, Int] { rec_ii($e_m) })
+    $n: Result[Int, Int] = $eii.or_else(sub($e_n: Int): Result[Int, Int] { rec_ii($e_n) })
+    if $m.unwrap_or(0) == 3 { $code = $code + 256 }
+    if $n.unwrap_or(0) == 40 { $code = $code + 512 }
+
+    # enclosing-local read inside the recovery callback (inlined, not a lifted closure)
+    $p: Result[Int, Str] = $ei.or_else(sub($e_p: Str): Result[Int, Str] { rec_add($e_p, $base) })
+    if $p.unwrap_or(0) == 90 { $code = $code + 1024 }
+
+    # match a bound recovered carrier — exercises the release-after-match path for
+    # a Str Ok slot produced by the callback.
+    match $b { Ok($bok) { print("b={ $bok }") } Err($ber) { print($ber) } }
+    match $d { Ok($dok) { print("d={ $dok }") } Err($der) { print($der) } }
+
+    print("{ $code }")
+    $code - 1792
+}

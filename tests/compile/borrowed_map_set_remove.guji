@@ -1,0 +1,22 @@
+# set/remove on borrowed map rows: List[Map] and Map[Str,Map]
+sub main(): Int {
+    @names = [{"first": "ada", "last": "lovelace"}]
+    %name = @names[0]
+    %name2 = %name.set("first", "grace")
+    print(%name2{"first"})
+    print(%name2{"last"})
+
+    %m = {"a": {"x": 1, "y": 2}}
+    %row = %m{"a"}
+    %row2 = %row.set("z", 3).remove("x")
+    mut $out = ""
+    for $k, $v in %row2 {
+        $out = $out ~ $k ~ "=" ~ "{ $v }" ~ " "
+    }
+    print($out)
+
+    %rows = %m.values()
+    %updated = %rows[0].set("w", 4)
+    print(%updated{"w"})
+    0
+}

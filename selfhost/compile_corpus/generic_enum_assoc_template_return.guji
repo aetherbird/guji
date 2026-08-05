@@ -1,0 +1,57 @@
+# A generic-enum ASSOCIATED FUNCTION whose declared return type is the bare owning
+# template name (`sub make($v: T): Box`). After monomorphization the cloned assoc
+# fn's RetType stays the template `Box`, yet its body yields a concrete spec
+# (Box__Int via `Wrap($v)`). Native must (1) rewrite the spec assoc fn's return to
+# the inferred concrete spec, (2) dispatch `Box.make(7)` to `Box__Int.make` (the
+# template assoc fn is never emitted), and (3) resolve the chained `.describe()`
+# on that result. The expected output is the interpreter's (oracle), §7.5/§3.3.
+
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub describe($self): Str {
+        match $self {
+            Wrap($v) { "wrap({ $v })" }
+            Empty { "empty" }
+        }
+    }
+    sub make($v: T): Box {
+        Wrap($v)
+    }
+}
+
+enum Pair2[A, B] {
+    Both($a: A, $b: B)
+    Neither
+
+    sub show($self): Str {
+        match $self {
+            Both($x, $y) { "both({ $x },{ $y })" }
+            Neither { "neither" }
+        }
+    }
+    sub of($a: A, $b: B): Pair2 {
+        Both($a, $b)
+    }
+}
+
+sub main(): Unit {
+    # Direct construction registers each instantiation's spec (Box__Int, Box__Str,
+    # Pair2__Int_Str) that the assoc-fn calls below dispatch to.
+    print(Wrap(1).describe())
+    print(Wrap("x").describe())
+
+    # Assoc fn with a bare-template return, dispatched to the concrete spec and
+    # chained into a method on the result.
+    print(Box.make(7).describe())
+    print(Box.make("hi").describe())
+
+    # Bound result keeps its concrete enum identity.
+    $b = Box.make(42)
+    print($b.describe())
+
+    # Two-type-param enum: assoc fn binds both params from its arguments.
+    print(Pair2.of(1, "a").show())
+    print(Both(2, "b").show())
+}

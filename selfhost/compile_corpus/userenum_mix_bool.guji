@@ -1,0 +1,16 @@
+enum Val {
+    I($x: Int)
+    F($x: Float)
+    B($x: Bool)
+    Nothing
+}
+
+sub main(): Int {
+    $v: Val = B(true)
+    match $v {
+        I($n) { $n }
+        F($f) { 1 }
+        B($b) { if $b { 3 } else { 2 } }
+        Nothing { 0 }
+    }
+}

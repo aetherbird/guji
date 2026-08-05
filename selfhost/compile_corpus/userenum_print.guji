@@ -1,0 +1,14 @@
+enum Mode {
+    Fast
+    Slow
+}
+
+sub main(): Int {
+    $m: Mode = Slow
+    $n = match $m {
+        Fast { 1 }
+        Slow { 2 }
+    }
+    print("mode")
+    $n
+}

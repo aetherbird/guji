@@ -1,0 +1,13 @@
+enum Tagged {
+    Int1($v: Int)
+    Float1($v: Float)
+}
+
+sub main(): Int {
+    print("start")
+    $t: Tagged = Float1(3.5)
+    match $t {
+        Int1($n) { $n }
+        Float1($f) { if $f > 3.0 { 4 } else { 8 } }
+    }
+}

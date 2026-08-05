@@ -1,0 +1,26 @@
+# P8e-3: pin List copy-on-capture — the fixed-literal alloc+loop fill, the
+# header-backed guji_copy_arr fill, slice-form adoption, and task-exit release.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_task_spawn(&") == 2)
+            print(count_of($c, "guji_slice_t cap_") == 2)
+            print(count_of($c, "->cap_xs.data = guji_arr_alloc(GUJI_KIND_ARR_SCALAR, sizeof(int64_t), ") == 1)
+            print(count_of($c, "->cap_xs.data)[ghlc] = ") == 1)
+            print(count_of($c, "ghlc = guji_add(ghlc, 1)") == 1)
+            print(count_of($c, "->cap_words.data = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, " = env->cap_xs;") == 1)
+            print(count_of($c, " = env->cap_words;") == 1)
+            print(count_of($c, "guji_release((const void*)gv1.data);") == 2)
+            print(count_of($c, "gv1.data = NULL;") == 2)
+            0
+        }
+    }
+}

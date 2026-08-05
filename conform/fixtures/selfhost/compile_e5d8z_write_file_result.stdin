@@ -1,0 +1,7 @@
+sub main(): Int {
+    match write_file("/tmp/x", "data") {
+        Ok($u) { $u }
+        Err($e) { print($e) return 1 }
+    }
+    return 0
+}

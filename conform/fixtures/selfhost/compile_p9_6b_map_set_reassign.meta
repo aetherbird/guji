@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost map set/remove reassignment steals owned guji_map_t into two-array local

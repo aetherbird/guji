@@ -1,0 +1,30 @@
+# P5b-2b(carrier-eq collections): Option[Map[Str, Int]] equality. The Some
+# payload is a by-value guji_map_t; native compares it structurally with
+# guji_map_equal, so key insertion order must not affect equality.
+
+sub mkMap($which: Int): Option[Map[Str, Int]] {
+    if $which == 0 {
+        None
+    } else if $which == 1 {
+        Some({"a": 1, "b": 2})
+    } else if $which == 2 {
+        Some({"b": 2, "a": 1})
+    } else {
+        Some({"a": 1, "b": 3})
+    }
+}
+
+sub main(): Unit {
+    $a: Option[Map[Str, Int]] = Some({"a": 1, "b": 2})
+    $b: Option[Map[Str, Int]] = Some({"b": 2, "a": 1})
+    $c: Option[Map[Str, Int]] = Some({"a": 1, "b": 3})
+    $n: Option[Map[Str, Int]] = None
+
+    print("opt_map_eq: { $a == $b }")
+    print("opt_map_neq_payload: { $a == $c }")
+    print("opt_map_tag: { $a == $n }")
+    print("opt_map_none_eq: { $n == mkMap(0) }")
+    print("opt_map_ne_op: { $a != $c }")
+    print("opt_map_call_eq: { mkMap(1) == mkMap(2) }")
+    print("opt_map_call_neq: { mkMap(1) == mkMap(3) }")
+}

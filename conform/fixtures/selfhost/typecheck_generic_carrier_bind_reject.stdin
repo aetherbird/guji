@@ -1,0 +1,14 @@
+# P5b-2b(e-carrier): an unbound type param nested inside a carrier return
+# (Option[T] from a return-position-only generic) must reject at an annotated
+# bind with the oracle's wording, not pass the open-TParam assignable hatch.
+sub none_of[T](): Option[T] {
+    None
+}
+
+sub main() {
+    $o: Option[Int] = none_of()
+    match $o {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+}

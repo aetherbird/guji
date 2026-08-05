@@ -1,0 +1,38 @@
+# A generic-class METHOD whose declared return type is the bare owning template
+# name (`: Pair`) instead of a concrete instantiation. The selfhost compiler must
+# rewrite each cloned method's return to the concrete spec its body constructs,
+# including specs materialized only by another method's return.
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+
+    sub swapped($self): Pair {
+        Pair(first: $self.second, second: $self.first)
+    }
+    sub same($self): Pair {
+        Pair(first: $self.first, second: $self.second)
+    }
+    sub rekey($self, $k: A): Pair {
+        Pair(first: $k, second: $self.second)
+    }
+    sub show($self): Str {
+        "({ $self.first }, { $self.second })"
+    }
+}
+
+sub main(): Unit {
+    $p = Pair(first: 1, second: "one")
+    print($p.show())
+
+    $q = $p.swapped()
+    print($q.show())
+
+    $r = $q.swapped()
+    print($r.show())
+
+    $s = $p.same()
+    print($s.show())
+
+    $t = $p.rekey(99)
+    print($t.show())
+}

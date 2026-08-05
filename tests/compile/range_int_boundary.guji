@@ -1,0 +1,43 @@
+# Differential-gate regression guard for conformance bug #3 (§5.4, §6.3):
+# range iteration at the Int boundaries must terminate correctly — no integer
+# overflow, no runaway. Before the fix the engines diverged at INT64_MAX: the
+# interpreter ran away (materialized until OOM) while native panicked with
+# "integer overflow" on the increment past the final element. The gate now
+# requires both engines to iterate the boundary range and then stop.
+sub count_incl($lo: Int, $hi: Int): Int {
+    mut $n = 0
+    for $i in $lo .. $hi {
+        $n = $n + 1
+    }
+    $n
+}
+
+sub sum_half($lo: Int, $hi: Int): Int {
+    mut $s = 0
+    for $i in $lo ..< $hi {
+        $s = $s + 1
+    }
+    $s
+}
+
+sub main(): Unit {
+    # Inclusive range ending at INT64_MAX: terminates after the boundary value.
+    mut $last = 0
+    for $i in 9223372036854775804 .. 9223372036854775807 {
+        $last = $i
+    }
+    print("incl-at-max last: { $last }")
+    print("incl-at-max count: { count_incl(9223372036854775804, 9223372036854775807) }")
+
+    # Half-open ending at INT64_MAX excludes it.
+    print("half-at-max count: { sum_half(9223372036854775804, 9223372036854775807) }")
+
+    # Half-open down to INT64_MIN is empty and must not underflow the bound.
+    $minint = 0 - 9223372036854775807 - 1
+    print("half-to-min count: { sum_half(0, $minint) }")
+
+    # Boundary-adjacent and ordinary ranges still behave.
+    print("empty count: { count_incl(5, 3) }")
+    print("single count: { count_incl(9223372036854775807, 9223372036854775807) }")
+    print("normal count: { count_incl(10, 14) }")
+}

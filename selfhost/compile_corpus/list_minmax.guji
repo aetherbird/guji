@@ -1,0 +1,17 @@
+# selfhost slice 6 P2c — §15.1 numeric list `min`/`max` aggregates.
+# Covers both function and method spellings for Int and Float lists. The final
+# expression uses min/max in an Int rvalue position, where selfhost scalar prelude
+# calls are currently lowered.
+sub main(): Int {
+    @xs = [3, 1, 4, 1, 5]
+    print("{ @xs.min() }")
+    print("{ max(@xs) }")
+
+    @temps = [12.5, -3.0, 7.25]
+    print("{ @temps.min() }")
+    print("{ max(@temps) }")
+
+    @neg = [-2, -8, -5]
+    print("{ min(@neg) }")
+    max(@xs) + min(@xs)
+}

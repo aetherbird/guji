@@ -1,0 +1,6 @@
+# §11.2 panic — aborts with a diagnostic and nonzero exit.
+sub main(): Int {
+    print("before")
+    panic("boom")
+    0
+}

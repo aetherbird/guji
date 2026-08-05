@@ -1,0 +1,10 @@
+import guji_compile_import_qualified_lib
+
+sub main(): Int {
+    match guji_compile_import_qualified_lib::check(0) {
+        Reject($m) { note($m) return 1 }
+        Accept { 0 }
+    }
+    print("ok")
+    0
+}

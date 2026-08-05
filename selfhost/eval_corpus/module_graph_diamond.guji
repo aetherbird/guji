@@ -1,0 +1,14 @@
+# §16.1 repeated/diamond loading (I8b2): both direct parents import the
+# same leaf path. The leaf must contribute one native definition while remaining
+# callable from both parent module bodies.
+import eval_modules::diamond_left
+import eval_modules::diamond_right
+
+sub main(): Int {
+    $left = diamond_left::value()
+    $right = diamond_right::value()
+    print($left)
+    print($right)
+    print($left + $right)
+    0
+}

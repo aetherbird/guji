@@ -1,0 +1,60 @@
+# §11 (I6f2): Option[List]/Option[Map] and Result[List]/Result[Map] must share one
+# C parameter ABI with their return/local types. The historical bug was only
+# Option[List]: g5_kind_ctype fell through to int64_t while body/callers used
+# guji_opt_list. Result twins and Option[Map] already agreed; pin all four.
+sub pass_opt_list($value: Option[List[Int]]): Option[List[Int]] { $value }
+sub some_list(@xs: List[Int]): Option[List[Int]] { Some(@xs) }
+sub no_list(): Option[List[Int]] { None }
+
+sub pass_opt_map($value: Option[Map[Str, Int]]): Option[Map[Str, Int]] { $value }
+sub some_map(%m: Map[Str, Int]): Option[Map[Str, Int]] { Some(%m) }
+sub no_map(): Option[Map[Str, Int]] { None }
+
+sub pass_res_list($value: Result[List[Int], Str]): Result[List[Int], Str] { $value }
+sub ok_list(@xs: List[Int]): Result[List[Int], Str] { Ok(@xs) }
+sub err_list($m: Str): Result[List[Int], Str] { Err($m) }
+
+sub pass_res_map($value: Result[Map[Str, Int], Str]): Result[Map[Str, Int], Str] { $value }
+sub ok_map(%m: Map[Str, Int]): Result[Map[Str, Int], Str] { Ok(%m) }
+sub err_map($m: Str): Result[Map[Str, Int], Str] { Err($m) }
+
+sub main(): Int {
+    @nums = [20, 22]
+    print(match pass_opt_list(some_list(@nums)) {
+        Some(@items) { "{ @items[0] + @items[1] }" }
+        None { "-1" }
+    })
+    print(match pass_opt_list(no_list()) {
+        Some(@items) { "{ @items[0] }" }
+        None { "-1" }
+    })
+
+    %pairs = {"b": 2, "a": 1}
+    print(match pass_opt_map(some_map(%pairs)) {
+        Some(%items) { "{ %items{\"a\"} }/{ %items{\"b\"} }" }
+        None { "none" }
+    })
+    print(match pass_opt_map(no_map()) {
+        Some(%items) { "{ %items{\"a\"} }" }
+        None { "none" }
+    })
+
+    print(match pass_res_list(ok_list(@nums)) {
+        Ok(@items) { "{ @items[0] + @items[1] }" }
+        Err($e) { "err:$e" }
+    })
+    print(match pass_res_list(err_list("list" ~ "!")) {
+        Ok(@items) { "{ @items[0] }" }
+        Err($e) { "err:$e" }
+    })
+
+    print(match pass_res_map(ok_map(%pairs)) {
+        Ok(%items) { "{ %items{\"a\"} }/{ %items{\"b\"} }" }
+        Err($e) { "err:$e" }
+    })
+    print(match pass_res_map(err_map("map" ~ "!")) {
+        Ok(%items) { "{ %items{\"a\"} }" }
+        Err($e) { "err:$e" }
+    })
+    0
+}

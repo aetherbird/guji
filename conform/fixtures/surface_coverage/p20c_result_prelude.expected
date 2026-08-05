@@ -1,0 +1,12 @@
+predicates=true/false/false/true
+unwrap=5
+expect=5
+unwrap-or=5/7
+result-fallback:boom
+lazy=5/9
+map=10/-1
+map-err=boom!
+and-then=6
+or-else=99
+ok-conversion=5/-1
+err-conversion=none/boom

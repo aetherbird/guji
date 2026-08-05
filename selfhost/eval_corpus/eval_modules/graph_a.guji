@@ -1,0 +1,6 @@
+# Middle module of the I8b transitive chain: its body calls a nested import.
+import graph_b
+
+pub sub value(): Int {
+    graph_b::base() + 1
+}

@@ -1,0 +1,7 @@
+incl-at-max count: 3
+incl-at-max last: 9223372036854775807
+half-at-max count: 2
+half-to-min count: 0
+normal count: 5
+empty count: 0
+single count: 1

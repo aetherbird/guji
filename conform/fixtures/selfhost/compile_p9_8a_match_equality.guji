@@ -1,0 +1,22 @@
+# gujiconform - selfhost slice 6 P9-8a Match structural equality.
+# Pins both equality spellings to the capture-aware runtime helper.
+import lexer
+
+sub count_text($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_text($c, "guji_match_equal(") == 2)
+            print(count_text($c, "!(guji_match_equal(") == 1)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

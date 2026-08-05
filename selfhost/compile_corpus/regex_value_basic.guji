@@ -1,0 +1,41 @@
+# P6d: first-class Regex VALUES (§13). A Regex value is its validated pattern
+# text as a counted Str (native's rep — byte-identical to Str): a regex literal
+# in value position binds via guji_str_from_c, Regex.literal/Regex.escape lower
+# to guji_regex_escape_literal, Regex.compile validates through the runtime
+# compiler into a Result[Regex, Str] (ok slot = guji_str_copy of the pattern),
+# and `subject ~~ regex_value` calls guji_regex_match_value_engine — the
+# guji_match_t carries group_count/groups itself, so positional captures work
+# with no compile-time pattern text. Covers: literal bind, compile().unwrap()
+# on a fresh call receiver, Regex.literal, Regex params, mut rebinding of a
+# counted Regex, an inline compile in ~~ RHS position, and Regex.escape's Str.
+sub describe($label: Str, $re: Regex, $s: Str): Str {
+    match $s ~~ $re {
+        Some($m) { $label ~ ":" ~ $m.text ~ ":" ~ $m[1].unwrap_or("-") }
+        None { $label ~ ":none" }
+    }
+}
+
+sub main(): Int {
+    $literal = /([a-z]+)\d+/
+    $compiled = Regex.compile("([0-9]+)-([a-z]+)").unwrap()
+    $escaped = Regex.literal("a.b")
+    print(describe("literal", $literal, "xxabc123yy"))
+    print(describe("compiled", $compiled, "id 42-zed"))
+    match "a.b aab" ~~ $escaped {
+        Some($m) { print("escaped:" ~ $m.text) }
+        None { print("escaped:none") }
+    }
+    print(describe("miss", $literal, "123"))
+    print(Regex.escape("a+b"))
+    mut $r = Regex.literal("q.z")
+    $r = Regex.literal("x+y")
+    match "ax+yz" ~~ $r {
+        Some($m) { print("reassigned:" ~ $m.text) }
+        None { print("reassigned:none") }
+    }
+    match "zed" ~~ Regex.compile("z(e)d").unwrap() {
+        Some($m) { print("inline:" ~ $m[1].unwrap_or("?")) }
+        None { print("inline:none") }
+    }
+    0
+}

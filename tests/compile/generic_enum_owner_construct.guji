@@ -1,0 +1,32 @@
+# G3b-2 slice: a method on a generic ENUM can CONSTRUCT the owner enum inside
+# its body (a fresh variant construction, not just returning $self). The body
+# AST is shared by every specialization, so the checker records the constructor
+# with open type params; codegen derives the concrete spec (Holder__Int /
+# Holder__Str) from the payload argument's codegen-scope type instead.
+enum Holder[T] {
+    Keep($v: T)
+
+    sub duplicate($self): Holder[T] {
+        match $self {
+            Keep($n) { Keep($n) }
+        }
+    }
+
+    sub get($self): T {
+        match $self {
+            Keep($n) { $n }
+        }
+    }
+}
+
+sub main(): Int {
+    $h = Keep(7)
+    $h2 = $h.duplicate()
+    print("{ $h2.get() }")
+
+    $hs = Keep("guji")
+    $hs2 = $hs.duplicate()
+    print("{ $hs2.get() }")
+
+    0
+}

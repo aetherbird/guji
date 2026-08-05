@@ -1,0 +1,46 @@
+# Slice 6 P3b-2b-2c-2: `?` inside a general CALL argument — `f(x?)`.
+# The hoist machinery now descends into a call's argument list (pure callee) and
+# lifts the leftmost hoistable `?` into a synthetic scalar bind (guard early-returns
+# None/Err first), then rebuilds `f(<name>)` / `Some(f(<name>))` / `Ok(f(<name>))`
+# through the ordinary value path — mirroring native's left-to-right argument
+# evaluation. A later argument is only hoisted when every preceding argument is a
+# pure literal / bare name (so the `?` guard cannot reorder a side effect).
+sub lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n * 2) } else { None }
+}
+sub dbl($n: Int): Int { $n * 2 }
+sub triple($n: Int): Int { $n * 3 }
+sub add($a: Int, $b: Int): Int { $a + $b }
+
+# Some(f(o?)) — the ctor argument IS a call whose own argument is a direct `?`.
+sub apply_dbl($o: Option[Int]): Option[Int] { Some(dbl($o?)) }
+
+# Some(f(lookup(n)?) + k) — the `?` call sits in the LEFT operand of a binary.
+sub chain_call($n: Int): Option[Int] { Some(dbl(lookup($n)?) + 1) }
+
+# Ok(f(parse_int(s)?)) — Result carrier, direct call argument.
+sub parse_dbl($s: Str): Result[Int, Str] { Ok(dbl(parse_int($s)?)) }
+
+# return Ok(f(parse_int(s)?) - k) — explicit return + call in the left operand.
+sub parse_triple_minus($s: Str): Result[Int, Str] { return Ok(triple(parse_int($s)?) - 2) }
+
+# Some(f(o?, lit)) — `?` in the FIRST arg of a multi-arg call.
+sub sum_first($o: Option[Int]): Option[Int] { Some(add($o?, 100)) }
+
+# Some(f(lit, o?)) — `?` in a LATER arg; the preceding literal is pure.
+sub sum_second($o: Option[Int]): Option[Int] { Some(add(100, $o?)) }
+
+sub main(): Int {
+    match apply_dbl(Some(4)) { Some($v) { print("ad { $v }") } None { print("ad none") } }
+    match apply_dbl(None) { Some($v) { print("ad { $v }") } None { print("ad none") } }
+    match chain_call(3) { Some($v) { print("cc { $v }") } None { print("cc none") } }
+    match chain_call(0) { Some($v) { print("cc { $v }") } None { print("cc none") } }
+    match parse_dbl("21") { Ok($v) { print("pd { $v }") } Err($e) { print("pd { $e }") } }
+    match parse_dbl("z") { Ok($v) { print("pd { $v }") } Err($e) { print("pd { $e }") } }
+    match parse_triple_minus("5") { Ok($v) { print("pt { $v }") } Err($e) { print("pt { $e }") } }
+    match sum_first(Some(7)) { Some($v) { print("sf { $v }") } None { print("sf none") } }
+    match sum_first(None) { Some($v) { print("sf { $v }") } None { print("sf none") } }
+    match sum_second(Some(8)) { Some($v) { print("ss { $v }") } None { print("ss none") } }
+    match sum_second(None) { Some($v) { print("ss { $v }") } None { print("ss none") } }
+    46
+}

@@ -1,0 +1,27 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P2b-3c-3: nested list values lower to an ARR_SLICE outer array of
+# guji_slice_t row handles. Row literals are moved into the outer storage, row
+# extraction shares the same-heap row through a retain, and scope cleanup releases
+# the outer data.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "GUJI_KIND_ARR_SLICE"))
+            print(has_text($c, "sizeof(guji_slice_t)"))
+            print(has_text($c, ".data = NULL;"))
+            print(has_text($c, "guji_retain(gl4.data);"))
+            print(has_text($c, "guji_release((const void*)gl"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

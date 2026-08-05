@@ -1,0 +1,4 @@
+sub main(): Unit {
+    $s = "hello"
+    print($s)
+}

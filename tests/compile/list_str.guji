@@ -1,0 +1,12 @@
+sub main(): Int {
+    @names = ["ada", "grace", "linus"]
+    print("middle: { @names[1] }")
+
+    mut $joined = ""
+    for $name in @names {
+        $joined = $joined ~ $name
+    }
+    print($joined)
+
+    0
+}

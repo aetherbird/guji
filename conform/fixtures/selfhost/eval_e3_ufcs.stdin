@@ -1,0 +1,6 @@
+sub main(): Int {
+    print(3.inc().dbl())
+    dbl(inc(3))
+}
+sub inc($n: Int): Int { $n + 1 }
+sub dbl($n: Int): Int { $n * 2 }

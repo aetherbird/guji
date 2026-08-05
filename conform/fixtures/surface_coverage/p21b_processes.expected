@@ -1,0 +1,9 @@
+module=0
+exit=7
+argv-ok=true
+stderr-ok=true
+nul-count=3
+nul-not-truncated=true
+signal=143
+cannot run command: guji-process-definitely-missing-0000021
+cannot run command: conform/fixtures/surface_coverage/p21b_processes_deps/not_executable.guji

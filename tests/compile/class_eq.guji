@@ -1,0 +1,39 @@
+# D2 (spec §8): class values compare structurally — same class plus every field
+# equal (InstanceVal.Equal). Native previously lowered `==` to a C struct `==`,
+# which the C compiler rejects. This fixture proves the runtime structural path
+# over scalar, Float, Bool, Str, and List[scalar] fields — broader than the
+# two-Int `class_eq` divergence probe — and pins empty-list fields as equal.
+class Rec {
+    has $.id: Int
+    has $.ratio: Float
+    has $.active: Bool
+    has $.name: Str
+    has $.nums: List[Int]
+    has $.tags: List[Str]
+}
+
+sub main(): Unit {
+    $a = Rec(id: 1, ratio: 2.5, active: true, name: "x", nums: [1, 2, 3], tags: ["p", "q"])
+    $b = Rec(id: 1, ratio: 2.5, active: true, name: "x", nums: [1, 2, 3], tags: ["p", "q"])
+    print("all_eq: { $a == $b }")
+    print("all_neq: { $a != $b }")
+
+    $id2 = Rec(id: 9, ratio: 2.5, active: true, name: "x", nums: [1, 2, 3], tags: ["p", "q"])
+    print("id: { $a == $id2 }")
+    $ratio2 = Rec(id: 1, ratio: 9.0, active: true, name: "x", nums: [1, 2, 3], tags: ["p", "q"])
+    print("ratio: { $a == $ratio2 }")
+    $active2 = Rec(id: 1, ratio: 2.5, active: false, name: "x", nums: [1, 2, 3], tags: ["p", "q"])
+    print("active: { $a == $active2 }")
+    $name2 = Rec(id: 1, ratio: 2.5, active: true, name: "y", nums: [1, 2, 3], tags: ["p", "q"])
+    print("name: { $a == $name2 }")
+    $nums2 = Rec(id: 1, ratio: 2.5, active: true, name: "x", nums: [1, 2], tags: ["p", "q"])
+    print("nums_len: { $a == $nums2 }")
+    $nums3 = Rec(id: 1, ratio: 2.5, active: true, name: "x", nums: [1, 2, 4], tags: ["p", "q"])
+    print("nums_val: { $a == $nums3 }")
+    $tags2 = Rec(id: 1, ratio: 2.5, active: true, name: "x", nums: [1, 2, 3], tags: ["p", "z"])
+    print("tags: { $a == $tags2 }")
+
+    $e1 = Rec(id: 0, ratio: 0.0, active: false, name: "", nums: [], tags: ["z"])
+    $e2 = Rec(id: 0, ratio: 0.0, active: false, name: "", nums: [], tags: ["z"])
+    print("empty: { $e1 == $e2 }")
+}

@@ -1,0 +1,21 @@
+# F2b: an inline-constructed enum scrutinee with a Str field (`match Text("hi")`).
+# The materialised owned value is dropped after the chain via the enum field
+# release; with an immortal Str literal field that release is a no-op, but it
+# exercises the owned-scrutinee release path. Observed via stdout + exit code.
+enum Msg {
+  Text($s: Str)
+  Other($s: Str)
+}
+
+sub main(): Int {
+  match Text("hi") {
+    Text($x) {
+      print($x)
+      0
+    }
+    Other($x) {
+      print($x)
+      1
+    }
+  }
+}

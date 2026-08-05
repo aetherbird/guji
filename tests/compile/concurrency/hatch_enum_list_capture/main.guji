@@ -1,0 +1,61 @@
+# Section 17 hatch capture of List-payload enum bindings (H4c-rest slice).
+#
+# An enum whose variant carries List[Int] or List[Str] is a flat by-value struct,
+# but its list-storage handle (and, for List[Str], each element string) is a
+# counted heap pointer; a bare struct copy would ALIAS the parent heap under
+# non-atomic per-task RC. hatchCopyEnum struct-copies then deep-copies each active
+# List field with hatchCopyList, so the task owns a fully detached value and
+# releases it (guji_release_<E>_fields) at task exit — leak/UAF-clean.
+#
+# Deterministic: each hatch decodes its captured enum and sends one Str over its
+# OWN unbuffered channel; the parent recvs in a fixed order.
+enum Bag {
+    Ints($xs: List[Int])
+    Strs($ws: List[Str])
+    Empty
+}
+
+sub main(): Int {
+    $ints = Ints([3, 4, 5])
+    $strs = Strs(["foo", "bar"])
+    $intCh: Chan[Str] = channel(0)
+    $strCh: Chan[Str] = channel(0)
+
+    # Capture a List[Int]-payload variant and fold it inside the task.
+    hatch {
+        mut $s = ""
+        $s = match $ints {
+            Ints($xs) {
+                mut $sum = 0
+                for $n in $xs {
+                    $sum = $sum + $n
+                }
+                "sum={ $sum }"
+            }
+            Strs($ws) { "strs" }
+            Empty { "empty" }
+        }
+        $intCh.send($s)
+    }
+
+    # Capture a List[Str]-payload variant and join it inside the task.
+    hatch {
+        mut $s = ""
+        $s = match $strs {
+            Ints($xs) { "ints" }
+            Strs($ws) {
+                mut $joined = ""
+                for $w in $ws {
+                    $joined = $joined ~ $w
+                }
+                $joined
+            }
+            Empty { "empty" }
+        }
+        $strCh.send($s)
+    }
+
+    print($intCh.recv().unwrap())
+    print($strCh.recv().unwrap())
+    0
+}

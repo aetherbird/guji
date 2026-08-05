@@ -1,0 +1,17 @@
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    if $n > 0 { Some("x" ~ "y") } else { None }
+}
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ss: Option[Str] = mks(5)
+    $a: Option[Int] = $si.filter(sub($v: Int): Bool { $v > 2 })
+    $b: Option[Str] = filter($ss, sub($s: Str): Bool { $s == "xy" })
+    mut $code = 0
+    if $a.is_some() { $code = $code + 1 }
+    if $b.is_some() { $code = $code + 2 }
+    print("{ $code }")
+    0
+}

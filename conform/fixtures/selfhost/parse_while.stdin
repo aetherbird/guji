@@ -1,0 +1,8 @@
+# §6.3 while loop: count up to $n with a mutable index.
+sub count_up($n: Int): Int {
+    mut $i = 0
+    while $i < $n {
+        $i = $i + 1
+    }
+    $i
+}

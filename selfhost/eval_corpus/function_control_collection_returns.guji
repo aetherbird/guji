@@ -1,0 +1,100 @@
+# §7.4: first-class functions can return owned List/Map values, and function
+# values selected by if/match preserve their exact signature and closure
+# environment ownership across fresh, call-produced, and alias branches.
+sub make_label($prefix: Str) {
+    sub($n: Int): Str { $prefix ~ ":" ~ "{ $n }" }
+}
+
+sub apply($f, $n: Int): Int {
+    $f($n)
+}
+
+sub main(): Int {
+    $word = "val" ~ "ue"
+    $list_fn = sub($n: Int): List[Str] {
+        @items = [$word, "{ $n }"]
+        @items
+    }
+    print($list_fn(7))
+
+    $int_list_fn = sub($n: Int): List[Int] { [$n, $n + 1] }
+    print($int_list_fn(70))
+
+    $map_fn = sub($n: Int): Map[Str, Str] {
+        %items = {"label": $word, "number": "{ $n }"}
+        %items
+    }
+    print($map_fn(8))
+
+    $int_map_fn = sub($n: Int): Map[Str, Int] { {"number": $n} }
+    print($int_map_fn(80))
+
+    $from_call = make_label("call")
+    $if_fn = if true {
+        $branch_alias = $from_call
+        $branch_alias
+    } else {
+        sub($n: Int): Str { "fresh:{ $n }" }
+    }
+    print($if_fn(9))
+
+    $fresh_fn = if false {
+        $from_call
+    } else {
+        sub($n: Int): Str { "fresh:{ $n }" }
+    }
+    print($fresh_fn(10))
+
+    $match_call = match 2 {
+        1 { sub($n: Int): Str { "one:{ $n }" } }
+        2 { make_label("match") }
+        _ { $from_call }
+    }
+    print($match_call(11))
+
+    $match_fresh = match 1 {
+        1 { sub($n: Int): Str { "one:{ $n }" } }
+        2 { make_label("match") }
+        _ { $from_call }
+    }
+    print($match_fresh(12))
+
+    $match_alias = match 3 {
+        1 { sub($n: Int): Str { "one:{ $n }" } }
+        2 { make_label("match") }
+        _ { $from_call }
+    }
+    print($match_alias(13))
+
+    mut $chosen: Func[Int, Str] = make_label("old")
+    $chosen = if false {
+        $from_call
+    } else {
+        make_label("new")
+    }
+    print($chosen(14))
+
+    print(apply(if true {
+        sub($n: Int): Int { $n + 1 }
+    } else {
+        sub($n: Int): Int { $n + 2 }
+    }, 20))
+    print(apply(match 2 {
+        1 { sub($n: Int): Int { $n + 1 } }
+        _ { sub($n: Int): Int { $n + 2 } }
+    }, 20))
+    print(if true {
+        sub($n: Int): Int { $n + 1 }
+    } else {
+        sub($n: Int): Int { $n + 2 }
+    })
+    print((if true {
+        sub($n: Int): Int { $n + 1 }
+    } else {
+        sub($n: Int): Int { $n + 2 }
+    }) == (match 2 {
+        1 { sub($n: Int): Int { $n + 1 } }
+        _ { sub($n: Int): Int { $n + 2 } }
+    }))
+    0
+}

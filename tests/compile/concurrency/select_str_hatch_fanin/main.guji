@@ -1,0 +1,24 @@
+# §17.5 native `select` Str recv arm with NO `else`: no arm is ready at first, so
+# the select parks on the scheduler progress counter and is woken when the hatched
+# task sends. The message is a fresh (heap) Str copied across the per-task heap
+# boundary on send and adopted by the chosen arm — released once, LSan-clean.
+sub main(): Int {
+    $a: Chan[Str] = channel()
+    $b: Chan[Str] = channel()
+    hatch { $a.send("he" ~ "llo") }
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($s) { print($s) }
+                None { print("a closed") }
+            }
+        }
+        $w = $b.recv() {
+            match $w {
+                Some($s) { print($s) }
+                None { print("b closed") }
+            }
+        }
+    }
+    0
+}

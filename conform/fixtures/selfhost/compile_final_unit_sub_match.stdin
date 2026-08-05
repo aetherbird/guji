@@ -1,0 +1,14 @@
+enum Flag { On, Off }
+
+sub show_flag($f: Flag): Unit {
+  match $f {
+    On { print("on") }
+    Off { print("off") }
+  }
+}
+
+sub main(): Int {
+  show_flag(On)
+  show_flag(Off)
+  0
+}

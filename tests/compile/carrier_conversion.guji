@@ -1,0 +1,28 @@
+sub some_int($x: Int): Option[Int] { Some($x) }
+sub none_int(): Option[Int] { None }
+sub ok_int($x: Int): Result[Int, Str] { Ok($x) }
+sub err_int($m: Str): Result[Int, Str] { Err($m) }
+
+sub main(): Int {
+    $r = ok_int(7)
+    $e = err_int("boom")
+
+    # ok: Result -> Option
+    $o1 = $r.ok()
+    $o2 = ok($e)
+    print("{ $o1.is_some() } { $o2.is_some() }")
+
+    # err: Result -> Option
+    $o3 = $r.err()
+    $o4 = err($e)
+    print("{ $o3.is_some() } { $o4.is_some() }")
+
+    # ok_or: Option -> Result
+    $s = some_int(5)
+    $n = none_int()
+    $r1 = $s.ok_or("missing")
+    $r2 = ok_or($n, "absent")
+    print("{ $r1.is_ok() } { $r2.is_err() }")
+
+    0
+}

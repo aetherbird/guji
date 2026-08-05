@@ -1,0 +1,15 @@
+# O4: an earlier trapping call argument prevents later arguments from running.
+sub later(): Int {
+    print("late")
+    1
+}
+
+sub pair($left: Int, $right: Int): Int {
+    $left * 10 + $right
+}
+
+sub main(): Int {
+    $zero = 0
+    print(pair(10 / $zero, later()))
+    0
+}

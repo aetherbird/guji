@@ -1,0 +1,9 @@
+sub make_double() {
+    sub($n: Int): Int { $n * 2 }
+}
+
+sub main(): Int {
+    $f = make_double()
+    print($f(7))
+    0
+}

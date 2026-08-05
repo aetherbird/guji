@@ -1,0 +1,57 @@
+enum Item { Label($s: Str), Empty }
+
+sub make_item($s: Str, $b: Bool): Item {
+    if $b { Label("item:" ~ $s) } else { Empty }
+}
+
+sub tag_s($s: Str): Result[Str, Str] {
+    if $s == "" { Err("empty") } else { Ok("tag:" ~ $s) }
+}
+
+sub direct($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 0
+    match make_item($s, $b) {
+        Label($label) {
+            $n = parse_int($s)?
+            return Ok($n + 10)
+        }
+        Empty { $r = 3 }
+    }
+    Ok($r)
+}
+
+sub hoisted($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 0
+    match make_item($s, $b) {
+        Label($label) {
+            $n = parse_int($s)? + 1
+            $r = $n * 2
+        }
+        Empty { $r = 4 }
+    }
+    Ok($r)
+}
+
+sub reassigned($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 7
+    match make_item($s, $b) {
+        Label($label) { $r = parse_int($s)? + 2 }
+        Empty { $r = 5 }
+    }
+    Ok($r)
+}
+
+sub strpayload($s: Str, $b: Bool): Result[Int, Str] {
+    mut $r = 0
+    match make_item($s, $b) {
+        Label($label) {
+            $t = tag_s($s)?
+            print("tagged { $t }")
+            $r = 6
+        }
+        Empty { $r = 8 }
+    }
+    Ok($r)
+}
+
+sub main(): Int { 0 }

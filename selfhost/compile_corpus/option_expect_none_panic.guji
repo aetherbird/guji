@@ -1,0 +1,16 @@
+# §15.5 / §11.2 `expect` of a `None` PANICS with the USER message (not the fixed
+# "unwrap on None"). The message is lowered eagerly and passed to `guji_panic`;
+# native == selfhost stderr is byte-identical, interp errored-ness consistent.
+# The message here is a HEAP-built Str (`~`) to exercise the message-tmp handling
+# on the panic path. THREE-WAY: exit 1, same stderr "custom: none".
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub main(): Int {
+    $none: Option[Int] = mki(-1)
+    print("before")
+    if expect($none, "custom" ~ ": none") == 5 { print("unreachable") }
+    0
+}

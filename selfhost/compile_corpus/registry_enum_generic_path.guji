@@ -1,0 +1,24 @@
+# G6-gen-2a: a fresh user enum with scalar and Str payloads in supported
+# positions. Construction and PVariant matching are routed through CgVariantMeta
+# lookup; the oracle-visible behavior stays ordinary enum construction + match.
+enum Token {
+    Pair($s: Str, $n: Int)
+    Done
+}
+
+sub main(): Int {
+    $a: Token = Pair("go", 5)
+    $b: Token = Done
+    $x = match $a {
+        Pair($w, $n) {
+            print($w)
+            $n + 3
+        }
+        Done { 0 }
+    }
+    $y = match $b {
+        Pair($w, $n) { $n }
+        Done { 0 }
+    }
+    $x + $y
+}

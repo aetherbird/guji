@@ -1,0 +1,24 @@
+grammar Email {
+    rule  TOP    { <user> '@' <domain> }
+    token user   { \w+ }
+    token domain { \w+ '.' \w+ }
+}
+
+sub root($s: Str): Bush {
+    Email.parse($s).unwrap()
+}
+
+sub first_cap($b: Bush): Bush {
+    $b<user>.unwrap()
+}
+
+sub text_of($b: Bush): Str {
+    $b.text
+}
+
+sub main(): Unit {
+    $b = root('ada@example.com')
+    print($b.text_of())
+    $u = $b.first_cap()
+    print(text_of($u))
+}

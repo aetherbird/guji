@@ -1,0 +1,7 @@
+# §11.2 panic writes the message to stderr, flushes prior stdout, and exits 1.
+
+sub main(): Int {
+    $msg = "boom " ~ "now"
+    print("before")
+    panic($msg)
+}

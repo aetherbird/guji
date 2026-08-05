@@ -1,0 +1,10 @@
+# §5.5 operator precedence — the parse tree already encodes precedence, the
+# evaluator just walks it. * binds tighter than +, unary - tighter than *.
+sub main(): Int {
+    print(2 + 3 * 4)
+    print((2 + 3) * 4)
+    print(10 - 2 - 3)
+    print(2 * 3 + 4 * 5)
+    print(0 - 2 * 3)
+    0
+}

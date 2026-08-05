@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.1 `sort_by(@xs, f)` / `@xs.sort_by(f)` lowering. The selfhost port
+# computes every key once, stable-sorts an order array by those keys, then copies
+# source elements through the order. Str keys are owned by a GUJI_KIND_ARR_STR
+# scratch array in this port and released after sorting; Str and nested-list result
+# slots retain the counted storage copied out of the source.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_SCALAR, sizeof(int64_t),"))
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_STR, sizeof(const char*),"))
+            print(has_text($c, "strcmp(((const char**)gk"))
+            print(has_text($c, "guji_release((const void*)gk"))
+            print(has_text($c, ".data)[gi"))
+            print(has_text($c, "[go"))
+            print(has_text($c, "guji_retain(((const char**)"))
+            print(has_text($c, "guji_retain((const void*)(((guji_slice_t*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

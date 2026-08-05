@@ -1,0 +1,11 @@
+sub classify($x: Int): Int {
+    match $x {
+        $n if $n > 10 { 100 }
+        $n if $n > 0 { 50 }
+        _ { 0 }
+    }
+}
+sub main(): Int {
+    $code = classify(15) + classify(5) + classify(-3)
+    if $code == 150 { 0 } else { 1 }
+}

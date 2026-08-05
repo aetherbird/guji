@@ -1,0 +1,3 @@
+sub main(): Unit {
+    print("unit main ok")
+}

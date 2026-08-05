@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.1 list `get` method-form lowering. The stdin program uses
+# `split(...).get(0)`, so the receiver is an owned list-producing call rather
+# than a bound `get(@xs, i)` ordinary call.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = (void*)guji_split("))
+            print(has_text($c, ".tag = 1LL; "))
+            print(has_text($c, ".val = ((const char**)"))
+            print(has_text($c, ".tag = 0LL; "))
+            print(has_text($c, ".val = GUJI_EMPTY_STR;"))
+            print(has_text($c, " >= 0LL && "))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

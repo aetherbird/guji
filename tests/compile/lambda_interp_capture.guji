@@ -1,0 +1,22 @@
+# Lambda closures that reference a captured binding ONLY through string
+# interpolation must still capture it (H4c-lambda-interp-capture). The free-var
+# collector used to skip StringLiteral nodes, so native codegen failed
+# "undefined variable" while the interpreter (which snapshots the whole env)
+# accepted the program. Both the brace form ("{ $x }") and the bare sigil form
+# ($x) are covered, across Str and scalar capture types.
+sub main(): Int {
+    $name = "guji"
+    $base = 100
+    $rate = 1.5
+
+    # Str capture used only via the brace interpolation form.
+    $brace = sub($n: Int): Str { "name={ $name } n={ $n }" }
+
+    # Str + Int + Float captures used only via the bare sigil interpolation
+    # form ($name / $base / $rate never appear as a non-string expression).
+    $sigil = sub($n: Int): Str { "hi $name base=$base rate=$rate n={ $n }" }
+
+    print($brace(7))
+    print($sigil(9))
+    0
+}

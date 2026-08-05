@@ -1,0 +1,14 @@
+sub oki($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+sub oks($n: Int): Result[Str, Int] {
+    if $n > 0 { Ok("pay" ~ "load") } else { Err(-3) }
+}
+sub main(): Int {
+    $r: Result[Int, Str] = oki(5)
+    $s: Result[Str, Int] = oks(1)
+    mut $c = 0
+    if $r.unwrap() == 5 { $c = $c + 1 }
+    print(unwrap($s))
+    $c
+}

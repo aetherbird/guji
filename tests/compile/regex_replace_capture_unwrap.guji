@@ -1,0 +1,7 @@
+# Spec §13.3: $m[0] is Option[Str]; unwrap inside replace_with must have the
+# Option[Str] carrier typedef available in the callback loop.
+sub main(): Unit {
+    $s = "a1b2c3"
+    print($s.replace(/\d/, "#"))
+    print($s.replace_with(/\d/, sub($m: Match): Str { "[{ $m[0].unwrap() }]" }))
+}

@@ -1,0 +1,11 @@
+# P6e-replace-a: ordinary regex template replacement, including named and
+# positional captures, method/data-first spellings, and a computed template.
+sub main(): Int {
+    $a = "a1b22".replace(/(?<d>\d+)/, '[$<d>:$0]')
+    $b = replace("x-y", /(?<l>\w)-(\w)/, '$2$1')
+    $suffix = "!"
+    $template = '<$0>' ~ $suffix
+    $c = "m3n".replace(/\d/, $template)
+    print("$a|$b|$c")
+    0
+}

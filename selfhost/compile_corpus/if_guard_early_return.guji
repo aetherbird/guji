@@ -1,0 +1,14 @@
+# Statement-position `if cond { ...; return N }` (the driver's usage guard). With
+# no CLI args, args().count() is 0 < 3, so the guard is TAKEN: it notes to stderr
+# and early-returns 2. The owned `@argv` slice in scope must be released before the
+# C `return` (LeakSan), and the function-level cleanup on the fall-through path is
+# not reached on this branch (no double-free).
+sub main(): Int {
+    @argv = args()
+    if @argv.count() < 3 {
+        note("usage: compile_driver <src> <out> <prologue>")
+        return 2
+    }
+    note("ready")
+    0
+}

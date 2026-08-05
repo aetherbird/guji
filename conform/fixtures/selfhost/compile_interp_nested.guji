@@ -1,0 +1,31 @@
+# gujiconform - slice 6 interpolation-scan fix (2026-07-05).
+# `{ expr }` interpolation bodies must be scanned with BALANCED braces (native
+# scanBraceExpr), so a nested `{ match … { … } … }` lowers as ONE expression.
+# Before the fix the close scan stopped at the FIRST `}`: the unparseable prefix
+# `{ match $d { Red { 0 }` was emitted literally and the inner `{ 1 }` / `{ 2 }`
+# fragments were evaluated on their own — a silent divergence from both Go
+# oracles (they print `1`). Pins: the match lowers to tag-dispatch C (int
+# display + tag compare), and NO literal fragment of the match text survives in
+# the generated C.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_int_str("))
+            print(has_text($c, ".tag == 0LL"))
+            print(has_text($c, 'match $d'))
+            print(has_text($c, 'Green '))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

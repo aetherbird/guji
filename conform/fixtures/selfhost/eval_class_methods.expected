@@ -1,0 +1,10 @@
+42
+true
+false
+Account(balance: 42, pin: 0000)
+84
+true
+false
+--- guji selfhost env ---
+$a = Account(balance: 40, pin: 0000)
+$b = Account(balance: 42, pin: 0000)

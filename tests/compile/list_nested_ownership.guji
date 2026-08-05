@@ -1,0 +1,45 @@
+# RC1.2b-ii: List[List[T]] ownership. ARR_SLICE storage owns its rows' .data
+# fields; a sub returning List[List[T]] heap-copies via sliceFromList; the
+# caller's owned outer slice is released at scope exit (guji_drop_arr_slice
+# cascades to each row's .data). Covers Int, Str, and Float inner types,
+# sub-call results released by the caller, a parameter pass-through, and
+# an alias rebind that borrows without re-owning.
+
+sub rows_int(): List[List[Int]] {
+    [[1, 2, 3], [4, 5]]
+}
+
+sub rows_str(): List[List[Str]] {
+    [["ann", "bo"], ["cy", "di", "eve"]]
+}
+
+sub pass_through(@xss: List[List[Int]]): List[List[Int]] {
+    @xss
+}
+
+sub main(): Unit {
+    # Int rows: sub-call result released by caller at scope exit.
+    @ri = rows_int()
+    print(@ri.count())
+    print(@ri[0][2])
+    print(@ri[1].sum())
+
+    # Str rows.
+    @rs = rows_str()
+    print(@rs[0].join(","))
+    print(@rs[1].count())
+
+    # Pass-through: sub receives and returns List[List[Int]] unchanged.
+    @pt = pass_through(rows_int())
+    print(@pt[0][0])
+    print(@pt.count())
+
+    # Alias binding: borrowed view, no extra release.
+    @alias = @ri
+    print(@alias[1][0])
+
+    # Float rows (literal, no sub call).
+    @rf = [[1.5, 2.5], [0.5]]
+    print(@rf[0].sum())
+    print(@rf[1][0])
+}

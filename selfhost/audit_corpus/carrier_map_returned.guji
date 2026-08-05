@@ -1,0 +1,6 @@
+# DECLINE-AUDIT (slice 4d): a Map[Str, Int] enum carrier RETURNED then matched.
+enum Env { Vars(%m: Map[Str, Int]) }
+sub mk(): Env { Vars({"k": 5}) }
+sub main(): Int {
+    match mk() { Vars(%m) { print(%m) 0 } }
+}

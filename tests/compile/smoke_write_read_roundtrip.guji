@@ -1,0 +1,23 @@
+# W5 smoke tool (Platform slice 2, write IO acceptance): an end-to-end "save then
+# load" tool proving write_file -> read_file ROUND-TRIPS the bytes identically.
+# The payload is multi-line and carries UTF-8 text (the spec pins UTF-8 Str IO),
+# so this also smoke-tests that no newline is added and no transcoding happens.
+# The fixture truncates via write_file at the START, so it stays idempotent under
+# the gate's interp-then-native (and repeated native) runs in the same directory.
+# The observable is on stdout: it prints OK only when the loaded Str equals the
+# saved Str exactly, so a silent divergence in either engine fails the gate.
+sub main(): Int {
+    $path = "smoke_write_read_roundtrip.generated"
+    $payload = "line one\nλ two — ünïcode\nline three"
+
+    write_file($path, $payload).unwrap()
+    $loaded = read_file($path).unwrap()
+
+    if $loaded == $payload {
+        print("roundtrip ok")
+    } else {
+        print("roundtrip MISMATCH")
+        print($loaded)
+    }
+    0
+}

@@ -1,0 +1,7 @@
+# Every lambda form rejects a read of an enclosing mutable binding.
+sub main(): Int {
+    mut $offset = 1
+    $add = sub($number: Int): Int { $number + $offset }
+    print($add(2))
+    0
+}

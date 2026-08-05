@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P9-6b flat enum/class List ownership.
+# User records need program-specific array kinds: their rows may transitively own
+# counted fields, so list copies retain fields and array drops release every row.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "GUJI_KIND_Tag_ARR"))
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_Tag_ARR"))
+            print(has_text($c, "guji_drop_arr_Tag"))
+            print(has_text($c, "guji_retain_Tag_fields(&((Tag*)"))
+            print(has_text($c, "GUJI_KIND_Person_ARR"))
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_Person_ARR"))
+            print(has_text($c, "guji_drop_arr_Person"))
+            print(has_text($c, "guji_retain_Person_fields(&((Person*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

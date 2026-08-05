@@ -1,0 +1,16 @@
+# §7.4/I4a: parameterized lambdas are first-class values even without capture.
+# Exercise every compiler-supported scalar argument/result kind, multiple
+# parameters, a tail result, and an explicit return through a direct bound call.
+sub main(): Int {
+    $add = sub($left: Int, $right: Int): Int { $left + $right }
+    $positive = sub($value: Int): Bool { $value > 0 }
+    $ratio = sub($top: Float, $bottom: Float): Float { $top / $bottom }
+    $wrap = sub($text: Str): Str { return "<" ~ $text ~ ">" }
+
+    print($add(20, 22))
+    print($positive(3))
+    print($positive(0))
+    print($ratio(9.0, 2.0))
+    print($wrap("guji"))
+    $add(-2, 2)
+}

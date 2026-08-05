@@ -1,0 +1,30 @@
+# P8e-5: pin scalar struct-copy, active Str/List/Map detach, recursive clone,
+# enum adoption, and task-frame enum release.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_task_spawn(&") == 3)
+            print(count_of($c, "Signal cap_signal;") == 1)
+            print(count_of($c, "Packet cap_packet;") == 1)
+            print(count_of($c, "Tree cap_tree;") == 1)
+            print(count_of($c, "->cap_signal = gv") == 1)
+            print(count_of($c, "->cap_packet = gv") == 1)
+            print(count_of($c, "->cap_packet.f0 = guji_str_copy(") == 1)
+            print(count_of($c, "->cap_packet.f1.data = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "->cap_packet.f2.keys = (const char**)guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "->cap_packet.f2.vals = guji_copy_arr((const void*)") == 1)
+            print(count_of($c, "->cap_tree = guji_clone_Tree_value(&gv") == 1)
+            print(count_of($c, "= env->cap_packet;") == 1)
+            print(count_of($c, "guji_release_Packet_fields(&gv") > 0)
+            print(count_of($c, "guji_release_Tree_fields(&gv") > 0)
+            0
+        }
+    }
+}

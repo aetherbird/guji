@@ -1,0 +1,9 @@
+# Closed/drained is the OUTER None; unwrapping it follows the ordinary fixed
+# Option panic path rather than confusing it with a delivered inner None.
+sub main(): Int {
+    $ch: Chan[Option[Int]] = channel(1)
+    $ch.close()
+    $x = $ch.recv().unwrap()
+    print($x.unwrap())
+    0
+}

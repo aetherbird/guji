@@ -1,0 +1,54 @@
+# gujiconform bug #3 — range iteration at the Int boundaries (§5.4, §6.3).
+#
+# `a .. b` is an inclusive Int range; `a ..< b` is half-open (excludes b).
+# Iterating a range whose upper bound touches the 64-bit Int boundary must
+# TERMINATE CORRECTLY — no integer overflow, no runaway. A naive counter that
+# computes `last + 1` to test the loop condition overflows at INT64_MAX (wrapping
+# to INT64_MIN) and never terminates; the spec requires the loop to stop after
+# yielding the final element. Both engines previously diverged from the spec
+# here: the interpreter ran away (materializing until OOM), and native panicked
+# with "integer overflow" on the increment past INT64_MAX.
+sub count_incl($lo: Int, $hi: Int): Int {
+    mut $n = 0
+    for $i in $lo .. $hi {
+        $n = $n + 1
+    }
+    $n
+}
+
+sub last_incl($lo: Int, $hi: Int): Int {
+    mut $last = $lo
+    for $i in $lo .. $hi {
+        $last = $i
+    }
+    $last
+}
+
+sub count_half($lo: Int, $hi: Int): Int {
+    mut $n = 0
+    for $i in $lo ..< $hi {
+        $n = $n + 1
+    }
+    $n
+}
+
+sub main(): Unit {
+    # Inclusive range ending exactly at INT64_MAX: yields the three boundary
+    # values and then stops (no overflow, no runaway).
+    print("incl-at-max count: { count_incl(9223372036854775805, 9223372036854775807) }")
+    print("incl-at-max last: { last_incl(9223372036854775805, 9223372036854775807) }")
+
+    # Half-open range whose upper bound is INT64_MAX: excludes INT64_MAX, so it
+    # yields the two values below it.
+    print("half-at-max count: { count_half(9223372036854775805, 9223372036854775807) }")
+
+    # Half-open range whose upper bound is INT64_MIN is always empty (every lower
+    # bound is >= INT64_MIN), and decrementing the bound must not underflow.
+    $minint = 0 - 9223372036854775807 - 1
+    print("half-to-min count: { count_half(0, $minint) }")
+
+    # Ordinary ranges away from the boundary are unaffected.
+    print("normal count: { count_incl(1, 5) }")
+    print("empty count: { count_incl(5, 3) }")
+    print("single count: { count_incl(7, 7) }")
+}

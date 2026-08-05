@@ -1,0 +1,7 @@
+sub main(): Unit {
+    @cube = [[[[1]]], [[[2]]]]
+    %nested = {"a": {"b": {"c": {"d": [1, 2]}}}}
+    @maps = [{"a": [{"x": {"y": [1]}}]}]
+    @ks = %nested.keys()
+    print("{ @cube.count() }/{ @ks.count() }/{ @maps.count() }")
+}

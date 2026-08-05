@@ -1,0 +1,83 @@
+# §17.5 scalar select: source-ordered recv/send polling, bound and unbound
+# arms, closed recv readiness, optional else, and blocking wake through hatch.
+sub main(): Int {
+    $ints: Chan[Int] = channel(2)
+    $bools: Chan[Bool] = channel(1)
+    $ints.send(42)
+    $bools.send(true)
+
+    select {
+        $got = $ints.recv() {
+            match $got {
+                Some($n) { print("int $n") }
+                None { print("int closed") }
+            }
+        }
+        $flag = $bools.recv() { print("wrong first") }
+        else { print("wrong else") }
+    }
+
+    # The first source arm now blocks, so the second ready arm wins.
+    select {
+        $got = $ints.recv() { print("wrong empty") }
+        $flag = $bools.recv() {
+            match $flag {
+                Some($b) { print("bool $b") }
+                None { print("bool closed") }
+            }
+        }
+        else { print("wrong second else") }
+    }
+
+    select {
+        $got = $ints.recv() { print("wrong poll") }
+        else { print("idle") }
+    }
+
+    $out: Chan[Int] = channel(1)
+    select {
+        $sent = $out.send(9) {
+            match $sent {
+                Ok($u) { print("sent") }
+                Err($e) { print("send closed") }
+            }
+        }
+        else { print("wrong send else") }
+    }
+    # A full buffered channel makes the send unavailable, so else runs.
+    select {
+        $out.send(10) { print("wrong full") }
+        else { print("full") }
+    }
+    print($out.recv().unwrap())
+
+    # Float exercises the distinct double slot and both unbound arm forms.
+    $floats: Chan[Float] = channel(1)
+    select { $floats.send(2.5) { print("float sent") } }
+    select { $floats.recv() { print("float dropped") } }
+
+    # No else: park on scheduler progress until the hatched sender arrives.
+    $sync: Chan[Int] = channel()
+    hatch { $sync.send(7) }
+    select {
+        $v = $sync.recv() {
+            match $v {
+                Some($n) { print("wake $n") }
+                None { print("wake closed") }
+            }
+        }
+    }
+
+    # Closed-and-drained recv is ready and binds None.
+    $closed: Chan[Int] = channel()
+    $closed.close()
+    select {
+        $v = $closed.recv() {
+            match $v {
+                Some($n) { print("wrong closed value") }
+                None { print("closed") }
+            }
+        }
+    }
+    0
+}

@@ -1,0 +1,41 @@
+# Section 17.5 blocking select recv over a recursive-box enum channel. The hatch
+# send deep-clones the tree into the channel, and select parks until the message
+# is ready, then releases the adopted boxed graph after the arm.
+enum Tree {
+    Leaf($name: Str, $value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf(_, $v) { $v }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub names($t: Tree): Str {
+    match $t {
+        Leaf($n, _) { $n }
+        Node($l, $r) { names($l) ~ names($r) }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Tree] = channel()
+    $tree = Node(Leaf("a", 1), Node(Leaf("b", 2), Leaf("c", 3)))
+    hatch {
+        $ch.send($tree)
+    }
+
+    select {
+        $v = $ch.recv() {
+            if $v.is_some() {
+                $t = $v.unwrap()
+                print("{ sum($t) }")
+                print(names($t))
+            } else {
+                print("closed")
+            }
+        }
+    }
+}

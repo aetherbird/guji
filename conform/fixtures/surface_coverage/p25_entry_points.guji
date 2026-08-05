@@ -1,0 +1,7 @@
+# Spec 18: Int main receives guest argv and its value becomes process status.
+sub main(): Int {
+    @argv = args()
+    $joined = @argv.join("|")
+    print("int-main=$joined")
+    7
+}

@@ -1,0 +1,4 @@
+# T2: explicit returns nested in if blocks still check the enclosing sub return.
+sub main(): Int {
+    if true { return "s" } else { 0 }
+}

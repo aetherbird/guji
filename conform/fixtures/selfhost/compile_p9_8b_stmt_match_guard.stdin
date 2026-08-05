@@ -1,0 +1,12 @@
+sub make_opt($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub main(): Int {
+    $o = make_opt(5)
+    match $o {
+        Some($v) if $v > 10 { print("big") }
+        Some($v) { print("small { $v }") }
+        None { print("none") }
+    }
+    0
+}

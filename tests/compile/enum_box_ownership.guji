@@ -1,0 +1,30 @@
+# RC1.4d: boxed recursive-enum payloads are reference-counted.
+# This fixture exercises alias init retain, alias-shaped return retain,
+# mut rebind release, and scope-exit release for Tree boxes.
+enum Tree {
+    Leaf($value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum_tree($t: Tree): Int {
+    match $t {
+        Leaf($v) { $v }
+        Node($l, $r) { sum_tree($l) + sum_tree($r) }
+    }
+}
+
+sub identity($t: Tree): Tree {
+    $t
+}
+
+sub main(): Int {
+    mut $a = Node(Leaf(1), Leaf(2))
+    $b = $a
+    $c = identity($b)
+    print("before rebind: { sum_tree($c) }")
+    $a = Node(Leaf(10), Leaf(20))
+    print("after rebind: { sum_tree($a) }")
+    print("alias still good: { sum_tree($b) }")
+    print("returned alias still good: { sum_tree($c) }")
+    0
+}

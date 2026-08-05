@@ -1,0 +1,58 @@
+# Section 17 hatch capture of nested-value-map-payload enum bindings
+# (H4c-rest slice).
+#
+# An enum whose variant carries Map[Str, List[Int]] or Map[Str, Map[Str, Str]]
+# is a flat by-value struct, but its outer key/value arrays AND the nested
+# list/map storage (and, for Str leaves, each value string) are counted heap
+# pointers; a bare struct copy would ALIAS the parent heap under non-atomic
+# per-task RC. hatchCopyEnum struct-copies then deep-copies each active Map field
+# with hatchCopyMap, recursing into the nested rows, so the task owns a fully
+# detached value and releases it (guji_release_<E>_fields, whose kind-tagged
+# array drops cascade into the nested storage) at task exit — leak/UAF-clean.
+#
+# Deterministic: each hatch decodes its captured enum by indexing fixed
+# keys/indices and sends one value over its OWN unbuffered channel; the parent
+# recvs in fixed order. The parent rebinds the source after spawn to prove the
+# tasks observe their detached copies, not the mutation.
+enum Bag {
+    Buckets($b: Map[Str, List[Int]])
+    Grid($g: Map[Str, Map[Str, Str]])
+    Empty
+}
+
+sub main(): Int {
+    mut $base = 5
+    $buckets = Buckets({"evens": [$base, 7], "odds": [1, 3]})
+    $grid = Grid({"left": {"x": "foo"}, "right": {"y": "bar"}})
+    $intCh: Chan[Int] = channel(0)
+    $strCh: Chan[Str] = channel(0)
+
+    # Capture a Map[Str, List[Int]]-payload variant and fold it inside the task.
+    hatch {
+        mut $s = 0
+        $s = match $buckets {
+            Buckets($b) { $b{"evens"}[0] + $b{"evens"}[1] + $b{"odds"}[1] }
+            Grid($g) { 0 }
+            Empty { 0 }
+        }
+        $intCh.send($s)
+    }
+
+    # Capture a Map[Str, Map[Str, Str]]-payload variant and join it inside the task.
+    hatch {
+        mut $w = ""
+        $w = match $grid {
+            Buckets($b) { "buckets" }
+            Grid($g) { $g{"left"}{"x"} ~ $g{"right"}{"y"} }
+            Empty { "empty" }
+        }
+        $strCh.send($w)
+    }
+
+    # Mutate the parent-side source after spawn; the tasks must observe their
+    # detached copies, not the rebind.
+    $base = 999
+    print($intCh.recv().unwrap())
+    print($strCh.recv().unwrap())
+    0
+}

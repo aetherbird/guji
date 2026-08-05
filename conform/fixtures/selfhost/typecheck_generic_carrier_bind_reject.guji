@@ -1,0 +1,22 @@
+# gujiconform — selfhost slice 6 P5b-2b(e-carrier) generic REJECTION parity
+# (§3.3). The stdin source is classified by the self-hosted type checker; this
+# pins the Equal-based annotated-bind check on a type param nested inside a
+# modeled carrier (Option[T] vs Option[Int]).
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

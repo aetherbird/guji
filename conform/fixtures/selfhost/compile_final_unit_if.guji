@@ -1,0 +1,24 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# Pins final-position Unit-shaped `if` lowering: both a user Unit sub and main's
+# final expression-statement if route through statement guard codegen and return 0.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "if (1LL)"))
+            print(has_text($c, "gf_show_flag("))
+            print(has_text($c, "non-exhaustive match"))
+            print(has_text($c, "return 0LL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

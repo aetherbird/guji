@@ -1,0 +1,109 @@
+sub owned($s: Str): Option[Str] { Some($s ~ "!") }
+
+sub match_in_if(): Int {
+    $o = owned("if")
+    if true {
+        match $o {
+            Some($s) { print($s); return 1 }
+            None { return 0 }
+        }
+    }
+    90
+}
+
+sub match_in_match(): Int {
+    match owned("outer") {
+        Some($outer) {
+            match owned($outer) {
+                Some($inner) { print($inner); return 2 }
+                None { return 0 }
+            }
+        }
+        None { return 0 }
+    }
+    91
+}
+
+sub select_in_if(): Int {
+    $ch: Chan[Str] = channel(1)
+    $ch.send("sel" ~ "ect")
+    if true {
+        select {
+            $got = $ch.recv() {
+                print($got.unwrap())
+                return 3
+            }
+        }
+    }
+    92
+}
+
+sub select_in_match(): Int {
+    match owned("guard") {
+        Some($outer) {
+            $ch: Chan[Str] = channel(1)
+            $ch.send("arm" ~ "-value")
+            select {
+                $got = $ch.recv() {
+                    print($outer ~ ":" ~ $got.unwrap())
+                    return 4
+                }
+            }
+        }
+        None { return 0 }
+    }
+    93
+}
+
+sub match_in_while(): Int {
+    mut $once = true
+    while $once {
+        $once = false
+        match owned("loop") {
+            Some($s) { print($s); return 5 }
+            None { return 0 }
+        }
+    }
+    94
+}
+
+sub match_in_select(): Int {
+    $ch: Chan[Str] = channel(1)
+    $ch.send("recv" ~ "-value")
+    select {
+        $got = $ch.recv() {
+            match owned($got.unwrap()) {
+                Some($s) { print($s); return 6 }
+                None { return 0 }
+            }
+        }
+    }
+    95
+}
+
+sub select_in_while(): Int {
+    $ch: Chan[Str] = channel(1)
+    $ch.send("loop" ~ "-select")
+    mut $once = true
+    while $once {
+        $once = false
+        select {
+            $got = $ch.recv() {
+                print($got.unwrap())
+                return 7
+            }
+        }
+    }
+    96
+}
+
+sub main(): Int {
+    print(match_in_if())
+    print(match_in_match())
+    print(select_in_if())
+    print(select_in_match())
+    print(match_in_while())
+    print(match_in_select())
+    print(select_in_while())
+    0
+}

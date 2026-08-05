@@ -1,0 +1,7 @@
+sub even($n: Int): Bool {
+    $n % 2 == 0
+}
+sub main(): Int {
+    $b = even(6)
+    if $b { 10 } else { 20 }
+}

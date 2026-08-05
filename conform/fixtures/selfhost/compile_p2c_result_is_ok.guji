@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 `is_ok($r)` / `$r.is_ok()` and `is_err($r)` / `$r.is_err()` lowering
+# over bound `Result[T,E]` locals. Native lowers them to pure tag tests:
+# Result tag 0 is Ok and nonzero is Err. The test should not retain or release
+# the payload; only the Result binding cleanup touches an active Str slot.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # is_ok (method + function form) -> `.tag == 0LL ? 1LL : 0LL`.
+            print(has_text($c, "gv1.tag == 0LL ? 1LL : 0LL"))
+            # is_err over the Str-error local -> `.tag != 0LL ? 1LL : 0LL`.
+            print(has_text($c, "gv6.tag != 0LL ? 1LL : 0LL"))
+            # The tag test itself performs no payload release; this is the binding
+            # cleanup for the active Err(Str) payload.
+            print(has_text($c, "guji_release(gv6.err); gv6.err = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

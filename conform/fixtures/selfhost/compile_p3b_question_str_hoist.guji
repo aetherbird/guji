@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4b compiler codegen fixture.
+# Pins `?` hoists whose success payload is Str. The synthetic local is a
+# `const char*`, takes the carrier slot directly, is retained by later Str value
+# lowering, and is released at scope cleanup.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "const char* gv"))
+            print(has_text($c, "gv3 = gr2.ok;"))
+            print(has_text($c, "gt4 = guji_retain(gv3);"))
+            print(has_text($c, "guji_release(gv3);"))
+            print(has_text($c, "gv2 = go1.val;"))
+            print(has_text($c, "gt3 = guji_retain(gv2);"))
+            print(has_text($c, "guji_release(gv2);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,66 @@
+# RC1.5b-ii probe: alias-init chains, rebinding in branches, borrowed views
+# stored into nested storage, and closures created inside loops.
+sub main(): Unit {
+    # Alias-init chain: three names over one value, then rebind the mut head.
+    mut $a = "root".upper()
+    $b = $a
+    $c = $b
+    $a = "next".upper()
+    print("{ $a } { $b } { $c }")
+
+    # Rebinding in branches: only one branch rebinds; both paths exit cleanly.
+    mut $s = "seed" ~ "0"
+    if $s == "seed0" {
+        $s = $s ~ "-long"
+    } else {
+        $s = $s ~ "-short"
+    }
+    print($s)
+
+    # Rebind inside a loop body under a condition.
+    mut $acc = ""
+    mut $i = 0
+    while $i < 4 {
+        if $i % 2 == 0 {
+            $acc = $acc ~ "e"
+        } else {
+            $acc = $acc ~ "o"
+        }
+        $i = $i + 1
+    }
+    print($acc)
+
+    # Borrowed list view stored into nested storage; both names live after.
+    @xs = [10, 20, 30].map({ $_ + 1 })
+    @view = @xs
+    @nest = [@xs, @view]
+    print("{ @nest[0][1] } { @nest[1][2] } { @view[0] }")
+
+    # Heap List[Str] view into nested storage.
+    @ss = "p,q,r".split(",")
+    @sv = @ss
+    @snest = [@ss, @sv]
+    print("{ @snest[1][0] } { @ss[2] }")
+
+    # Closure created inside a loop, escaping each iteration via a call.
+    mut $total = 0
+    mut $j = 0
+    while $j < 3 {
+        $k = $j
+        $f = sub($n: Int): Int { $n + $k }
+        $total = $total + $f(10)
+        $j = $j + 1
+    }
+    print($total)
+
+    # Str-capturing closure rebound each loop iteration; called after the loop.
+    mut $last = "z"
+    mut $m = 0
+    mut $tag = sub($x: Str): Str { $x }
+    while $m < 2 {
+        $piece = "p{ $m }"
+        $tag = sub($x: Str): Str { $piece ~ $x }
+        $m = $m + 1
+    }
+    print($tag($last))
+}

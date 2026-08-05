@@ -1,0 +1,3 @@
+Email.TOP=Seq[Ref(user),WS,Lit(@),WS,Ref(domain)]
+Email.user=Seq[Regex(\w+)]
+Email.domain=Seq[Regex(\w+),Lit(.),Regex(\w+)]

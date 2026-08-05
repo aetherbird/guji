@@ -1,0 +1,10 @@
+sub mk($n: Int): Option[Int] {
+    print("mk")
+    if $n > 0 { Some($n * 10) } else { None }
+}
+sub main(): Int {
+    match mk(4) {
+        Some($v) { $v }
+        None { 0 }
+    }
+}

@@ -1,0 +1,9 @@
+sub okList($n: Int): Result[List[Int], Str] {
+    if $n < 0 { Err("neg") } else { Ok([$n, $n]) }
+}
+
+sub main(): Unit {
+    print("{ okList(3) == okList(3) }")
+    print("{ okList(3) == okList(4) }")
+    print("{ okList(-1) == okList(-2) }")
+}

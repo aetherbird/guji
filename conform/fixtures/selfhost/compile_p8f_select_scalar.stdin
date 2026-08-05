@@ -1,0 +1,31 @@
+sub main(): Int {
+    $a: Chan[Int] = channel(1)
+    $b: Chan[Bool] = channel(1)
+    $a.send(4)
+    $b.send(true)
+
+    select {
+        $v = $a.recv() {
+            match $v { Some($n) { print($n) } None { print(0) } }
+        }
+        $b.recv() { print("bool") }
+        else { print("idle") }
+    }
+
+    $out: Chan[Float] = channel(1)
+    select {
+        $sent = $out.send(2.5) {
+            match $sent { Ok($u) { print("sent") } Err($e) { print("closed") } }
+        }
+        else { print("full") }
+    }
+
+    $sync: Chan[Int] = channel()
+    hatch { $sync.send(9) }
+    select {
+        $v = $sync.recv() {
+            match $v { Some($n) { print($n) } None { print(0) } }
+        }
+    }
+    0
+}

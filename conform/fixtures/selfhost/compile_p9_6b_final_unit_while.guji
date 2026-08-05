@@ -1,0 +1,23 @@
+# gujiconform - selfhost slice 6 P9-6b Unit-main final while/for.
+# Pins that g3_final_stmt admits RInt (Unit-annotated main's forced retkind)
+# for final while/for and still emits the ordinary loop + 0LL return.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "while (1)"))
+            print(has_text($c, "return 0LL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,15 @@
+class Cell { has $.v: Int }
+
+sub fetch(): Result[Cell, Str] { Ok(Cell(v: 7)) }
+
+sub neg_cell(): Int {
+    match fetch() {
+        Ok($r) { 0 - $r.v }
+        Err($e) { 0 }
+    }
+}
+
+sub main(): Int {
+    print(neg_cell())
+    0
+}

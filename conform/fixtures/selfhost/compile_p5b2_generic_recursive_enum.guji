@@ -1,0 +1,34 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # P5b-2h: the recursive `Stack[T]` payload is rewritten to the spec's
+            # OWN name during monomorphization, so both instantiations get the
+            # concrete self-referential BOXED payload field (heap indirection),
+            # exactly like a source-level recursive enum.
+            print(has_text($c, "Stack__Int* f1;"))
+            print(has_text($c, "Stack__Str* f1;"))
+            # Boxed construction allocates per-spec kinds.
+            print(has_text($c, "guji_alloc(GUJI_KIND_Stack__Int, 0, sizeof(Stack__Int))"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_Stack__Str, 0, sizeof(Stack__Str))"))
+            # Both specs land their own drop-table entries.
+            print(has_text($c, "guji_drop_Stack__Int, /* GUJI_KIND_Stack__Int */"))
+            print(has_text($c, "guji_drop_Stack__Str, /* GUJI_KIND_Stack__Str */"))
+            # NEGATIVE: the TEMPLATE must not leak into the emitted C — no
+            # by-value bare `Stack` payload field and no template drop entry.
+            print(!has_text($c, "Stack f1;"))
+            print(!has_text($c, "guji_drop_Stack,"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

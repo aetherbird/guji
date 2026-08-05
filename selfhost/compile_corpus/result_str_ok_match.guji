@@ -1,0 +1,10 @@
+sub mk($n: Int): Result[Str, Int] {
+    if $n > 0 { Ok("yes") } else { Err(9) }
+}
+
+sub main(): Int {
+    match mk(1) {
+        Ok($s) { print($s) 3 }
+        Err($e) { $e }
+    }
+}

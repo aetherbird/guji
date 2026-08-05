@@ -1,0 +1,13 @@
+# P9-4b — THREE-WAY: statement-position `Result[Unit, Str].unwrap()` on the
+# write_file/append_file prelude (the shape that blocked smoke_write_read_roundtrip
+# and io_write_file). Match-based write_file already AGREEd; this closes the
+# `.unwrap()` discard path native emits as carrier + Err-tag panic + `(void)(.ok)`
+# + carrier release. Also covers method-form path.write_file(...).unwrap().
+sub main(): Int {
+    $path = "/tmp/guji_selfhost_p94b_unwrap.txt"
+    write_file($path, "alpha").unwrap()
+    append_file($path, "\nbeta").unwrap()
+    $path.write_file("fresh").unwrap()
+    print(read_file($path).unwrap())
+    0
+}

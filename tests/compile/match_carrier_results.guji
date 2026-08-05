@@ -1,0 +1,105 @@
+# RC1.5b-ii: match expressions whose ARMS yield Option/Result values.
+# Two previously broken paths: an enum-subject match yielding a carrier
+# mis-declared its result temp as int64_t (cc error), and a carrier-subject
+# match yielding a carrier was rejected outright. Both now mirror the
+# if-expression carrier path. Owned locals created inside arms, mut rebinds
+# from arms, nested matches, and arm-level early failures are exercised too.
+enum Shape {
+    Tag($text: Str)
+    Pair($a: Str, $b: Str)
+    Nil
+}
+
+sub describe($s: Shape): Str {
+    match $s {
+        Tag($t) { "tag:" ~ $t }
+        Pair($a, $b) { $a ~ "+" ~ $b }
+        Nil { "nil" }
+    }
+}
+
+sub early($s: Shape): Result[Str, Str] {
+    $own = "early" ~ "-own"
+    match $s {
+        Tag($t) {
+            if $t == "boom" {
+                Err("bad " ~ $t)
+            } else {
+                print($own)
+                Ok("good " ~ $t)
+            }
+        }
+        Pair($a, $b) { Ok($a ~ $b) }
+        Nil { Err($own) }
+    }
+}
+
+sub flip($o: Option[Str]): Result[Str, Str] {
+    match $o {
+        Some($v) { Ok($v ~ "-ok") }
+        None { Err("was" ~ "-none") }
+    }
+}
+
+sub main(): Int {
+    print(describe(Tag("x" ~ "1")))
+    print(describe(Pair("le" ~ "ft", "ri" ~ "ght")))
+    print(describe(Nil))
+
+    # mut rebind from inside a match arm.
+    mut $acc = "start"
+    match Tag("mid") {
+        Tag($t) { $acc = $acc ~ "-" ~ $t }
+        Pair($a, $b) { $acc = $a }
+        Nil { $acc = "none" }
+    }
+    print($acc)
+
+    # Nested match; inner arm creates an owned Str, outer arm consumes it.
+    $r = match Pair("aa", "bb") {
+        Pair($a, $b) {
+            match Tag($a ~ $b) {
+                Tag($t) { $t.upper() }
+                Pair($x, $y) { $x }
+                Nil { "?" }
+            }
+        }
+        Tag($t) { $t }
+        Nil { "?" }
+    }
+    print($r)
+
+    # Enum-subject match yielding Result[Str, Str].
+    match early(Tag("boom")) {
+        Ok($v) { print("ok { $v }") }
+        Err($e) { print("err { $e }") }
+    }
+    match early(Tag("fine")) {
+        Ok($v) { print("ok { $v }") }
+        Err($e) { print("err { $e }") }
+    }
+    match early(Nil) {
+        Ok($v) { print("ok { $v }") }
+        Err($e) { print("err { $e }") }
+    }
+
+    # Carrier-subject match yielding another carrier.
+    $oa: Option[Str] = Some("pay" ~ "load")
+    match flip($oa) {
+        Ok($v) { print("ok { $v }") }
+        Err($e) { print("err { $e }") }
+    }
+    $ob: Option[Str] = None
+    match flip($ob) {
+        Ok($v) { print("ok { $v }") }
+        Err($e) { print("err { $e }") }
+    }
+
+    # Bind a carrier produced by a match expression, then consume it.
+    $bound = flip($oa)
+    match $bound {
+        Ok($v) { print("bound { $v }") }
+        Err($e) { print("bound err { $e }") }
+    }
+    0
+}

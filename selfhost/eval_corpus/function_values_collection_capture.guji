@@ -1,0 +1,58 @@
+# Spec §7.4: immutable List/Map values are captured by value in a closure.
+# Repeated calls and an alias reuse the same owned environment. Sending the
+# closures through buffered channels exercises copy_env's detached collection
+# wrappers; the final undrained function proves teardown drops the copied graph.
+sub main(): Int {
+    @numbers: List[Int] = [3, 5, 8]
+    %weights: Map[Str, Int] = {"bonus": 10}
+    $sum: Func[Int, Int] = sub($i: Int): Int {
+        @numbers[$i] + %weights{"bonus"}
+    }
+
+    print($sum(0))
+    $again: Func[Int, Int] = $sum
+    print($again(1))
+
+    $number_ch: Chan[Func[Int, Int]] = channel(1)
+    $number_sent = $number_ch.send($sum)
+    $number_recv = $number_ch.recv()
+    $detached_sum: Func[Int, Int] = $number_recv.unwrap()
+    print($detached_sum(2))
+
+    @rows: List[List[Int]] = [[1, 2], [3, 4]]
+    %tables: Map[Str, Map[Str, Int]] = {"outer": {"value": 9}}
+    $nested: Func[Int, Int] = sub($i: Int): Int {
+        @rows[$i][1] + %tables{"outer"}{"value"}
+    }
+    print($nested(0))
+
+    $nested_ch: Chan[Func[Int, Int]] = channel(1)
+    $nested_sent = $nested_ch.send($nested)
+    $nested_recv = $nested_ch.recv()
+    $detached_nested: Func[Int, Int] = $nested_recv.unwrap()
+    print($detached_nested(1))
+
+    @empty: List[Int] = []
+    %empty: Map[Str, Int] = {}
+    $empty_state = sub(): Int {
+        if %empty.has_key("x") { -1 } else { @empty.count() }
+    }
+    print($empty_state())
+
+    @words: List[Str] = ["al" ~ "pha", "be" ~ "ta"]
+    %labels: Map[Str, Str] = {"suffix": "!" ~ "!"}
+    $show: Func[Int, Str] = sub($i: Int): Str {
+        @words[$i] ~ %labels{"suffix"}
+    }
+    print($show(0))
+
+    $text_ch: Chan[Func[Int, Str]] = channel(1)
+    $text_sent = $text_ch.send($show)
+    $text_recv = $text_ch.recv()
+    $detached_show: Func[Int, Str] = $text_recv.unwrap()
+    print($detached_show(1))
+
+    $drop_ch: Chan[Func[Int, Str]] = channel(1)
+    $drop_sent = $drop_ch.send($show)
+    0
+}

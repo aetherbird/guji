@@ -1,0 +1,11 @@
+sub main(): Int {
+    mut $sum = 0
+    for $x in [1, 2, 3] {
+        $sum = $sum + $x
+    }
+    %ages = {"ada": 30}
+    for $name, $age in %ages {
+        print($name)
+    }
+    0
+}

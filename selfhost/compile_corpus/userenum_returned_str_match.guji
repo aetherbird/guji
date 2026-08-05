@@ -1,0 +1,21 @@
+# F2c: returned enum scrutinee with an owned Str payload. The call result is
+# materialised for match and released once after the arm chain.
+enum Msg {
+    Text($s: Str)
+    Other($s: Str)
+}
+
+sub mk(): Msg { Text("ab" ~ "cd") }
+
+sub main(): Int {
+    match mk() {
+        Text($x) {
+            print($x)
+            0
+        }
+        Other($x) {
+            print($x)
+            1
+        }
+    }
+}

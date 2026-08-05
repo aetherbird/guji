@@ -1,0 +1,13 @@
+# Prelude names may be shadowed at top level (§16.2). C declines join lowering
+# whenever a user `sub join` exists, so both free and method spellings must hit
+# the shadow rather than the §15.1 builtin.
+sub join(@xs: List[Str], $sep: Str): Str {
+    "USER:{ @xs.count() }$sep"
+}
+
+sub main(): Int {
+    @words = ["a", "b"]
+    print(join(@words, ","))
+    print(@words.join(":"))
+    0
+}

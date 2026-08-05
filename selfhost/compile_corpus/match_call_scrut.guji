@@ -1,0 +1,7 @@
+sub dbl($n: Int): Int { $n * 2 }
+sub main(): Int {
+    match dbl(2) {
+        4 { 1 }
+        _ { 0 }
+    }
+}

@@ -1,0 +1,42 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4i compiler codegen fixture.
+# Pins `?` inside `while` loops nested in guard/arm bodies (§11.1 + §6.3), the
+# owned-scrutinee cleanup threaded through nested guards (the pre-4i leak), and
+# statement-position `if` guards dispatched with the real return carrier inside
+# loop bodies.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # In-loop `?` Err early-return inside an OWNED-scrutinee arm releases
+            # the scrutinee temp before returning (loop_in_owned_arm).
+            print(has_text($c, "guji_release_Item_fields(&ge3);\n\t\treturn (guji_res_int_str)\{1LL, 0LL, gr8.err};"))
+            # In-loop payload bind from the carrier (owned arm).
+            print(has_text($c, "gv9 = gr8.ok;"))
+            # str_loop: the accumulated owned Str is released by the in-loop `?`
+            # Err early-return's full-env release before `.err` moves out.
+            print(has_text($c, "guji_release(gv1);\n\t\treturn (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr5.err};"))
+            # str_loop: owned Str payload released once per iteration.
+            print(has_text($c, "guji_release(gv6);"))
+            # if_in_while: early `return` from an if guard INSIDE the while body
+            # uses the enclosing function's return carrier.
+            print(has_text($c, "return (guji_res_int_str)\{0LL, 999LL, GUJI_EMPTY_STR};"))
+            # nested_if_arm: `?` inside a NESTED if guard within an owned-
+            # scrutinee arm releases the scrutinee on the Err path (leak fix).
+            print(has_text($c, "guji_release_Item_fields(&ge3);\n\t\treturn (guji_res_int_str)\{1LL, 0LL, gr7.err};"))
+            # ret_in_arm_if: plain `return` inside a nested if guard within an
+            # owned-scrutinee arm also releases the scrutinee (leak fix).
+            print(has_text($c, "guji_release_Item_fields(&ge3);\n\treturn (guji_res_int_str)\{0LL, 77LL, GUJI_EMPTY_STR};"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

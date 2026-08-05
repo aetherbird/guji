@@ -1,0 +1,28 @@
+sub leaf($fail: Bool): Result[Int, Str] {
+    if $fail { Err("deep-err") } else { Ok(1) }
+}
+
+sub layer1($fail: Bool): Result[Int, Str] {
+    $n = leaf($fail)?
+    Ok($n + 10)
+}
+
+sub branchy($mode: Int): Result[Int, Str] {
+    $own = "branch-own"
+    if $mode == 0 {
+        $n = leaf(true)?
+        Ok($n)
+    } else {
+        mut $i = 0
+        while $i < 2 {
+            $inner = "iter"
+            $n = layer1($i == 1)?
+            print("{ $inner } { $n }")
+            $i = $i + 1
+        }
+        print($own)
+        Ok(7)
+    }
+}
+
+sub main(): Int { 0 }

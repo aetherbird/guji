@@ -1,0 +1,21 @@
+# P8d-1: Chan[Int] builder + buffered send/recv + close, no hatch.
+# Sequential so the oracle is scheduler-independent. Bind recv carriers before
+# unwrap/is_some so the existing Option[Int] helpers apply (chained
+# `$ch.recv().unwrap()` remains a later P8d refinement).
+sub main(): Int {
+    $ch: Chan[Int] = channel(2)
+    $ch.send(10);
+    $ch.send(20);
+    $a = $ch.recv()
+    print($a.unwrap())
+    $b = $ch.recv()
+    print($b.unwrap())
+    $ch.close()
+    $after = $ch.recv()
+    if $after.is_some() {
+        print($after.unwrap())
+    } else {
+        print("closed")
+    }
+    0
+}

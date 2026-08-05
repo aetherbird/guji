@@ -1,0 +1,31 @@
+# G2b: chained generic calls inside generic bodies with DISTINCT type-param
+# names (`box[U]` calling `id(id($v))` with `id[T]`). The checker records an
+# inner generic call's result as the CALLEE's own type param, so the outer
+# call's instantiation must be re-derived post-order from the inner
+# specialization's concrete return type. Covers a double chain, a triple
+# chain, a two-template chain in argument position (mix/pick), a chained
+# result flowing into an Option payload, and a root-level chain (regression).
+sub id[T]($x: T): T { $x }
+sub pick[P]($a: P, $b: P): P { $b }
+sub box[U]($v: U): U { id(id($v)) }
+sub triple[V]($v: V): V { id(id(id($v))) }
+sub mix[W]($v: W): W { pick(id($v), id($v)) }
+sub wrap_opt[A]($v: A): Option[A] { Some(id(id($v))) }
+
+sub main() {
+  $a = box(5)
+  $b = box("hi")
+  $c = triple(2.5)
+  $d = mix(true)
+  $e = id(box(7))
+  print("{ $a }")
+  print("{ $b }")
+  print("{ $c }")
+  print("{ $d }")
+  print("{ $e }")
+  $o = wrap_opt(21)
+  match $o {
+    Some($v) { print("{ $v * 2 }") }
+    None { print("none") }
+  }
+}

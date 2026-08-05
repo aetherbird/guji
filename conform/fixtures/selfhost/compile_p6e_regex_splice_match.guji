@@ -1,0 +1,50 @@
+import lexer
+
+# P6e: spliced regex literals in ~~ match position emit greparts[] +
+# guji_regex_match_parts_engine. Pin the Str-escape path (metacharacters in the
+# spliced Str stay literal), the Regex-pattern path (bound Regex.compile result
+# inserted as .pattern), and host captures around a Regex splice keeping their
+# indices. Also pin that an ESCAPED `\<` is NOT a splice opener.
+sub main(): Int {
+    match lexer::compile_program_c('sub main(): Int { $n = "a.b" $m = match "xa.by" ~~ /x<{ $n }>y/ { Some($m) { $m.text } None { "none" } } print($m) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_part_t greparts/).is_some() && ($c ~~ /guji_regex_escape_literal/).is_some() && ($c ~~ /guji_regex_match_parts_engine/).is_some() {
+                print("str-splice")
+            } else {
+                print("str-splice-missing")
+            }
+        }
+        Err($e) { print("str-splice-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { $r = Regex.compile("ab|cd").unwrap() $m = match "abab" ~~ /^<{ $r }>+$/ { Some($m) { $m.text } None { "none" } } print($m) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_match_parts_engine/).is_some() && ($c ~~ /\.pattern = /).is_some() && ($c ~~ /guji_regex_escape_literal/).is_none() {
+                print("re-splice")
+            } else {
+                print("re-splice-shape")
+            }
+        }
+        Err($e) { print("re-splice-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { $caps = Regex.compile("(a)(b)").unwrap() $m = match "ab!" ~~ /(<{ $caps }>)(!)/ { Some($m) { $m[1].unwrap_or("?") ~ $m[2].unwrap_or("?") } None { "none" } } print($m) 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_match_parts_engine\("[0-9]+:[0-9]+", greparts[0-9]+, 3,/).is_some() {
+                print("host-caps")
+            } else {
+                print("host-caps-shape")
+            }
+        }
+        Err($e) { print("host-caps-declined") }
+    }
+    match lexer::compile_program_c('sub main(): Int { match "a<<" ~~ /a\<{2}/ { Some($m) { print($m.text) } None { print("none") } } 0 }') {
+        Ok($c) {
+            if ($c ~~ /guji_regex_match_pattern_engine/).is_some() && ($c ~~ /guji_regex_match_parts_engine/).is_none() {
+                print("escaped-ok")
+            } else {
+                print("escaped-wrong")
+            }
+        }
+        Err($e) { print("escaped-declined") }
+    }
+    0
+}

@@ -1,0 +1,7 @@
+# O4a: a static literal pattern is checked against the scrutinee type.
+sub main(): Int {
+    match 1 {
+        "1" { 1 }
+        _ { 0 }
+    }
+}

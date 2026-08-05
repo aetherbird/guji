@@ -1,0 +1,68 @@
+# §15.5 Option `and_then`, method form `$o.and_then(f)` and function form
+# `and_then($o, f)`, over bound `Option[T]` locals producing a fresh `Option[U]`
+# through a single-expression inline lambda that returns an Option carrier:
+# `Some(v)` -> `f(v)`, `None` -> `None`. Native lowers it like Option `map`'s
+# carrier-returning sibling: the callback runs only under the Some guard, its
+# returned carrier is copied into the fresh result temp, and the None arm writes
+# an explicit zeroed carrier of the requested result kind. Source T and result U
+# are independent scalar/Str kinds; the callback may return Some, None, or a
+# helper-produced Option, and may read enclosing locals. Three-way case.
+# Exit 255 (code 1023) iff every polarity/payload assertion holds.
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    if $n > 0 { Some("s" ~ "{ $n }") } else { None }
+}
+sub mkf($n: Int): Option[Float] {
+    if $n > 0 { Some(1.5) } else { None }
+}
+sub mkb($n: Int): Option[Bool] {
+    if $n > 0 { Some(true) } else { None }
+}
+
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ni: Option[Int] = mki(-1)
+    $ss: Option[Str] = mks(3)
+    $sb: Option[Bool] = mkb(1)
+    $base = 10
+    mut $code = 0
+
+    $a: Option[Int] = $si.and_then(sub($v: Int): Option[Int] { Some($v + 7) })
+    if $a.unwrap_or(0) == 12 { $code = $code + 1 }
+
+    $b: Option[Int] = and_then($ni, sub($n: Int): Option[Int] { Some($n + 1) })
+    if $b.is_none() { $code = $code + 2 }
+
+    $c: Option[Str] = $si.and_then(sub($x: Int): Option[Str] { mks($x) })
+    print($c.unwrap_or("x"))
+    if $c.unwrap_or("x") == "s5" { $code = $code + 4 }
+
+    $d: Option[Int] = $ss.and_then(sub($t: Str): Option[Int] { Some(42) })
+    if $d.unwrap_or(0) == 42 { $code = $code + 8 }
+
+    $e: Option[Bool] = $si.and_then(sub($p: Int): Option[Bool] { Some($p > 2) })
+    if $e.unwrap_or(false) { $code = $code + 16 }
+
+    $f: Option[Float] = and_then($sb, sub($flag: Bool): Option[Float] { mkf(1) })
+    if $f.unwrap_or(0.0) == 1.5 { $code = $code + 32 }
+
+    $g: Option[Int] = $si.and_then(sub($q: Int): Option[Int] { None })
+    if $g.is_none() { $code = $code + 64 }
+
+    $h: Option[Str] = $ni.and_then(sub($r: Int): Option[Str] { Some("no") })
+    if $h.is_none() { $code = $code + 128 }
+
+    $j: Option[Int] = $si.and_then(sub($v2: Int): Option[Int] { Some($v2 + $base) })
+    if $j.unwrap_or(0) == 15 { $code = $code + 256 }
+
+    match $si.and_then(sub($v3: Int): Option[Str] { mks($v3) }) {
+        Some($mx) { print($mx) $code = $code + 512 }
+        None { print("none") }
+    }
+
+    print("{ $code }")
+    $code - 768
+}

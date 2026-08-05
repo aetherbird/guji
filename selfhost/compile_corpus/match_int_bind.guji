@@ -1,0 +1,7 @@
+sub main(): Int {
+    $x = 7
+    match $x {
+        0 { 100 }
+        $n { $n + 1 }
+    }
+}

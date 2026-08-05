@@ -1,0 +1,13 @@
+sub main(): Int {
+    $line = 'ada@example.com'
+    match $line ~~ /(?<user>\w+)@(?<host>\w+)/ {
+        Some($m) {
+            print($m<user>.unwrap())
+            print($m<host>.unwrap())
+        }
+        None {
+            print("no match")
+        }
+    }
+    0
+}

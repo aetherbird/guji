@@ -1,0 +1,13 @@
+# A closed-and-drained counted-enum receive still uses ordinary Option unwrap
+# failure semantics; native and selfhost must agree on stderr and exit status.
+enum Msg {
+    Text($s: Str)
+    Done
+}
+
+sub main(): Int {
+    $ch: Chan[Msg] = channel(1)
+    $ch.close()
+    $m = $ch.recv().unwrap()
+    0
+}

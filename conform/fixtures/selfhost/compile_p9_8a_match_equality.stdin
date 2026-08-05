@@ -1,0 +1,7 @@
+sub main(): Int {
+    $a = ("abc" ~~ /a(b)c/).unwrap()
+    $b = ("abc" ~~ /a(b)c/).unwrap()
+    print($a == $b)
+    print($a != $b)
+    0
+}

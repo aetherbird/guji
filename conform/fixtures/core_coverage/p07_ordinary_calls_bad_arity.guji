@@ -1,0 +1,7 @@
+# An ordinary call must supply exactly the declared positional arguments.
+sub increment($number: Int): Int { $number + 1 }
+
+sub main(): Int {
+    increment()
+    0
+}

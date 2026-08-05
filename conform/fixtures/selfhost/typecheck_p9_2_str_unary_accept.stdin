@@ -1,0 +1,8 @@
+# P9-2: Str-prelude unary calls type as Str in map-value and operand position.
+sub main(): Int {
+    %m = {"a": "first".upper(), "b": "second"}
+    $x = " pad ".trim()
+    $y = "UP".lower()
+    print(%m{"a"} ~ $x ~ $y)
+    0
+}

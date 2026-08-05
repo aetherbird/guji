@@ -1,0 +1,17 @@
+sub main(): Int {
+    $first = 10
+    mut $total = $first
+    if true {
+        $shadow = 99
+        $total = $total + 5
+    }
+    @items = [1, 2, $total]
+    %scores = {"z": 1, "a": $total}
+    $choice = match Some($total) {
+        Some($v) if $v > 10 { "big" }
+        Some($v) { "small" }
+        None { "none" }
+    }
+    print($choice)
+    0
+}

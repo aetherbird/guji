@@ -1,0 +1,18 @@
+# §15.1 List join concatenates Str elements with a separator in both data-first
+# spellings. Empty → ""; single element omits the separator; chains with split/
+# take stay on the same Str result path C already lowers.
+sub main(): Int {
+    @words = ["ada", "grace", "ken"]
+    @empty: List[Str] = []
+    @one = ["solo"]
+
+    print(join(@words, ", "))
+    print(@words.join(""))
+    print(join(@words, "/"))
+    print(join(@empty, ","))
+    print(@empty.join("-") ~ "<")
+    print(@one.join(","))
+    print(split("hi", "").join(""))
+    print(take(split("abcd", ""), 2).join("-"))
+    0
+}

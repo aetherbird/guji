@@ -1,0 +1,27 @@
+Some(5)
+None
+Some(5)/None
+eq-some
+neq
+eq-none
+pos:7
+nonpos:-2
+none
+Some(1.5)
+Some(true)
+Some(hi!)
+f:1.5
+bt
+s:hi!
+Ok(hi!)
+Err(9)
+Ok(hi!)/Err(9)
+eq-ok
+res-neq
+ok:hi!
+err:9
+rf:2.5
+re-t
+get:20
+pi:42
+pe:invalid integer: nope

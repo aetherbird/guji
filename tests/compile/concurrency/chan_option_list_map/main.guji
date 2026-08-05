@@ -1,0 +1,52 @@
+# Chan[Option[List[Map[Str,T]]]] must detach the active List[Map] payload on
+# send and adopt it on recv; unread buffered Some messages exercise the carrier
+# elem_drop under LSan. The rows are maps, so recv must preserve map value
+# metadata for row indexing and iteration.
+
+sub sum_rows(@rows: List[Map[Str, Int]]): Int {
+    mut $total = 0
+    for %row in @rows {
+        $total = $total + %row.values().sum()
+    }
+    $total
+}
+
+sub join_rows(@rows: List[Map[Str, Str]]): Str {
+    @rows[0]{"a"} ~ @rows[0]{"b"} ~ @rows[1]{"c"}
+}
+
+sub main(): Int {
+    $ints: Chan[Option[List[Map[Str, Int]]]] = channel(3)
+    @grid = [{"a": 1, "b": 2}, {"c": 3, "d": 4}]
+    $some_grid: Option[List[Map[Str, Int]]] = Some(@grid)
+    $none_grid: Option[List[Map[Str, Int]]] = None
+    $ints.send($some_grid)
+    $ints.send($none_grid)
+    $ints.send($some_grid)
+
+    $got_grid = $ints.recv().unwrap()
+    print(match $got_grid {
+        Some(@rows) { sum_rows(@rows) }
+        None { 0 }
+    })
+
+    $got_none = $ints.recv().unwrap()
+    print(match $got_none {
+        Some(@rows) { @rows[0]{"a"} }
+        None { 99 }
+    })
+
+    $words: Chan[Option[List[Map[Str, Str]]]] = channel(2)
+    @parts = [{"a": "gu", "b": "ji"}, {"c": "!"}]
+    $some_words: Option[List[Map[Str, Str]]] = Some(@parts)
+    $words.send($some_words)
+    $words.send($some_words)
+
+    $got_words = $words.recv().unwrap()
+    print(match $got_words {
+        Some(@rows) { join_rows(@rows) }
+        None { "none" }
+    })
+
+    0
+}

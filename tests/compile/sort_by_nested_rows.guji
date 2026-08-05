@@ -1,0 +1,19 @@
+# A-callback-prelude-rest (sort_by slice): sort_by over List[List]/List[Map]
+# receivers passes each row to the key lambda as a borrowed collection view and
+# returns a shape-preserving sorted copy retaining whole row handles. The depth-3
+# list and map values containing lists were rejected by the old nested receiver
+# guard; this proves the generic row-binder path without per-shape code.
+sub main(): Int {
+    @rows = [[1, 2, 3], [], [4]]
+    @by_len = @rows.sort_by(sub(@r) { @r.count() })
+    print(@by_len)
+
+    @cube = [[[9]], [[1, 2], [3]], [[4]]]
+    @by_planes = sort_by(@cube, sub(@plane) { @plane.count() })
+    print(@by_planes)
+
+    @maps = [{"z": [9]}, {"a": [1], "b": [2]}, {"empty": []}]
+    @by_keys = @maps.sort_by(sub(%m) { %m.keys().count() })
+    print(@by_keys)
+    0
+}

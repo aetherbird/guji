@@ -1,0 +1,39 @@
+# gujiconform - selfhost slice 5 E5d-8v compiler codegen fixture.
+# Pins field access whose OBJECT is a CALL result (`make_box($s, $n).size` /
+# `.name`) with NO intervening binding. The call result is MATERIALISED into an owned
+# class temp, the field copied out into an INDEPENDENT value (retaining owned
+# payloads), then the temp's own fields released exactly once. This is the construct
+# the real `g6_result_value` uses via `cg_reg_builtin_variant(cg_reg_result().variants,
+# "Ok")`.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Int field read from a call result.
+            print(has_text($c, "static int64_t gf_box_size(const char* gp0, int64_t gp1)"))
+            # the object call is lowered into an owned class temp...
+            print(has_text($c, "gc1 = gf_make_box(gt0, gp1);"))
+            # ...then materialised into the field-read temp (otmp)...
+            print(has_text($c, "gc2 = gc1;"))
+            # ...the scalar field is copied out by value...
+            print(has_text($c, "gi3 = gc2.f1;"))
+            # ...and the materialised temp's owned fields are released after the read.
+            print(has_text($c, "guji_release_Box_fields(&gc2);"))
+            # Str field read from a call result: copied with its OWN retain.
+            print(has_text($c, "static const char* gf_box_name(const char* gp0, int64_t gp1)"))
+            print(has_text($c, "gt3 = guji_retain(gc2.f0);"))
+            print(has_text($c, "return gt3;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

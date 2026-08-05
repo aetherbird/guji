@@ -1,0 +1,13 @@
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+sub to_s($n: Int): Result[Str, Str] { Ok("v={ $n }") }
+
+sub main(): Int {
+    $r: Result[Int, Str] = ok_i(5)
+    $e: Result[Int, Str] = err_i("bad" ~ "!")
+    $a: Result[Str, Str] = $r.and_then(sub($v: Int): Result[Str, Str] { to_s($v) })
+    $b: Result[Str, Str] = and_then($e, sub($w: Int): Result[Str, Str] { to_s($w) })
+    match $a { Ok($s) { print($s) } Err($m) { print($m) } }
+    match $b { Ok($s2) { print($s2) } Err($m2) { print($m2) } }
+    0
+}

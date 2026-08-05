@@ -1,0 +1,1 @@
+pub sub value(): Int { 44 }

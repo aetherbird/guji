@@ -1,0 +1,43 @@
+# §8/§9/§15.4 (I5g3): nested collection fields on classes.
+# Pins List[List]/List[Map]/Map[Str,List]/Map[Str,Map] class fields through
+# construction, display, field projection, and structural equality. Flat
+# List/Map scalar fields and nested Map[Str, List] enum payloads already live
+# in nested_collection_display_equality; Class/Enum element collections as
+# class fields still decline at type→kind resolution (separate boundary).
+
+class Nested {
+    has @.matrix: List[List[Int]]
+    has @.rows: List[Map[Str, Int]]
+    has %.lists: Map[Str, List[Str]]
+    has %.maps: Map[Str, Map[Str, Int]]
+}
+
+sub main(): Int {
+    $a = Nested(
+        matrix: [[1, 2], [3]],
+        rows: [{"b": 2, "a": 1}, {"c": 3}],
+        lists: {"y": ["b"], "x": ["a", "b"]},
+        maps: {"outer": {"inner": 7, "alt": 8}}
+    )
+    $b = Nested(
+        matrix: [[1, 2], [3]],
+        rows: [{"a": 1, "b": 2}, {"c": 3}],
+        lists: {"x": ["a", "b"], "y": ["b"]},
+        maps: {"outer": {"alt": 8, "inner": 7}}
+    )
+    $c = Nested(
+        matrix: [[1, 2], [9]],
+        rows: [{"a": 1, "b": 2}, {"c": 3}],
+        lists: {"x": ["a", "b"], "y": ["b"]},
+        maps: {"outer": {"alt": 8, "inner": 7}}
+    )
+    print($a)
+    print($a == $b)
+    print($a != $c)
+    print($a.matrix)
+    print($a.rows)
+    print($a.lists)
+    print($a.maps)
+    print("nested={ $a }")
+    0
+}

@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 6 P9-6a compiler codegen fixture.
+# List display shares the map display leaf classifier, so an outer List[Map]
+# reaches the innermost Bool leaf while ARR_MAP drives the runtime recursion.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_list_str((const void*)"))
+            print(has_text($c, "GUJI_KIND_ARR_MAP, GUJI_LEAF_BOOL"))
+            print(has_text($c, "guji_release((const void*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

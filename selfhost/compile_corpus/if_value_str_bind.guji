@@ -1,0 +1,4 @@
+sub main(): Unit {
+    $s = if true { "left" } else { "right" }
+    print($s)
+}

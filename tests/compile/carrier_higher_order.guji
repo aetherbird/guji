@@ -1,0 +1,59 @@
+# Native codegen for the higher-order Option/Result prelude (spec 15.5):
+# map, map_err, filter, and unwrap_or_else. The lambda runs only on the
+# relevant Some/Ok/Err branch; map can change the payload type. Results are
+# unwrapped with unwrap_or so the compiled binary's stdout matches the
+# interpreter oracle.
+
+sub some_int($x: Int): Option[Int] { Some($x) }
+sub none_int(): Option[Int] { None }
+sub ok_int($x: Int): Result[Int, Str] { Ok($x) }
+sub err_str($m: Str): Result[Int, Str] { Err($m) }
+
+sub main(): Int {
+    $s = some_int(5)
+    $n = none_int()
+
+    # Option.map transforms Some, leaves None as None.
+    $sm = $s.map(sub($x) { $x * 2 })
+    $a = $sm.unwrap_or(0)
+    print("some.map: { $a }")
+    $nm = map($n, sub($x) { $x * 2 })
+    $b = $nm.unwrap_or(99)
+    print("none.map: { $b }")
+
+    # Option.filter keeps Some only when the predicate holds.
+    $f1 = $s.filter(sub($x) { $x > 3 })
+    $c = $f1.unwrap_or(0)
+    print("some.filter_keep: { $c }")
+    $f2 = $s.filter(sub($x) { $x > 9 })
+    $d = $f2.unwrap_or(-1)
+    print("some.filter_drop: { $d }")
+
+    # match on a carrier produced by map.
+    match $s.map(sub($x) { $x + 1 }) {
+        Some($v) { print("some.map_match: { $v }") }
+        None { print("some.map_match: none") }
+    }
+
+    # Result.map transforms Ok, preserves Err.
+    $r = ok_int(7)
+    $e = err_str("boom")
+    $rm = $r.map(sub($x) { $x + 1 })
+    $i = $rm.unwrap_or(0)
+    print("ok.map: { $i }")
+    $em = $e.map(sub($x) { $x + 1 })
+    $j = $em.unwrap_or(42)
+    print("err.map: { $j }")
+
+    # Result.map_err transforms the error, preserves Ok.
+    $rme = $r.map_err(sub($m) { $m })
+    $k = $rme.unwrap_or(0)
+    print("ok.map_err: { $k }")
+
+    # Result.unwrap_or_else binds the error and computes a fallback.
+    $p = $e.unwrap_or_else(sub($m) { 77 })
+    print("err.uoe: { $p }")
+    $q = $r.unwrap_or_else(sub($m) { 77 })
+    print("ok.uoe: { $q }")
+    0
+}

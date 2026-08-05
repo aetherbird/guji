@@ -1,0 +1,33 @@
+# I5d2: §15.3 split/lines/parse_int.
+# Empty-separator split is scalar-based; line counts distinguish [] from [""]
+# and pin empty/final/lone/interior terminator edges; parse_int pins both carriers.
+sub main(): Int {
+    print(split("a,,b,", ","))
+    print("abc".split(""))
+    print(split("é👍🏽", ""))
+
+    @empty = lines("")
+    @lone = "\n".lines()
+    @final = lines("a\nb\nc\n")
+    @interior = "a\n\nb".lines()
+    print(@empty.count())
+    print(@lone.count())
+    print(@final.count())
+    print(@final)
+    print(@interior.count())
+    print(@interior)
+
+    match "42".parse_int() {
+        Ok($n) { print("ok: $n") }
+        Err($e) { print("err: $e") }
+    }
+    match parse_int("  -7  ") {
+        Ok($n) { print("ok: $n") }
+        Err($e) { print("err: $e") }
+    }
+    match parse_int("not a number") {
+        Ok($n) { print("ok: $n") }
+        Err($e) { print("err: $e") }
+    }
+    0
+}

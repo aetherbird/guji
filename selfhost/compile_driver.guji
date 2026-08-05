@@ -1,0 +1,104 @@
+# selfhost/compile_driver.guji -- the slice-4 self-hosted compiler driver.
+#
+# Compiles a guji source file to a native executable, entirely in guji:
+#   read source -> (reuse the selfhost front end: lex/parse/typecheck) ->
+#   current subset codegen (lexer::compile_program_c) -> concatenate the canonical
+#   program-independent runtime prologue maintained by the Guji toolchain
+#   (selfhost/rt/runtime_prologue.c) -> write the combined `.c` -> invoke `cc`
+#   via run() -> a native binary.
+#
+# Usage:  guji selfhost/compile_driver.guji <source.guji> <out-binary> <prologue.c>
+#   argv[0] = source path        (the program to compile)
+#   argv[1] = output binary path (the `.c` is written alongside as <out>.c)
+#   argv[2] = runtime prologue path (selfhost/rt/runtime_prologue.c)
+# The §17 concurrency runtime (`guji_conc.c` beside the prologue) is always
+# concatenated after the prologue and the link line passes `-O2 -fwrapv -pthread`,
+# matching native `needsConc` emission ( ConcC + guji_conc_main_exit ).
+#
+# EXIT CODES (the compiler differential harness reads these):
+#   0  binary produced
+#   1  program REJECTED at the lex/parse or type-check stage (ILL-FORMED input).
+#      Both canonical Guji tools reject an ill-formed program with exit 1, using
+#      this shared front end. The diagnostic is stage-labeled: parse-stage errors
+#      carry an `L:C` position ("... error at L:C: ..."). Duplicate top-level
+#      names and undefined bindings also carry `L:C`; remaining type-stage
+#      diagnostics are descriptive but not yet uniformly positioned.
+#      This is a *compiler error*, distinct from exit 4 (well-typed but unsupported).
+#   2  bad usage (missing args)
+#   3  cannot read source / prologue
+#   4  out of the canonical codegen subset: the program is well-typed but uses a
+#      construct this compiler does not yet lower.
+#   5  cannot write the generated `.c`
+#   6  cannot spawn `cc`
+#   7  `cc` returned non-zero (compile/link failed)
+import lexer
+
+sub main(): Int {
+    @argv = args()
+    if @argv.count() < 3 {
+        note("usage: compile_driver <source.guji> <out-binary> <prologue.c>")
+        return 2
+    }
+    $src = match read_file(@argv[0]) {
+        Ok($s) { $s }
+        Err($e) { note("selfhost: cannot read source: { $e }") return 3 }
+    }
+    # STAGE 1+2 (lex/parse, then type-check). Classify an ILL-FORMED program here
+    # and reject it as a compiler error (exit 1) BEFORE codegen, so it is never
+    # mistaken for an out-of-subset program (exit 4). `typecheck_verdict` runs the
+    # same lex/parse/type-check the codegen path re-runs, but separating the
+    # verdict lets the driver emit a stage-labeled diagnostic and the matching exit
+    # code. The messages already carry their stage prefix ("<stage> error ...").
+    match lexer::typecheck_verdict_at(@argv[0], $src) {
+        TcRejectParse($m) { note($m) return 1 }
+        TcRejectType($m) { note($m) return 1 }
+        TcAccept { 0 }
+    }
+    # STAGE 2b (grammar / PEG validation). Native `guji build` and the
+    # interpreter reject ill-formed production bodies at load/codegen; keep that
+    # as exit 1 here so it is never mistaken for out-of-subset (exit 4).
+    match lexer::validate_src_grammars($src) {
+        Err($e) { note($e) return 1 }
+        Ok($u) { $u }
+    }
+    $prologue = match read_file(@argv[2]) {
+        Ok($s) { $s }
+        Err($e) { note("selfhost: cannot read runtime prologue: { $e }") return 3 }
+    }
+    # Derive the §17 concurrency runtime path from the prologue directory so
+    # existing harnesses that only pass prologue.c keep working.
+    $conc_path = @argv[2].replace(/runtime_prologue\.c/, "guji_conc.c")
+    $conc = match read_file($conc_path) {
+        Ok($s) { $s }
+        Err($e) { note("selfhost: cannot read concurrency runtime: { $e }") return 3 }
+    }
+    # STAGE 3 (codegen). The program is already well-typed (STAGE 1+2 above ran
+    # typecheck_verdict_at), so the checked entry skips the redundant second
+    # whole-source verdict and any Err here is an out-of-subset construct this
+    # compiler does not yet lower -> exit 4 (invalid-corpus for the three-way
+    # harness, NOT a divergence).
+    $program_c = match lexer::compile_checked_program_c_at(@argv[0], $src) {
+        Ok($c) { $c }
+        Err($e) { note($e) return 4 }
+    }
+    $cpath = @argv[1] ~ ".c"
+    match write_file($cpath, $prologue ~ "\n\n" ~ $conc ~ "\n\n" ~ $program_c) {
+        Ok($u) { $u }
+        Err($e) { note("selfhost: cannot write generated C: { $e }") return 5 }
+    }
+    # Generated compiler functions contain long tail-recursive cons-list walks
+    # with large structural locals. `-O2` performs the tail-call/frame-lifetime
+    # optimization required for the compiler to run on the normal process stack;
+    # `-fwrapv` keeps the runtime's explicit signed-overflow checks well-defined.
+    match run("cc", ["-O2", "-fwrapv", $cpath, "-o", @argv[1], "-lm", "-pthread"]) {
+        Ok($p) {
+            if $p.exit_code == 0 {
+                0
+            } else {
+                note("selfhost: cc failed (exit { $p.exit_code }): { $p.stderr }")
+                7
+            }
+        }
+        Err($e) { note("selfhost: cannot spawn cc: { $e }") return 6 }
+    }
+}

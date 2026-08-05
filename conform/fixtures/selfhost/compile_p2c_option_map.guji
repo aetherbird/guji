@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Option `map` carrier-producing lowering over a bound Option local
+# with an inline single-expression lambda. The fresh Option temp is zeroed and
+# filled only under the Some guard (`.tag != 0`): the binder borrows `opt.val`
+# (no retain), the callback body lowers inside the guard, and the body result
+# feeds the Some slot directly — a scalar result by value (`.val = guji_mul(`),
+# a Str result as an owned tmp MOVED into the slot (`.val = gt`), so the
+# produced Option owns its heap payload exactly once.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag != 0) \{"))
+            print(has_text($c, ".tag = 1; go"))
+            print(has_text($c, ".val = guji_mul("))
+            print(has_text($c, ".val = gt"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,24 @@
+enum Animal {
+    Dog($name: Str)
+    Cat($age: Int)
+    Fish
+}
+
+sub score($a: Animal): Int {
+    match $a {
+        Dog($n) {
+            print($n)
+            7
+        }
+        Cat($age) {
+            $age
+        }
+        Fish {
+            0
+        }
+    }
+}
+
+sub main(): Int {
+    score(Dog("bo" ~ "op"))
+}

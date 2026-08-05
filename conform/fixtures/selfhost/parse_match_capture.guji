@@ -1,0 +1,10 @@
+# Parser regression for §13.3 named Match-capture postfix syntax. The source
+# need only parse: full Match code generation is deliberately a P6 concern.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) { print($ast) 0 }
+        Err($e) { note($e) 1 }
+    }
+}

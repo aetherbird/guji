@@ -1,0 +1,20 @@
+# gujiconform — selfhost slice 3 T5 classified type-checker fixture.
+# The stdin source passes an incompatible call argument.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

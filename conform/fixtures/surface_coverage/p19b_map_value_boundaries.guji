@@ -1,0 +1,20 @@
+# Spec 15.2 value boundaries: aliases, map-valued if/match expressions, and a
+# nested owned value across call/return without consuming its source.
+sub keep(%value: Map[Str, List[Str]]): Map[Str, List[Str]] { %value }
+
+sub main(): Int {
+    %source = {"right": ["b", "c"], "left": ["a"]}
+    %alias = %source
+    %branch: Map[Str, List[Str]] = if true { %alias } else { {"unused": ["x"]} }
+    %matched: Map[Str, List[Str]] = match 1 {
+        1 { %branch }
+        _ { {"unused": ["x"]} }
+    }
+    %returned = keep(%matched)
+    print("value=%returned")
+    print("equal={ %source == %returned }")
+    print("source=%source")
+    @right = %returned["right"]
+    print("nested=@right")
+    0
+}

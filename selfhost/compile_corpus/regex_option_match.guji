@@ -1,0 +1,28 @@
+# §13/P6g-b: Option[Regex] reuses the counted-pointer Option carrier while
+# preserving Regex identity through a Some binder and a Regex-valued match.
+# Both a local carrier and a borrowed parameter are covered; each selected
+# match result owns its Regex until display releases it.
+sub pick($o: Option[Regex]): Regex {
+    match $o {
+        Some($rx) { $rx }
+        None { Regex.literal("fallback") }
+    }
+}
+
+sub main(): Int {
+    $some: Option[Regex] = Some(Regex.literal("q.z"))
+    print(match $some {
+        Some($rx) { $rx }
+        None { Regex.literal("none") }
+    })
+
+    $none: Option[Regex] = None
+    print(match $none {
+        Some($rx) { $rx }
+        None { Regex.literal("none") }
+    })
+
+    print(pick($some))
+    print(pick($none))
+    0
+}

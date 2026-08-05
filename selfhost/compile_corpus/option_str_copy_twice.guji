@@ -1,0 +1,14 @@
+sub main(): Unit {
+    # Copying an Option[Str] binding must retain the active payload so both locals
+    # can be matched and released independently.
+    $a: Option[Str] = Some("A" ~ "B")
+    $b: Option[Str] = $a
+    print(match $a {
+        Some($v) { $v }
+        None { "none" }
+    })
+    print(match $b {
+        Some($v) { $v }
+        None { "none" }
+    })
+}

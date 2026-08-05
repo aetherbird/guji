@@ -1,0 +1,27 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P2b-3c: `.find` lowers as an inline predicate loop that
+# returns an Option carrier. It initialises None, fills Some on the first hit,
+# retains Str hits before releasing the owned source slice, and breaks out of
+# the loop once a match is found.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag = 0LL; go"))
+            print(has_text($c, ".tag = 1LL; go"))
+            print(has_text($c, "break;"))
+            print(has_text($c, "guji_retain(go"))
+            print(has_text($c, "guji_release((const void*)gl"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

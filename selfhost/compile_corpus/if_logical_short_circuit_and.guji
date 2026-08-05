@@ -1,0 +1,3 @@
+sub main(): Int {
+    if false && (1 / 0 == 0) { 23 } else { 29 }
+}

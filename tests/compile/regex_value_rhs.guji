@@ -1,0 +1,22 @@
+# D2: a Regex value on the RHS of ~~ must lower natively, not only literals.
+sub describe($label: Str, $re: Regex, $s: Str): Str {
+    match $s ~~ $re {
+        Some($m) { $label ~ ":" ~ $m.text ~ ":" ~ $m[1].unwrap_or("-") }
+        None { $label ~ ":none" }
+    }
+}
+
+sub main(): Int {
+    $literal = /([a-z]+)\d+/
+    $compiled = Regex.compile("([0-9]+)-([a-z]+)").unwrap()
+    $escaped = Regex.literal("a.b")
+
+    print(describe("literal", $literal, "xxabc123yy"))
+    print(describe("compiled", $compiled, "id 42-zed"))
+    match "a.b aab" ~~ $escaped {
+        Some($m) { print("escaped:" ~ $m.text) }
+        None { print("escaped:none") }
+    }
+    print(describe("miss", $literal, "123"))
+    0
+}

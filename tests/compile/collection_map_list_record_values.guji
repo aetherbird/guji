@@ -1,0 +1,74 @@
+# A-collection-elements-rest (Map[Str, List[class/enum]] value slice): a Map
+# whose VALUES are Lists of counted-field class / counted-payload enum elements.
+# The map's vals array is ARR_SLICE; each row slice carries the element's
+# generated array-drop kind (GUJI_KIND_<Class|Enum>_ARR) from sliceFromList, so
+# the map's drop cascades: ARR_SLICE -> each value slice's .data -> each
+# element's fields. Proves construction (fresh constructor element lists AND a
+# non-fresh alias element), `%m{"k"}` reads that materialize a typed
+# List[Class|Enum] view, element field access / `match`, `.count()`, and a
+# for-loop over the read-back list. Every Str field/payload is HEAP-built at
+# runtime (`~` concat), NOT an immortal literal, so the per-element
+# retain/release must balance exactly — an immortal literal would hide leaks and
+# double-frees from the sanitizer.
+
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    # Map[Str, List[Enum]] with fresh constructor element lists (heap-built Str).
+    %m = {"a": [Named("x" ~ "y"), Anon(7)], "b": [Anon(3)]}
+    print(%m.keys().count())
+    @va = %m{"a"}
+    print(@va.count())
+    for $t in @va {
+        $s = match $t {
+            Named($l) { $l }
+            Anon($n) { "n" }
+        }
+        print($s)
+    }
+    @vb = %m{"b"}
+    print(@vb.count())
+
+    # Non-fresh (alias) enum element inside a list value: the slice copies the
+    # struct by value and must retain its OWN +1 on the Str payload.
+    $g = Named("G" ~ "amma")
+    %a = {"k": [$g, Anon(1)]}
+    @vk = %a{"k"}
+    print(@vk.count())
+    $first = match @vk[0] {
+        Named($l) { $l }
+        Anon($n) { "z" }
+    }
+    print($first)
+    $glast = match $g {
+        Named($l) { $l }
+        Anon($n) { "q" }
+    }
+    print($glast)
+
+    # Map[Str, List[Class]] with a fresh element (heap-built name).
+    %p = {"team": [Person(name: "A" ~ "da", age: 36)]}
+    @pt = %p{"team"}
+    print(@pt.count())
+    print(@pt[0].name)
+    print(@pt[0].age)
+
+    # Map[Str, List[Class]] with an alias element and a fresh element.
+    $bob = Person(name: "B" ~ "ob", age: 28)
+    %q = {"r": [$bob, Person(name: "C" ~ "y", age: 5)]}
+    @qr = %q{"r"}
+    print(@qr.count())
+    for $pp in @qr {
+        print($pp.name)
+    }
+    print($bob.name)
+    0
+}

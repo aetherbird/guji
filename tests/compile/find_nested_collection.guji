@@ -1,0 +1,52 @@
+# A-get-find-rest: `.find($pred)` over a List[List]/List[Map] receiver now
+# returns Option[List]/Option[Map] — the first matching ROW as the Some payload —
+# instead of rejecting via the scalar-only `switch src.valT` reject. The predicate
+# binder is a borrowed collection view of the row (bindNestedRow), so the body
+# recurses over the runtime KIND tags generically (sum/count/keys/nested-reduce);
+# on the first hit the carrier's Some slot is filled from the borrowed row and its
+# counted storage handle is retained, releasing like any collection-payload
+# carrier (a match arm BORROWS it). The interpreter is the semantic oracle; the
+# sanitizer/leak gate is the memory one. Mirrors get_nested_collection.guji.
+#
+# NOTE: lambda/match binder C names mangle GLOBALLY per function, so each predicate
+# and each match payload uses a DISTINCT name (reusing one across different row
+# shapes is a codegen reject — same gotcha as multi-reduce accumulators).
+
+sub main(): Unit {
+    # List[List[Int]] receiver: first row whose sum exceeds a threshold, None when
+    # nothing matches, and the data-first call form.
+    @rows = [[1, 2, 3], [4, 5], [6]]
+    print(match @rows.find(sub(@a) { @a.sum() > 8 }) { Some(@ra) { sum(@ra) } None { -1 } })    # 9 ([4,5])
+    print(match @rows.find(sub(@b) { @b.count() == 1 }) { Some(@rb) { sum(@rb) } None { -1 } })  # 6 ([6])
+    print(match @rows.find(sub(@c) { @c.sum() > 100 }) { Some(@rc) { sum(@rc) } None { -1 } })   # -1
+    print(match find(@rows, sub(@d) { @d.count() == 2 }) { Some(@rd) { sum(@rd) } None { -1 } })  # 9 (data-first)
+
+    # Depth-3 List[List[List[Int]]]: the matched row is itself a List[List[Int]],
+    # consumed by a nested reduce over the borrowed payload.
+    @deep = [[[1, 2], [3]], [[4]]]
+    print(match @deep.find(sub(@plane) { @plane.count() == 1 }) {
+        Some(@rp) { @rp.reduce(0, sub($a, @inner) { $a + @inner.sum() }) }
+        None { -1 }
+    })   # 4 ([[4]])
+
+    # List[Map[Str, Int]] receiver: the matched row is a Map; the predicate builds
+    # a keys() temp per row, exercising per-iteration scratch release.
+    @recs = [{"a": 1, "b": 2}, {"c": 3}]
+    print(match @recs.find(sub(%p) { %p.keys().count() == 1 }) { Some(%mc) { count(keys(%mc)) } None { -1 } })  # 1 ({"c":3})
+    print(match @recs.find(sub(%q) { %q.keys().count() >= 2 }) {
+        Some(%mab) { match %mab.get("a") { Some($v) { $v } None { -9 } } }
+        None { -1 }
+    })   # 1 ({"a":1,"b":2})
+
+    # No match over the map receiver — None.
+    print(match @recs.find(sub(%s) { %s.keys().count() == 9 }) { Some(%mn) { count(keys(%mn)) } None { -1 } })  # -1
+
+    # Str-leaf rows: releasing the carrier cascades the inner Str releases.
+    @words = [["alpha", "beta"], ["gamma"]]
+    print(match @words.find(sub(@w) { @w.count() == 1 }) { Some(@rw) { count(@rw) } None { -1 } })  # 1 (["gamma"])
+
+    # Discarded carrier results must free their +1, not leak.
+    @rows.find(sub(@e) { @e.sum() > 0 })
+    @recs.find(sub(%t) { %t.keys().count() >= 1 })
+    print(0)
+}

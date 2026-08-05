@@ -1,0 +1,22 @@
+# C2: homogeneous Str-carrying enum parameters are in subset. This was a
+# generator-found param-only GAP even though bound/inline/returned Str cases worked.
+enum Msg {
+  Text($s: Str)
+  Other
+}
+
+sub run($m: Msg): Int {
+  match $m {
+    Text($x) {
+      print($x)
+      0
+    }
+    Other {
+      1
+    }
+  }
+}
+
+sub main(): Int {
+  run(Text("hi" ~ "!"))
+}

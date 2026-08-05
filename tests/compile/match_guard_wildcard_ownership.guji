@@ -1,0 +1,56 @@
+enum Tree {
+    Leaf($n: Int)
+    Node($l: Tree, $r: Tree)
+}
+
+sub choose_match($s: Str): Option[Match] {
+    $found = $s ~~ /(?<word>\w+)-(?<tail>\w+)/
+    $chosen = match $found {
+        Some($m) if $m.text == "never" { $found }
+        _ { $s ~~ /(?<word>\w+)/ }
+    }
+    $chosen
+}
+
+sub choose_text($o: Option[Str]): Option[Str] {
+    $chosen: Option[Str] = match $o {
+        Some($v) if $v == "skip" { Some($v ~ "!") }
+        _ { Some("fall" ~ "back") }
+    }
+    $chosen
+}
+
+sub choose_tree($t: Tree): Tree {
+    $chosen = match $t {
+        Leaf($n) if $n < 0 { $t }
+        _ { Node(Leaf(1), Leaf(2)) }
+    }
+    $chosen
+}
+
+sub main(): Int {
+    # The first pattern binds a borrowed Match payload but its guard fails;
+    # the wildcard arm's fresh Option[Match] payload must survive binding.
+    $m = choose_match("aa-bb")
+    match $m {
+        Some($got) { print($got.text) }
+        None { print("none") }
+    }
+
+    # Wildcard arms that yield carriers with owned Str payloads must transfer
+    # their payload into the shared match result temp exactly once.
+    $s = choose_text(None)
+    match $s {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+
+    # Recursive enum boxes produced by a wildcard arm must be owned by the
+    # match result temp, then by the binding/return consuming that temp.
+    $tree = choose_tree(Leaf(5))
+    match $tree {
+        Node(Leaf($a), Leaf($b)) { print($a + $b) }
+        _ { print(0) }
+    }
+    0
+}

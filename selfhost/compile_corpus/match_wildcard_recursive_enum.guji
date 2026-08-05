@@ -1,0 +1,20 @@
+enum Tree {
+    Leaf($n: Int)
+    Node($l: Tree, $r: Tree)
+}
+
+sub choose($tree: Tree): Tree {
+    $chosen = match $tree {
+        Leaf($n) if $n < 0 { $tree }
+        _ { Node(Leaf(1), Leaf(2)) }
+    }
+    $chosen
+}
+
+sub main(): Int {
+    match choose(Leaf(5)) {
+        Node(Leaf($a), Leaf($b)) { print($a + $b) }
+        _ { print(0) }
+    }
+    0
+}

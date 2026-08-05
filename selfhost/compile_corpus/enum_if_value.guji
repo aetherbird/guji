@@ -1,0 +1,39 @@
+# E5d-8c: enum-valued expression-position `if` in a final sub body. This is the
+# shape used by the selfhost lexer's `kind_for_word`: each branch returns a
+# nullary enum variant, and the enclosing sub returns the enum value.
+enum WordKind {
+    KBool
+    KKeyword
+    KUpper
+    KIdent
+}
+
+sub classify($w: Str): WordKind {
+    if $w == "true" || $w == "false" {
+        KBool
+    } else if $w == "sub" {
+        KKeyword
+    } else if $w == "Type" {
+        KUpper
+    } else {
+        KIdent
+    }
+}
+
+sub score($k: WordKind): Int {
+    match $k {
+        KBool { 1 }
+        KKeyword { 2 }
+        KUpper { 4 }
+        KIdent { 8 }
+    }
+}
+
+sub main(): Int {
+    $sum = score(classify("true")) + score(classify("sub")) + score(classify("Type")) + score(classify("name"))
+    if $sum == 15 {
+        0
+    } else {
+        9
+    }
+}

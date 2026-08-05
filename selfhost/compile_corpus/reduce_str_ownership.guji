@@ -1,0 +1,23 @@
+# P9-6b-16: gate-shaped Str reduce ownership under Unit main ending in while.
+# Mirrors tests/compile/reduce_str_ownership.guji — the while was the only
+# selfhost decline (final while under main's forced RInt retkind).
+sub dotted(@words: List[Str], $seed: Str): Str {
+    @words.reduce($seed, sub($s, $w) { $s ~ $w ~ "." })
+}
+
+sub main(): Unit {
+    @words = ["go", "ju", "gi"]
+    print(dotted(@words, "x"))
+
+    $seed = "base"
+    @empty = @words.filter({ $_ == "none" })
+    print(@empty.reduce($seed, sub($s, $w) { $s ~ $w }))
+    print(reduce(["a", "b"], $seed, sub($s, $w) { $s ~ "-" ~ $w }))
+
+    mut $i = 0
+    while $i < 2 {
+        $line = @words.take(2).reduce($seed, sub($s, $w) { $s ~ "-" ~ $w })
+        print($line)
+        $i = $i + 1
+    }
+}

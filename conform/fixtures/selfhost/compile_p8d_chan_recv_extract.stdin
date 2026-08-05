@@ -1,0 +1,13 @@
+sub main(): Int {
+    $ch: Chan[Int] = channel(2)
+    $ch.send(41)
+    $n = $ch.recv().unwrap()
+    $ch.send(1)
+    $m = $ch.recv().expect("boom")
+    print($n + $m)
+    $strs: Chan[Str] = channel(1)
+    $strs.send("z" ~ "!")
+    $s = $strs.recv().expect("empty")
+    print($s)
+    0
+}

@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4 compiler codegen fixture.
+# Pins existing mutable scalar/Str bindings reassigned from if-values whose
+# branch-final expressions contain hoistable `?` operations. The lowering uses
+# the retkind-aware if-value branch path, then assigns the shared if temp into the
+# existing local; Str additionally releases the old local before assignment.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr"))
+            print(has_text($c, "gv0 = gi"))
+            print(has_text($c, "return (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr"))
+            print(has_text($c, "guji_release(gv1);\n\tgv1 = gt"))
+            print(has_text($c, "guji_release(gv6);"))
+            print(has_text($c, "return (guji_res_float_str)\{1LL, 0.0, gr"))
+            print(has_text($c, "gv0 = gd"))
+            print(has_text($c, "return (guji_res_bool_str)\{1LL, 0LL, gr"))
+            print(has_text($c, "gv0 = gb"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

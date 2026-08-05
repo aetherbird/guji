@@ -1,0 +1,14 @@
+# P9-6b: List.reduce may carry owned List/Map accumulators between iterations.
+# The ordinary and method spellings deliberately cover nested counted storage.
+sub main(): Unit {
+    @nums = [1, 2, 3]
+    @shifted = reduce(@nums, [0], sub(@acc, $n) {
+        @acc.map(sub($x) { $x + $n })
+    })
+    print(@shifted)
+
+    %labels = @nums.reduce({"seed": ["x" ~ "y"]}, sub(%acc, $n) {
+        %acc.set("k{ $n }", ["v{ $n }", "w{ $n + 1 }"])
+    })
+    print(%labels)
+}

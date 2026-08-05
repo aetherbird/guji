@@ -1,0 +1,16 @@
+# gujiconform — selfhost slice 2 E2 evaluator. This wrapper evaluates the first
+# sub body with the dogfood evaluator and prints only the resulting value.
+import lexer
+
+sub main(): Int {
+    match lexer::eval_first_sub_to_string(stdin.slurp()) {
+        Ok($value) {
+            print($value)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

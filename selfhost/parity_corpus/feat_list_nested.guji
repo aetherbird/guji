@@ -1,0 +1,38 @@
+# §15 higher-order list functions over a NON-SCALAR element list (List[List[Int]]).
+# P2b-3c-2 audit probe. Native ACCEPTS every shape below and matches the interpreter
+# exactly (verified interp == native: full output, exit 6). The self-hosted compiler
+# currently DECLINES them because it has NO nested-list value representation
+# (native lays List[List[Int]] out as a guji_slice_t* outer array allocated with
+# GUJI_KIND_ARR_SLICE, each slot an inner guji_slice_t). So this probe classifies as
+# a GAP under selfhost/parity_diff.sh — the tracked P2b-3c-2 work item. It is gated on
+# the missing nested-list VALUE support (parity_diff GAP row, see fix_plan.md).
+sub main(): Int {
+    @xs = [[1, 2], [3, 4, 5], [6]]
+
+    # .each over a nested-list element (binder is List[Int])
+    @xs.each(sub($row: List[Int]) { print("row { count($row) }") })
+
+    # .map reading each nested element, producing a scalar list
+    @lens = @xs.map(sub($row: List[Int]): Int { count($row) })
+    print("lens { @lens[0] },{ @lens[1] },{ @lens[2] }")
+
+    # .filter keeping whole nested elements (result stays List[List[Int]])
+    @big = @xs.filter(sub($row: List[Int]): Bool { count($row) > 1 })
+    print("big { count(@big) }")
+
+    # .reduce folding nested elements into a scalar
+    $total = reduce(@xs, 0, sub($acc: Int, $row: List[Int]): Int { $acc + count($row) })
+    print("total { $total }")
+
+    # .find returning Option[List[Int]]
+    print(match @xs.find(sub($row: List[Int]): Bool { count($row) > 2 }) {
+        Some($r) { "found { count($r) }" }
+        None { "none" }
+    })
+
+    # .map producing a NESTED list result (List[List[Int]])
+    @doubled = @lens.map(sub($n: Int): List[Int] { [$n, $n * 10] })
+    print("doubled { @doubled[1][0] },{ @doubled[1][1] }")
+
+    $total
+}

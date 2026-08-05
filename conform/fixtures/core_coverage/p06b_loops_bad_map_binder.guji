@@ -1,0 +1,6 @@
+# Map iteration binds key then value and therefore requires two binders.
+sub main(): Int {
+    %values = {"a": 1}
+    for $only in %values { print($only) }
+    0
+}

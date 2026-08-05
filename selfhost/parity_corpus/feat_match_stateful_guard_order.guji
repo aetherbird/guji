@@ -1,0 +1,14 @@
+# §10.2 P9-8b-2b: a stateful guard after an earlier guarded arm must run only
+# if no prior arm matched. Native's matched-flag lowering; selfhost covers it.
+sub choose($o: Option[Str]): Str {
+    match $o {
+        Some($v) if $v == "first" { "one" }
+        Some($v) if $v == "second" { "two" }
+        _ { "other" }
+    }
+}
+
+sub main(): Int {
+    print(choose(Some("second")))
+    0
+}

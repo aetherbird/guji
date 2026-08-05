@@ -1,0 +1,38 @@
+# P8d-2c-3d-2b: Map receive-carrier extraction — `$ch.recv().unwrap()` for
+# Map[Str,Int|Str|List[Int]] (method form; native rejects Map `expect` and
+# function-form unwrap binds — "map bindings from map expressions only", an
+# oracle-limit) and bound `$opt.unwrap()` on Option[Map]. Fresh carriers retain
+# BOTH counted arrays (keys+vals) out and release the carrier slot; bound
+# carriers retain into the result while the Option local keeps scope-exit
+# ownership.
+sub main(): Int {
+    $ints: Chan[Map[Str,Int]] = channel(2)
+    $ints.send({"a": 1, "b": 2})
+    $ints.send({"x": 10, "y": 20})
+    %first = $ints.recv().unwrap()
+    %second = $ints.recv().unwrap()
+    print(%first{"a"} + %first{"b"} + %second{"y"})
+
+    $words: Chan[Map[Str,Str]] = channel(1)
+    $words.send({"greet": "he" ~ "llo", "who": "world"})
+    %w = $words.recv().unwrap()
+    print(%w{"greet"} ~ " " ~ %w{"who"})
+
+    $rows: Chan[Map[Str,List[Int]]] = channel(1)
+    $rows.send({"xs": [3, 4], "ys": [10]})
+    %r = $rows.recv().unwrap()
+    @row = %r{"xs"}
+    print(@row[0] + @row[1] + %r{"ys"}[0])
+
+    $more: Chan[Map[Str,Int]] = channel(1)
+    $more.send({"k": 7, "j": 8})
+    $opt = $more.recv()
+    %b = $opt.unwrap()
+    mut $total = 0
+    for $k, $v in %b {
+        $total = $total + $v
+    }
+    print($total)
+
+    0
+}

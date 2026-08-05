@@ -1,0 +1,9 @@
+sub first_line($text: Str): Str {
+    @ls = lines($text)
+    @ls[0]
+}
+
+sub main(): Int {
+    print(first_line("a\nb\nc"))
+    0
+}

@@ -1,0 +1,16 @@
+# Historical decline-audit row: a recursive enum carries List[the declaring
+# enum]. Canonical C must retain the nominal list element in declaration-only
+# metadata, compile it, and match canonical D exactly.
+enum Tree {
+    Leaf($n: Int)
+    Node(@kids: List[Tree])
+}
+sub score($s: Tree): Int {
+    match $s {
+        Leaf($n0) { $n0 }
+        Node(@kids0) { @kids0.count() }
+    }
+}
+sub main(): Int {
+    score(Node([Leaf(3), Leaf(4)]))
+}

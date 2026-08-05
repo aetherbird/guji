@@ -1,0 +1,10 @@
+# G6b-b-3-ii: enum matches must cover every declared variant.
+enum Color { Red, Green, Blue }
+
+sub main(): Int {
+    $c = Red
+    match $c {
+        Red { 0 }
+        Green { 1 }
+    }
+}

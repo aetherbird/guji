@@ -1,0 +1,25 @@
+# G2b slice: generic subs instantiated with scalar-payload carrier type arguments
+# monomorphize natively. Option[T] param/return plus a non-generic Option[Int] param.
+sub get_or_default[T]($o: Option[T], $default: T): T {
+    match $o {
+        Some($v) { $v }
+        None { $default }
+    }
+}
+
+sub count_if_some($o: Option[Int]): Int {
+    if $o.is_some() { 1 } else { 0 }
+}
+
+sub main(): Unit {
+    $n = get_or_default(Some(7), 0)
+    print("{ $n }")
+    $m = get_or_default(None, 42)
+    print("{ $m }")
+    $s = get_or_default(Some("hi"), "bye")
+    print($s)
+    $t = count_if_some(Some(5))
+    print("{ $t }")
+    $u = count_if_some(None)
+    print("{ $u }")
+}

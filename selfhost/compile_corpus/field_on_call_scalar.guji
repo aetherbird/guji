@@ -1,0 +1,54 @@
+# slice 5 E5d-8v: field access whose OBJECT is a CALL result — `make_box().name`
+# and `make_box().size` — with NO intervening binding. `g8_resolve_field_acc` only
+# builds accessors over bound vars, so the call result must be MATERIALISED into an
+# owned temp first, the field copied out into an independent value, then the temp's
+# owned fields released. This fixture keeps the class fields scalar/Str so native
+# ACCEPTS it and the three-way bar applies (interp == native == selfhost). The field
+# read appears in BOTH value position (a sub's final expr) and call-argument position
+# (`twice(make_box(...).size)` and `greet(make_box(...).name)`), the two shapes the
+# real `g6_result_value` exercises via `cg_reg_builtin_variant(cg_reg_result().variants,
+# "Ok")`.
+class Box {
+    has $.name: Str
+    has $.size: Int
+}
+
+sub make_box($s: Str, $n: Int): Box {
+    Box(name: $s, size: $n)
+}
+
+sub twice($n: Int): Int {
+    $n * 2
+}
+
+sub greet($s: Str): Str {
+    "hi " ~ $s
+}
+
+# Str field read from a call result, in value position.
+sub box_name($s: Str, $n: Int): Str {
+    make_box($s, $n).name
+}
+
+# Int field read from a call result, in value position.
+sub box_size($s: Str, $n: Int): Int {
+    make_box($s, $n).size
+}
+
+# Int field-on-call as a CALL ARGUMENT: twice(make_box(...).size).
+sub dbl_size($s: Str, $n: Int): Int {
+    twice(make_box($s, $n).size)
+}
+
+# Str field-on-call as a CALL ARGUMENT: greet(make_box(...).name).
+sub box_greeting($s: Str, $n: Int): Str {
+    greet(make_box($s, $n).name)
+}
+
+sub main(): Int {
+    print(box_name("alpha", 3))
+    print(box_greeting("world", 1))
+    $a = box_size("alpha", 3)
+    $b = dbl_size("alpha", 5)
+    return $a + $b + box_size("z", 4)
+}

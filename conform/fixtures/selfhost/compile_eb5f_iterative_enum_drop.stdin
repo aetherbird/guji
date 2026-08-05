@@ -1,0 +1,9 @@
+enum Link {
+    End
+    More($text: Str, $rest: Link)
+}
+
+sub main(): Int {
+    $x = More("a", More("b", End))
+    0
+}

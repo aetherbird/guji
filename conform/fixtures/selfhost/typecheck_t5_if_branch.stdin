@@ -1,0 +1,4 @@
+# T5: value-producing if branches must have compatible result types.
+sub main(): Int {
+    if true { 1 } else { "x" }
+}

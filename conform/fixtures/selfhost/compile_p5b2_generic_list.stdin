@@ -1,0 +1,35 @@
+# P5b-2b(a) probe: scalar-element List[T] generic-sub monomorphization.
+sub first_or[T](@xs: List[T], $default: T): T {
+    if @xs.is_empty() { $default } else { @xs[0] }
+}
+
+sub pair[T]($a: T, $b: T): List[T] {
+    [$a, $b]
+}
+
+sub wrap[T]($x: T): List[T] {
+    [$x]
+}
+
+sub twice[T]($x: T): List[T] {
+    @inner = wrap($x)
+    $head = @inner[0]
+    @out = [$x, $head]
+    @out
+}
+
+sub main(): Int {
+    @nums = [9, 8, 7]
+    print("{ first_or(@nums, 0) }")
+    @names = ["ada", "grace"]
+    print(first_or(@names, "none"))
+    @flags = [true, false]
+    print("{ first_or(@flags, false) }")
+    @p = pair(3, 4)
+    print("{ @p[0] }")
+    @t = twice(7)
+    print("{ @t[1] }")
+    @fs = wrap(2.5)
+    print("{ @fs[0] }")
+    0
+}

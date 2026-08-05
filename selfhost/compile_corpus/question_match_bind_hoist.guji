@@ -1,0 +1,103 @@
+# Slice 6 P3b-2b-2c-4m: fresh scalar/Str binds whose RHS is a match-value over a
+# Result scrutinee with arm-final `?` hoists. The arm segment emits the hoisted
+# carrier guard; its Err early-return releases the owned scrutinee before the C
+# `return`, then the shared match temp is assigned into the user's local.
+# Covers annotated + unannotated binds, Int/Str/Float results, `?` in the Ok
+# arm, multiple `?` in one arm, and runtime Err propagation from inside an arm.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub parse_price($s: Str): Result[Int, Str] {
+    parse_int($s)
+}
+
+sub match_bind_int($s: Str, $q: Str): Result[Int, Str] {
+    $x = match parse_price($s) {
+        Ok($v) { parse_int($q)? + $v }
+        Err($e) { 0 }
+    }
+    Ok($x + 1)
+}
+
+sub match_bind_int_annot($s: Str, $q: Str): Result[Int, Str] {
+    $x: Int = match parse_price($s) {
+        Ok($v) { parse_int($q)? + $v }
+        Err($e) { 7 }
+    }
+    Ok($x * 2)
+}
+
+sub match_bind_multi($s: Str, $q: Str, $r: Str): Result[Int, Str] {
+    $x = match parse_price($s) {
+        Ok($v) { parse_int($q)? + parse_int($r)? + $v }
+        Err($e) { 0 }
+    }
+    Ok($x)
+}
+
+sub match_bind_str($s: Str, $q: Str): Result[Str, Str] {
+    $x = match tag($s) {
+        Ok($t) { tag($q)? ~ "/" ~ $t }
+        Err($e) { "none:" ~ $e }
+    }
+    Ok($x ~ "!")
+}
+
+sub half($s: Str): Result[Float, Str] {
+    if $s == "bad" { Err("nofloat") } else { Ok(1.25) }
+}
+
+sub match_bind_float($s: Str, $q: Str): Result[Float, Str] {
+    $x = match parse_price($s) {
+        Ok($v) { half($q)? * 2.0 }
+        Err($e) { 0.5 }
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    mut $n = 0
+    match match_bind_int("7", "30") {
+        Ok($a) { print("int ok { $a }") $n = $n + $a }
+        Err($e1) { print("int err { $e1 }") }
+    }
+    match match_bind_int("7", "zap") {
+        Ok($b) { print("int bad { $b }") }
+        Err($e2) { print("int err { $e2 }") }
+    }
+    match match_bind_int("nope", "30") {
+        Ok($c) { print("int errarm { $c }") $n = $n + $c }
+        Err($e3) { print("int errarm err { $e3 }") }
+    }
+    match match_bind_int_annot("5", "6") {
+        Ok($d) { print("annot ok { $d }") $n = $n + $d }
+        Err($e4) { print("annot err { $e4 }") }
+    }
+    match match_bind_multi("1", "2", "3") {
+        Ok($f) { print("multi ok { $f }") $n = $n + $f }
+        Err($e5) { print("multi err { $e5 }") }
+    }
+    match match_bind_multi("1", "2", "boom") {
+        Ok($g) { print("multi bad { $g }") }
+        Err($e6) { print("multi err { $e6 }") }
+    }
+    match match_bind_str("go", "hi") {
+        Ok($h) { print("str ok { $h }") }
+        Err($e7) { print("str err { $e7 }") }
+    }
+    match match_bind_str("bad", "hi") {
+        Ok($i) { print("str errarm { $i }") }
+        Err($e8) { print("str err { $e8 }") }
+    }
+    match match_bind_str("go", "bad") {
+        Ok($j) { print("str bad { $j }") }
+        Err($e9) { print("str err { $e9 }") }
+    }
+    match match_bind_float("2", "1.5") {
+        Ok($k) { print("float ok { $k }") }
+        Err($ea) { print("float err { $ea }") }
+    }
+    $n
+}

@@ -1,0 +1,44 @@
+# §8/§9/§15.4 (I5g2): top-level collections of user values.
+# Program-specific class/enum array kinds must render through generated nominal
+# helpers and compare structurally without flattening the values to scalar slots.
+
+enum Color {
+    Red
+    Named($name: Str)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    @colors = [Red, Named("g" ~ "reen")]
+    @same_colors = [Red, Named("green")]
+    @other_colors = [Named("red"), Named("green")]
+    print(@colors)
+    print(@colors == @same_colors)
+    print(@colors != @other_colors)
+    print("colors={ @colors }")
+
+    @people = [Person(name: "A" ~ "da", age: 36), Person(name: "B" ~ "ob", age: 28)]
+    @same_people = [Person(name: "Ada", age: 36), Person(name: "Bob", age: 28)]
+    @other_people = [Person(name: "Ada", age: 36), Person(name: "Bob", age: 29)]
+    print(@people)
+    print(@people == @same_people)
+    print(@people != @other_people)
+
+    %colors_by_name = {"b": Named("blue"), "a": Red}
+    %same_colors_by_name = {"a": Red, "b": Named("blue")}
+    %other_colors_by_name = {"a": Named("red"), "b": Named("blue")}
+    %people_by_name = {"b": Person(name: "Bob", age: 28), "a": Person(name: "Ada", age: 36)}
+    %same_people_by_name = {"a": Person(name: "Ada", age: 36), "b": Person(name: "Bob", age: 28)}
+    %other_people_by_name = {"a": Person(name: "Ada", age: 37), "b": Person(name: "Bob", age: 28)}
+    print(%colors_by_name)
+    print(%colors_by_name == %same_colors_by_name)
+    print(%colors_by_name != %other_colors_by_name)
+    print(%people_by_name)
+    print(%people_by_name == %same_people_by_name)
+    print(%people_by_name != %other_people_by_name)
+    0
+}

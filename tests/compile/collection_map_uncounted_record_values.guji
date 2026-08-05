@@ -1,0 +1,69 @@
+# A-collection-elements-rest (uncounted Map[Str, class/enum value] slice):
+# map values that are class/enum structs with no counted fields/payloads use
+# concrete struct storage, not int64_t fallback storage. A heap-built key forces
+# the same uncounted value storage through the heap map release path, where the
+# key/value arrays are released but the uncounted value slots need no field drop.
+
+enum Color {
+    Red
+    Green
+    Blue
+}
+
+class Point {
+    has $.x: Int
+    has $.y: Int
+}
+
+class Flag {
+    has $.ok: Bool
+}
+
+sub color_code($c: Color): Int {
+    match $c {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}
+
+sub main(): Int {
+    %colors = {"r": Red, "g": Green}
+    print(%colors.keys().count())
+    $g = %colors{"g"}
+    print(color_code($g))
+
+    mut $sum = 0
+    for $k, $c in %colors {
+        $sum = $sum + color_code($c)
+    }
+    print($sum)
+
+    $saved = Blue
+    %aliases = {"x": $saved, "fresh": Red}
+    $x = %aliases{"x"}
+    print(color_code($x))
+    print(color_code($saved))
+
+    %points = {"p": Point(x: 4, y: 5), "q": Point(x: 6, y: 7)}
+    $p = %points{"p"}
+    print($p.x + $p.y)
+
+    mut $total = 0
+    for $name, $pt in %points {
+        $total = $total + $pt.x + $pt.y
+    }
+    print($total)
+
+    %flags = {"o" ~ "k": Flag(ok: true)}
+    $f = %flags{"ok"}
+    if $f.ok {
+        print(1)
+    } else {
+        print(0)
+    }
+
+    @rows = [{"a": Red}, {"b": Blue}]
+    print(@rows.count())
+    0
+}

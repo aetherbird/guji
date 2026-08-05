@@ -1,0 +1,1 @@
+Program(decls=[Enum(public=false,name="Shape",tparams=[],variants=[Variant(name="Circle",fields=[Param(name="$radius",type=Some(Type(name="Float",args=[])))]),Variant(name="Rect",fields=[Param(name="$width",type=Some(Type(name="Float",args=[]))),Param(name="$height",type=Some(Type(name="Float",args=[])))])],subs=[])])

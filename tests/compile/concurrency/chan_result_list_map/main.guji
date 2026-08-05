@@ -1,0 +1,75 @@
+# Chan[Result[List[Map[Str,T]], Str]] must detach an active Ok List[Map]
+# payload on send and adopt it on recv; unread buffered Ok/Err messages
+# exercise the carrier elem_drop under LSan. Row maps force the recv metadata
+# path to preserve the map value type for row indexing and map iteration.
+
+sub sum_rows(@rows: List[Map[Str, Int]]): Int {
+    mut $total = 0
+    for %row in @rows {
+        $total = $total + %row.values().sum()
+    }
+    $total
+}
+
+sub join_rows(@rows: List[Map[Str, Str]]): Str {
+    @rows[0]{"a"} ~ @rows[0]{"b"} ~ "/" ~ @rows[1]{"c"}
+}
+
+sub classify_counts($ok: Bool): Result[List[Map[Str, Int]], Str] {
+    if $ok {
+        Ok([{"a": 1, "b": 2}, {"c": 3, "d": 4}])
+    } else {
+        Err("no-grid")
+    }
+}
+
+sub classify_words($ok: Bool): Result[List[Map[Str, Str]], Str] {
+    if $ok {
+        Ok([{"a": "gu", "b": "ji"}, {"c": "lang"}])
+    } else {
+        Err("no-words")
+    }
+}
+
+sub main(): Int {
+    $ints: Chan[Result[List[Map[Str, Int]], Str]] = channel(4)
+    $ints.send(classify_counts(true))
+    $ints.send(classify_counts(false))
+    # These buffered messages are never received: one active Ok List[Map] and
+    # one active Err Str must both be dropped by the channel.
+    $ints.send(classify_counts(true))
+    $ints.send(classify_counts(false))
+
+    $grid_one = $ints.recv().unwrap()
+    print(match $grid_one {
+        Ok(@rows) { sum_rows(@rows) }
+        Err($e) { 0 }
+    })
+
+    $grid_two = $ints.recv().unwrap()
+    match $grid_two {
+        Ok(@rows) { print(@rows[0]{"a"}) }
+        Err($e) { print($e) }
+    }
+
+    $words: Chan[Result[List[Map[Str, Str]], Str]] = channel(3)
+    $words.send(classify_words(true))
+    $words.send(classify_words(false))
+    # Buffered active Ok with Str-valued row maps: releasing the outer ARR_MAP
+    # must cascade through copied row map arrays and their Str elements.
+    $words.send(classify_words(true))
+
+    $words_one = $words.recv().unwrap()
+    print(match $words_one {
+        Ok(@rows) { join_rows(@rows) }
+        Err($e) { $e }
+    })
+
+    $words_two = $words.recv().unwrap()
+    print(match $words_two {
+        Ok(@rows) { @rows[0]{"a"} }
+        Err($e) { $e }
+    })
+
+    0
+}

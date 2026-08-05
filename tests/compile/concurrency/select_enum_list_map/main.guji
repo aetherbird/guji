@@ -1,0 +1,46 @@
+# Section 17.5 select recv over List/Map-payload enum channels. The selected
+# message is adopted into Option[Rec].val and released after the arm; the second
+# buffered message is left undelivered so the per-enum channel drop also runs.
+enum Rec {
+    Counts($c: Map[Str, Int])
+    Words($ws: List[Str])
+    Done
+}
+
+sub show($r: Rec): Str {
+    match $r {
+        Counts($c) {
+            $a = $c{"a"}
+            $b = $c{"b"}
+            "a={ $a } b={ $b }"
+        }
+        Words($ws) {
+            mut $out = ""
+            for $w in $ws {
+                $out = $out ~ $w
+            }
+            $out
+        }
+        Done { "done" }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Rec] = channel(2)
+    %nums = {"a": 1, "b": 2}
+    @words = ["left", "right"]
+    $ch.send(Counts(%nums))
+    $ch.send(Words(@words))
+
+    select {
+        $v = $ch.recv() {
+            if $v.is_some() {
+                $r = $v.unwrap()
+                print(show($r))
+            } else {
+                print("closed")
+            }
+        }
+        else { print("idle") }
+    }
+}

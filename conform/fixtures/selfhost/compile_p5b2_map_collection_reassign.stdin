@@ -1,0 +1,11 @@
+sub main(): Int {
+    mut %li: Map[Str, List[Int]] = {"a": [1, 2]}
+    print(%li)
+    %li = {"b": [3, 4], "c": [5]}
+    print(%li)
+    mut %mm: Map[Str, Map[Str, Bool]] = {"o": {"yes": true}}
+    print(%mm)
+    %mm = {"n": {"no": false}}
+    print(%mm)
+    0
+}

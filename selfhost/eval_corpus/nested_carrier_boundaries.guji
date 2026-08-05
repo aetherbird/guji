@@ -1,0 +1,106 @@
+# §11/§15.5 (I6f): non-regex nested carrier payloads retain their exact
+# value shape through class fields, ordinary parameters, and return boundaries.
+# Regex payloads require the evaluator's I7 Regex value model and are split out.
+class Parcel {
+    has $.id: Int
+    has $.name: Str
+}
+
+enum Signal {
+    Stop
+    Text($message: Str)
+}
+
+class Holder {
+    has $.parcel: Option[Parcel]
+}
+
+sub pass_parcel($value: Option[Parcel]): Option[Parcel] { $value }
+sub pass_signal($value: Result[Signal, Str]): Result[Signal, Str] { return $value }
+sub pass_nested($value: Result[Option[Parcel], Str]): Result[Option[Parcel], Str] { $value }
+sub no_parcel(): Option[Parcel] { None }
+sub some_list(@value: List[Int]): Option[List[Int]] { Some(@value) }
+sub no_list(): Option[List[Int]] { None }
+sub signal_text($message: Str): Result[Signal, Str] { Ok(Text($message)) }
+sub signal_stop(): Result[Signal, Str] { Ok(Stop) }
+sub signal_err($message: Str): Result[Signal, Str] { Err($message) }
+sub map_ok(%value: Map[Str, Int]): Result[Map[Str, Int], Str] { Ok(%value) }
+sub map_err($message: Str): Result[Map[Str, Int], Str] { Err($message) }
+sub nested_ok($value: Option[Parcel]): Result[Option[Parcel], Str] { Ok($value) }
+sub nested_err($message: Str): Result[Option[Parcel], Str] { Err($message) }
+
+sub parcel_name($value: Option[Parcel]): Str {
+    match $value {
+        Some($parcel) { "{ $parcel.id }:{ $parcel.name }" }
+        None { "none" }
+    }
+}
+
+sub signal_name($value: Result[Signal, Str]): Str {
+    match $value {
+        Ok(Stop) { "stop" }
+        Ok(Text($message)) { "text:$message" }
+        Err($message) { "err:$message" }
+    }
+}
+
+sub nested_value($value: Result[Option[Parcel], Str]): Str {
+    match $value {
+        Ok(Some($parcel)) { "nested:{ $parcel.name }" }
+        Ok(None) { "nested:none" }
+        Err($message) { "nested:err:$message" }
+    }
+}
+
+sub main(): Int {
+    # Heap-build the field so LeakSanitizer proves every Option[class] retain is
+    # balanced at function exit; a literal would hide a missing carrier release.
+    $parcel = Parcel(id: 7, name: "box" ~ "ed")
+    $some: Option[Parcel] = pass_parcel(Some($parcel))
+    $none: Option[Parcel] = no_parcel()
+    print(parcel_name($some))
+    print(parcel_name(pass_parcel($none)))
+    if true {
+        # Exercises `cg_env_release_strs_n`: the branch owns this carrier only
+        # while selected, and must drop its active class payload at branch exit.
+        $branch_some: Option[Parcel] = pass_parcel(Some($parcel))
+        print("branch:{ parcel_name($branch_some) }")
+    }
+
+    $signal: Result[Signal, Str] = pass_signal(signal_text("go" ~ "!"))
+    print(signal_name($signal))
+    print(signal_name(pass_signal(signal_stop())))
+    print(signal_name(pass_signal(signal_err("bad" ~ "!"))))
+
+    @numbers = [20, 22]
+    print(match some_list(@numbers) {
+        Some(@items) { @items[0] + @items[1] }
+        None { -1 }
+    })
+    print(match no_list() {
+        Some(@items) { @items[0] }
+        None { -1 }
+    })
+
+    %numbers = {"b": 2, "a": 1}
+    print(match map_ok(%numbers) {
+        Ok(%items) { "{ %items{\"a\"} }/{ %items{\"b\"} }" }
+        Err($message) { "err:$message" }
+    })
+    print(match map_err("map" ~ "!") {
+        Ok(%items) { "{ %items{\"a\"} }" }
+        Err($message) { "err:$message" }
+    })
+
+    $nested: Result[Option[Parcel], Str] = pass_nested(nested_ok(pass_parcel(Some($parcel))))
+    $holder: Holder = Holder(parcel: $some)
+    print(parcel_name($holder.parcel))
+    print(nested_value($nested))
+
+    $no_parcel: Option[Parcel] = no_parcel()
+    $empty_holder: Holder = Holder(parcel: $no_parcel)
+    print(parcel_name($empty_holder.parcel))
+    print(nested_value(pass_nested(nested_ok($no_parcel))))
+    print(nested_value(pass_nested(nested_err("deep" ~ "!"))))
+    0
+}

@@ -1,0 +1,11 @@
+# P1c-b-2a (§7.4): an unannotated parameter used as `$f($x)` is inferred as a
+# function value in selfhost codegen, passed through the native `guji_fn_t` ABI,
+# and applied inside the callee. This is the parity-corpus `feat_lambda` shape.
+sub apply($f, $x: Int): Int { $f($x) }
+
+sub main(): Int {
+    $base = 10
+    $f = sub($n: Int): Int { $n + $base }
+    print("{ apply($f, 5) }")
+    apply($f, 0)
+}

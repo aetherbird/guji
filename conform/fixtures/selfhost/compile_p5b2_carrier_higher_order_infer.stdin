@@ -1,0 +1,15 @@
+sub some_int($x: Int): Option[Int] { Some($x) }
+sub some_str($s: Str): Option[Str] { Some($s) }
+
+sub main(): Int {
+    $s = some_int(5)
+    $t = some_str("heap")
+    $m1 = $s.map(sub($v) { $v * 2 })
+    $m2 = $s.map(sub($v: Int): Str { "n={ $v }" })
+    $f1 = $t.filter(sub($w) { $w == "heap" })
+    $a = $m1.unwrap_or(0)
+    $b = $m2.unwrap_or("x")
+    $c = $f1.unwrap_or("z")
+    print("{ $a } { $b } { $c }")
+    0
+}

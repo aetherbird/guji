@@ -1,0 +1,14 @@
+# P9-2: a Str-prelude unary call (`upper`/`trim`/`lower`) in map-value position
+# must type as Str, not permissive TUnknown — a TUnknown FIRST value made the
+# later concrete Str value a false "does not match first value type <?>" reject
+# (the oracle types the trio via inferPreludeCall's Str-receiver branch).
+sub main(): Int {
+    %m = {"a": "first".upper(), "b": "second"}
+    print(%m{"a"})
+    print(%m{"b"})
+
+    $x = " pad ".trim()
+    $y = "UP".lower()
+    print($x ~ $y)
+    0
+}

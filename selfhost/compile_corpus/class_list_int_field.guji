@@ -1,0 +1,21 @@
+# Slice 5 E4b-1: List[Int] class fields are native-supported and must compile
+# three-way. This exercises constructor ownership, owned class return, borrowed
+# class param, field count(), and indexing through a copied field slice.
+class Bag {
+    has @.items: List[Int]
+    has $.name: Str
+}
+
+sub mk(): Bag {
+    Bag(items: [4, 5, 6], name: "bag")
+}
+
+sub score($b: Bag): Int {
+    print($b.name)
+    $b.items.count() + $b.items[1]
+}
+
+sub main(): Int {
+    $b = mk()
+    score($b)
+}

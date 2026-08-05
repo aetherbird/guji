@@ -1,0 +1,132 @@
+# I2d: scalar §6.1/§6.2/§10 if and match without user-defined values.
+# Covers Bool/Int/Float conditions, statement and value `if`/`elif`, and
+# literal/binding/wildcard/guarded scalar match arms. Float ordering is
+# required for Float conditions and Float match guards.
+
+sub label($b: Bool): Str {
+    if $b { "yes" } else { "no" }
+}
+
+sub sign($n: Int): Str {
+    if $n < 0 {
+        "neg"
+    } else if $n == 0 {
+        "zero"
+    } else {
+        "pos"
+    }
+}
+
+sub classify($n: Int): Str {
+    match $n {
+        $x if $x < 0 { "neg" }
+        0 { "zero" }
+        $x if $x > 100 { "big" }
+        $x { "small" }
+    }
+}
+
+sub fizz($n: Int): Str {
+    match $n {
+        0 { "zero" }
+        1 { "one" }
+        2 { "two" }
+        $x { "many" }
+    }
+}
+
+sub describe($s: Str): Str {
+    match $s {
+        "hi" { "greeting" }
+        "bye" { "farewell" }
+        $other { "other:" ~ $other }
+    }
+}
+
+sub flag($b: Bool): Int {
+    match $b {
+        true { 1 }
+        _ { 0 }
+    }
+}
+
+sub band($f: Float): Str {
+    match $f {
+        $x if $x < 0.0 { "neg" }
+        0.0 { "zero" }
+        $x { "pos" }
+    }
+}
+
+sub float_guard($x: Float): Int {
+    match $x {
+        $v if $v > 1.5 { 1 }
+        _ { 0 }
+    }
+}
+
+sub early_if($n: Int): Int {
+    if $n < 0 { return 0 }
+    if $n == 0 { return 1 }
+    $n + 1
+}
+
+sub main(): Int {
+    # value if / elif
+    print(label(true))
+    print(label(false))
+    print(sign(-3))
+    print(sign(0))
+    print(sign(4))
+    $picked = if 3 > 1 { "t" } else { "f" }
+    print($picked)
+
+    # statement if with side effects
+    if true {
+        print("go")
+    } else {
+        print("stop")
+    }
+    if false {
+        print("never")
+    } else if true {
+        print("elif")
+    } else {
+        print("else")
+    }
+
+    # Int scalar match: guards, literals, binding catch-all
+    print(classify(-5))
+    print(classify(0))
+    print(classify(50))
+    print(classify(500))
+    print(fizz(0))
+    print(fizz(2))
+    print(fizz(9))
+
+    # Str / Bool match
+    print(describe("hi"))
+    print(describe("bye"))
+    print(describe("zonk"))
+    print(flag(true))
+    print(flag(false))
+
+    # Float conditions, value-if, match guards/literals
+    $f = 3.5
+    print(if $f > 1.0 { 2 } else { 0 })
+    print(band(-2.5))
+    print(band(0.0))
+    print(band(7.0))
+    print(float_guard(2.0))
+    print(float_guard(1.0))
+    print(if (match 3 {
+        3 { 2.5 }
+        _ { 0.5 }
+    }) > 1.0 { 1 } else { 0 })
+
+    # early return inside statement if
+    print(early_if(-1))
+    print(early_if(0))
+    print(early_if(5))
+    0
+}

@@ -1,0 +1,14 @@
+# Bare sigil interpolation (§12) must display the binding value, while escaped
+# sigils remain literal text and lone sigils are not interpolation starts.
+sub main(): Int {
+    $x = 7
+    $name = "ada"
+    @xs = [1, 2, 3]
+    %m = {"b": 2, "a": 1}
+    print("scalar $x/$name")
+    print("list @xs")
+    print("map %m")
+    print("mixed { $x + 1 } and $x")
+    print("escaped \$x \@xs \%m lone $ @ %")
+    23
+}

@@ -1,0 +1,26 @@
+# Section 17 channel copy-on-send for Map[Str, Str] values.
+#
+# A Map[Str, Str] crossing a channel boundary must be a fully detached message
+# graph: not only the key array but each counted value string must be copied into
+# a fresh ARR_STR so the sender's per-task heap shares no pointers with the
+# receiver's. The buffered `drop` send is intentionally left undrained so the
+# channel elem_drop path (guji_chan_drop_map -> guji_drop_arr_str over the key and
+# value arrays) also releases an undelivered copied Map[Str, Str] under the
+# sanitizer gate.
+
+sub main(): Unit {
+    $env: Chan[Map[Str, Str]] = channel(2)
+    %m = {"first": "al", "second": "pha", "third": "bet"}
+    %drop = {"never": "drained"}
+    $env.send(%m)
+    $env.send(%drop)
+
+    %got = $env.recv().unwrap()
+    print(%got{"first"} ~ %got{"second"} ~ %got{"third"})
+
+    $words: Chan[Map[Str, Str]] = channel(1)
+    %parts = {"k": "hello"}
+    $words.send(%parts)
+    %gotparts = $words.recv().unwrap()
+    print(%gotparts{"k"})
+}

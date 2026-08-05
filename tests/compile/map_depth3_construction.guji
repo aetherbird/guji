@@ -1,0 +1,43 @@
+# Depth-3 Map[Str, Map[Str, Map[Str, scalar|Str]]] construction/read support.
+# Native codegen used to stop at Map[Str, Map[Str, scalar]] because the map
+# value shape carried only two levels; mapRef.innerT now records the third-level
+# scalar so chained {..}{..}{..} indexing, nested iteration, and set/remove all
+# lower correctly (the outer ARR_MAP drop cascades through every nested row).
+sub main(): Int {
+    %m = {"a": {"b": {"c": 1, "d": 2}}, "e": {"f": {"g": 3}}}
+    print(%m{"a"}{"b"}{"d"})
+    print(%m{"e"}{"f"}{"g"})
+
+    # bound inner map values are copied, not aliased
+    mut %inner = {"b": {"c": 1}}
+    %m2 = {"a": %inner}
+    %inner = {"b": {"c": 9}}
+    print(%m2{"a"}{"b"}{"c"})
+    print(%inner{"b"}{"c"})
+
+    # a borrowed inner row indexes one more level deep
+    %row = %m{"a"}
+    print(%row{"b"}{"d"})
+
+    # Str innermost values
+    %names = {"greet": {"en": {"x": "hi", "y": "bye"}}}
+    print(%names{"greet"}{"en"}{"x"})
+
+    # nested key-ordered iteration over all three levels
+    mut $sum = 0
+    for $k, %r in %m {
+        for $k2, %c in %r {
+            for $k3, $v in %c {
+                $sum = $sum + $v
+            }
+        }
+    }
+    print($sum)
+
+    # set/remove preserve the deepest values
+    %m3 = %m.set("z", {"y": {"w": 7}}).remove("e")
+    print(%m3{"z"}{"y"}{"w"})
+    print(%m3.has_key("e"))
+    print(%m{"e"}{"f"}{"g"})
+    0
+}

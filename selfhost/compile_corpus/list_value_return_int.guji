@@ -1,0 +1,7 @@
+sub make(): List[Int] {
+    [7, 11, 13]
+}
+
+sub main(): Int {
+    make()[1]
+}

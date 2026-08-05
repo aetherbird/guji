@@ -1,0 +1,26 @@
+# P8d-2c-3d-1: pin fresh receive-carrier extraction. Three recv carriers; one
+# fixed-message unwrap guard; two expect guards that panic with the eagerly
+# lowered message tmp and release it on the success path (the brace-adjacent
+# release right after each expect guard); the Str payload is retained out of
+# the fresh carrier and the carrier slot is released+NULLed (owned adoption);
+# the two scalar extractions read `.val` straight into their binders.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, ".tag = guji_chan_recv(") == 3)
+            print(count_of($c, "guji_panic(\"unwrap on None\")") == 1)
+            print(count_of($c, ".tag == 0) \{ guji_panic(") == 3)
+            print(count_of($c, "); }\n\tguji_release(") == 2)
+            print(count_of($c, ".val = NULL; }") == 1)
+            print(count_of($c, "guji_retain(go") == 1)
+            0
+        }
+    }
+}

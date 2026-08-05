@@ -1,0 +1,26 @@
+sub main(): Int {
+    # \Z matches end of string, or just before a final newline.
+    $m1 = "abc" ~~ /\Z/
+    print("{ $m1.is_some() }")
+
+    $m2 = "abc\n" ~~ /.*\Z/
+    print("{ $m2.is_some() }")
+
+    # \Z does not match before a non-final newline.
+    $m3 = "ab\ncd" ~~ /b\Z/
+    print("{ $m3.is_some() }")
+
+    # (?x) ignores unescaped whitespace and #...\n comments.
+    $m4 = "abc" ~~ /(?x) a b c # trailing comment\n/
+    print("{ $m4.is_some() }")
+
+    # Escaped whitespace is literal in (?x).
+    $m5 = "a b" ~~ /(?x)a\ b/
+    print("{ $m5.is_some() }")
+
+    # (?x) is scoped; whitespace inside a class stays literal.
+    $m6 = "  c" ~~ /(?x:[a b]) c/
+    print("{ $m6.is_some() }")
+
+    0
+}

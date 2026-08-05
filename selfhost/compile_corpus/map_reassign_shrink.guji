@@ -1,0 +1,7 @@
+# G7-c-2b-ii-b: reassignment shrinks the binding (len 3 -> 1). Reallocating to a
+# shorter literal is safe for heap-array maps (no fixed-size UB like scalar lists).
+sub main() {
+    mut %m: Map[Str, Int] = {"a": 1, "b": 2, "c": 3}
+    %m = {"z": 9}
+    print(%m)
+}

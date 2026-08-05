@@ -1,0 +1,11 @@
+# E3: reading a private ($!) field that EXISTS is a type error.
+class Token {
+    has $!secret: Str
+    has $.text: Str
+}
+
+sub main(): Int {
+    $t = Token(secret: "s", text: "x")
+    note($t.secret)
+    0
+}

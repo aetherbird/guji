@@ -1,0 +1,7 @@
+sub score(@xs: List[Int]): Int {
+    @xs[0] + @xs[2]
+}
+
+sub main(): Int {
+    score([4, 9, 6])
+}

@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4m compiler codegen fixture.
+# Pins fresh scalar/Str match-value binds over Result scrutinees whose arms end
+# in expressions with hoistable `?`: the hoisted carrier guard inside the arm,
+# the scrutinee release before the Err early-return, the payload bind, the arm
+# result into the shared match temp, and the match temp assigned into the
+# user's local (unannotated Int + annotated Str forms).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gr7 = gr5;\n\tif (gr7.tag != 0LL) \{"))
+            print(has_text($c, "if (gr2.tag != 0LL) \{ guji_release(gr2.err); gr2.err = NULL; }\n\t\treturn (guji_res_int_str)\{1LL, 0LL, gr7.err};"))
+            print(has_text($c, "gv8 = gr7.ok;"))
+            print(has_text($c, "gi3 = guji_add(gv8, gr2.ok);"))
+            print(has_text($c, "gv9 = gi3;"))
+            print(has_text($c, "if (gr2.tag == 0LL) \{ guji_release(gr2.ok); gr2.ok = NULL; }\n\tif (gr2.tag != 0LL) \{ guji_release(gr2.err); gr2.err = NULL; }\n\t\treturn (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr6.err};"))
+            print(has_text($c, "guji_release(gv7);"))
+            print(has_text($c, "gv12 = gt3;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,17 @@
+# W1 (Platform slice 2, write IO): stdout/stderr are pre-open WRITE Handles, and
+# $h.write($s) writes raw text with NO trailing newline (unlike print/note). This
+# fixture proves the WRITE-TIME wrapper: the differential gate redirects the
+# interpreter's stdout via SetOutput AFTER the prelude binds `stdout`, and the
+# stdoutWriter wrapper resolves ev.out at write time, so these writes are still
+# captured (not leaked to the real stdout). Interleaving print (which appends a
+# newline) shows write appends none, and the bare form write(stdout, $s) lowers
+# the same as the method form $h.write($s).
+sub main(): Int {
+    stdout.write("a")
+    stdout.write("b")
+    print("")
+    write(stdout, "c")
+    stdout.write("d\n")
+    print("done")
+    0
+}

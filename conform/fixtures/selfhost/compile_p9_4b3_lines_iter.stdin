@@ -1,0 +1,9 @@
+sub main(): Int {
+    mut $n = 0
+    for $line in stdin.lines() {
+        print("line:" ~ $line)
+        $n = $n + 1
+    }
+    print("count=" ~ "$n")
+    0
+}

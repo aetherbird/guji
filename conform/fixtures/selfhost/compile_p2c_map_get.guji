@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.2 map `get` lowering (both `get(%m, k)` and `%m.get(k)`). The stdin
+# program looks up scalar (Int) and Str map values, so the emitted C must scan the
+# receiver's `.keys` with strcmp (`_keys[`), read the value array (`_vals[`), fill a
+# zeroed Option carrier (`.tag = 0LL; ` init / `.tag = 1LL; ` hit), zero a Str
+# carrier's None slot with `GUJI_EMPTY_STR`, and retain the Some Str payload so the
+# carrier co-owns it.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag = 0LL; "))
+            print(has_text($c, ".tag = 1LL; "))
+            print(has_text($c, "_keys["))
+            print(has_text($c, "_vals["))
+            print(has_text($c, ".val = GUJI_EMPTY_STR;"))
+            print(has_text($c, "guji_retain("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

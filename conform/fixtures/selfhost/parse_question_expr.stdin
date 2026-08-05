@@ -1,0 +1,4 @@
+sub parse_age($s: Str): Result[Int, Str] {
+    $n = parse_int($s)?
+    Ok($n)
+}

@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 6 P9-8b-2b matched-flag guard ordering.
+# Pins native's matched-flag shape: later stateful Str guards run only after
+# earlier arms fail (`if (!matched && variant)`), not via else-if folding.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "if (!gi"))
+            print(has_text($c, " = 1;"))
+            print(has_text($c, "guji_panic(\"non-exhaustive match\")"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

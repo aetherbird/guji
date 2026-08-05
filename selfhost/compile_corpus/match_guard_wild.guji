@@ -1,0 +1,10 @@
+sub f($x: Int, $y: Int): Int {
+    match $x {
+        0 { 9 }
+        _ if $y > 0 { 1 }
+        _ { 0 }
+    }
+}
+sub main(): Int {
+    f(0, 5) + f(5, 5) + f(5, -1)
+}

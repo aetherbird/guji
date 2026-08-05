@@ -1,0 +1,2 @@
+[{"left": [{"scores": [1, 2]}, {"scores": [3]}]}, {"right": [{"scores": []}]}]
+{"blank": [{"inner": []}], "outer": [{"inner": [4, 5]}]}

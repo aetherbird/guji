@@ -1,0 +1,7 @@
+# O4a: Map literals are expressions, not match patterns.
+sub main(): Int {
+    match {"a": 1} {
+        {"a": 1} { 0 }
+        _ { 1 }
+    }
+}

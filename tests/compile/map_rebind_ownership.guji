@@ -1,0 +1,18 @@
+# RC1.3b-i: mut map rebinds use fresh storage; map call results are owned.
+sub make_map($k: Str, $v: Str): Map[Str, Str] {
+    {"base": "B"}.set($k, $v)
+}
+
+sub main(): Unit {
+    mut %m = {"a": "x"}.set("b", "y")
+    %a = %m
+    %m = %m.set("c", "z")
+    print(%a{"a"})
+    print(%a{"b"})
+    print(%m{"c"})
+    print(%m.has_key("b"))
+
+    %r = make_map("k", "v")
+    print(%r{"base"})
+    print(%r{"k"})
+}

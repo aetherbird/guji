@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Option `and_then` carrier-producing lowering over a bound Option
+# local with an inline single-expression lambda returning an Option carrier. The
+# fresh Option temp is zeroed, the callback runs only under the Some guard, the
+# callback's carrier result is copied into the output temp, and the None arm
+# writes the requested carrier's zero value.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag != 0) \{"))
+            print(has_text($c, " = gf_mks("))
+            print(has_text($c, " = go"))
+            print(has_text($c, ".tag = 0; go"))
+            print(has_text($c, "(guji_opt_int)\{1LL, guji_mul("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

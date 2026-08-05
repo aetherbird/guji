@@ -1,0 +1,8 @@
+# §15 prelude — higher-order list ops over a lambda (.map/.filter).
+sub main(): Int {
+    @xs = [1, 2, 3, 4]
+    @ys = @xs.map(sub($n: Int): Int { $n * $n })
+    @ev = @ys.filter(sub($n: Int): Bool { $n % 2 == 0 })
+    print("{ @ev }")
+    0
+}

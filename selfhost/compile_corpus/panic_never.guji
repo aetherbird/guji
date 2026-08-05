@@ -1,0 +1,9 @@
+# §11.2 panic returns Never, so it can occupy the dead branch of scalar and Str
+# if-expressions without constraining the branch result type.
+
+sub main(): Int {
+    $n = if true { 30 } else { panic("dead int") }
+    $s = if false { panic("dead str") } else { "ok" ~ "!" }
+    print($s)
+    if true { $n + 12 } else { panic("dead final") }
+}

@@ -1,0 +1,45 @@
+# P5b-2b enum associated-function slice (§7.5): `EnumName.assoc(args)` calls lower
+# to `gf_<Enum>_<assoc>` with NO receiver; associated functions may call sibling
+# associated functions (`blend` -> `Light.from_code`).
+enum Light {
+    Red
+    Yellow
+    Green
+
+    sub name($self): Str {
+        match $self {
+            Red { "red" }
+            Yellow { "yellow" }
+            Green { "green" }
+        }
+    }
+
+    sub code_of($self): Int {
+        match $self {
+            Red { 0 }
+            Yellow { 1 }
+            Green { 2 }
+        }
+    }
+
+    sub from_code($code: Int): Light {
+        if $code == 0 { Red }
+        else if $code == 1 { Yellow }
+        else { Green }
+    }
+
+    sub blend($a: Int, $b: Int): Light {
+        Light.from_code($a + $b)
+    }
+}
+
+sub main(): Int {
+    $r = Light.from_code(0)
+    print($r.name())
+    $y = Light.from_code(1)
+    print($y.name())
+    $g = Light.blend(1, 1)
+    print($g.name())
+    print("code: { $g.code_of() }")
+    0
+}

@@ -1,0 +1,26 @@
+# G2b slice: generic subs instantiated with scalar-element List[T] parameters
+# monomorphize natively and read those params through list prelude/indexing.
+sub first_or[T](@xs: List[T], $default: T): T {
+    if @xs.is_empty() { $default } else { @xs[0] }
+}
+
+sub list_count[T](@xs: List[T]): Int {
+    @xs.count()
+}
+
+sub main(): Unit {
+    @nums = [9, 8, 7]
+    $n = first_or(@nums, 0)
+    print("{ $n }")
+    @empty: List[Int] = []
+    $fallback = first_or(@empty, 42)
+    print("{ $fallback }")
+    @names = ["ada", "grace"]
+    $name = first_or(@names, "none")
+    print($name)
+    @flags = [true, false]
+    $flag = first_or(@flags, false)
+    print("{ $flag }")
+    $count = list_count(@names)
+    print("{ $count }")
+}

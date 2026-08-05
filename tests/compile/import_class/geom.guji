@@ -1,0 +1,8 @@
+pub class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub shift($self, $delta: Int): Int {
+        $self.x + $self.y + $delta
+    }
+}

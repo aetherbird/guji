@@ -1,0 +1,57 @@
+# Platform slice 3: run($cmd, $args) returns Ok(Proc) for any process that
+# starts, with separate stdout/stderr fields, and Err only for spawn failure.
+# The gate compares interpreter and native stdout/exit byte-for-byte.
+sub main(): Int {
+    match run("printf", ["run-ok"]) {
+        Ok($p) {
+            if $p.exit_code == 0 {
+                print("printf exit=0")
+            } else {
+                print("printf exit unexpected")
+                exit(1)
+            }
+            if $p.stdout == "run-ok" {
+                print("printf stdout=run-ok")
+            } else {
+                print("printf stdout unexpected")
+                exit(1)
+            }
+            if $p.stderr == "" {
+                print("printf stderr-empty")
+            } else {
+                print("printf stderr unexpected")
+                exit(1)
+            }
+        }
+        Err($e) {
+            print("unexpected run Err: $e")
+            exit(1)
+        }
+    }
+
+    match run("false", []) {
+        Ok($p) {
+            if $p.exit_code != 0 {
+                print("false nonzero")
+            } else {
+                print("false exit=0")
+                exit(1)
+            }
+        }
+        Err($e) {
+            print("unexpected false Err: $e")
+            exit(1)
+        }
+    }
+
+    match run("guji-run-definitely-absent-command-0000021", []) {
+        Ok($p) {
+            print("unexpected missing Ok")
+            exit(1)
+        }
+        Err($e) {
+            print($e)
+        }
+    }
+    0
+}

@@ -1,0 +1,6 @@
+# §17.3: send payload type must equal the channel element type.
+sub main(): Int {
+    $ch: Chan[Int] = channel()
+    send($ch, "nope")
+    0
+}

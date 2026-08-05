@@ -1,0 +1,21 @@
+# P9-10b-3a: an ALL-return (Never-valued) match over a user enum carrier —
+# a payload variant and a nullary variant both return. The dead match temp and
+# binder default to int64_t (native's shape); the bind is unreachable.
+enum Shape {
+    Circle($r: Int)
+    Dot
+}
+
+sub area($s: Shape): Int {
+    $out = match $s {
+        Circle($r) { return $r * $r * 3 }
+        Dot { return 1 }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(area(Circle(2)))
+    print(area(Dot))
+    0
+}

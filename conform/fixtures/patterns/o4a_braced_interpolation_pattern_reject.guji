@@ -1,0 +1,7 @@
+# O4a: braced interpolation is an expression and cannot be a pattern.
+sub main(): Int {
+    match "1" {
+        "{ 1 }" { 0 }
+        _ { 1 }
+    }
+}

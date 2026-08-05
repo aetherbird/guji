@@ -1,0 +1,38 @@
+# gujiconform — selfhost slice 5 E5d-8n compiler codegen fixture.
+# Pins value-position `match` lowering when the SCRUTINEE is the FRESH
+# `Option[<user enum>]` returned by a CALL (the real-source `env_lookup` shape
+# `match bind_lookup(...) { Some($v) { ... } None { ... } }`). Before this slice only
+# a BOUND name/param Option[enum] scrutinee lowered (borrowed). Now the CgOptEnum
+# carrier is resolved from the call's return signature, the value is lowered into an
+# OWNED scrutinee temp, and the active Some payload's fields are RELEASED after the
+# arm chain. The pinned needles are:
+#   - the call result lowered (`= gf_lookup(gp0);`),
+#   - materialised into the scrutinee temp (`go1 = go0;`),
+#   - the Some payload bound from the carrier `.val` slot (`ge3 = go1.val;`),
+#   - the after-chain owned-scrutinee release (`guji_release_Val_fields(&go1.val)`),
+#     tag-guarded so a None scrutinee is a no-op (the new behaviour of this slice).
+# Native REJECTS `Option[Val]` (Option of a user enum), so this is interp-oracle.
+# Needles are single-quoted RAW strings so literal braces/parens are not interpolation.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, 'go0 = gf_lookup(gp0);'))
+            print(has_text($c, 'go1 = go0;'))
+            print(has_text($c, 'ge3 = go1.val;'))
+            print(has_text($c, 'if ((go1.tag == 1LL)) {'))
+            print(has_text($c, 'if (go1.tag != 0LL) { guji_release_Val_fields(&go1.val); }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,20 @@
+# G2 slice: top-level generic subs with scalar concrete instantiations compile
+# natively as monomorphized functions instead of emitting the generic template.
+sub id[T]($v: T): T { $v }
+
+sub pick[T]($a: T, $b: T, $flag: Bool): T {
+    if $flag { $a } else { $b }
+}
+
+sub show[T]($v: T): Str { "value={ $v }" }
+
+sub main(): Unit {
+    $n = id(40)
+    print("{ $n + 2 }")
+    $s = id("guji")
+    print($s)
+    $f = pick(1.5, 2.5, false)
+    print("{ $f }")
+    $label = show(true)
+    print($label)
+}

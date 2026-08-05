@@ -1,0 +1,11 @@
+sub main(): Int {
+    @nums = [1, 2, 3, 4]
+    @names = ["ada", "grace"]
+    @empty: List[Str] = []
+
+    print("nums: { @nums.count() }")
+    print("names: { count(@names) }")
+    print("nums empty: { @nums.is_empty() }")
+    print("empty: { is_empty(@empty) }")
+    0
+}

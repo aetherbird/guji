@@ -1,0 +1,33 @@
+# Section 17 hatch capture of List[Map[Str, scalar]] and List[Map[Str, Str]].
+#
+# A list of maps crossing a hatch boundary needs a two-level deep copy: the child
+# task owns a fresh outer ARR_MAP, fresh per-row key/value arrays, and copied Str
+# key/value slots. Retaining a row's keys/vals pointers would share parent-heap
+# data across non-atomic per-task heaps, which §17 forbids.
+#
+# Deterministic: each hatch sends exactly one value over an unbuffered channel,
+# and the parent receives in a fixed order.
+sub main(): Int {
+    @scores = [{"a": 1, "b": 2}, {"c": 3}]
+    @labels = [{"x": "red"}, {"y": "blue"}]
+    $sumCh: Chan[Int] = channel(0)
+    $wordCh: Chan[Str] = channel(0)
+
+    hatch {
+        %first = @scores[0]
+        %second = @scores[1]
+        $total = %first{"a"} + %first{"b"} + %second{"c"}
+        $sumCh.send($total)
+    }
+
+    hatch {
+        %one = @labels[0]
+        %two = @labels[1]
+        $msg = %one{"x"} ~ "/" ~ %two{"y"}
+        $wordCh.send($msg)
+    }
+
+    print($sumCh.recv().unwrap())
+    print($wordCh.recv().unwrap())
+    0
+}

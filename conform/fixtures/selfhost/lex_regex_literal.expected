@@ -1,0 +1,26 @@
+KEYWORD "sub" @1:1
+IDENT "main" @1:5
+PUNCT "(" @1:9
+PUNCT ")" @1:10
+OP ":" @1:11
+UPPER "Int" @1:13
+PUNCT "{" @1:17
+NEWLINE @1:18
+SIGIL "$a" @2:5
+OP "=" @2:8
+STR "x" @2:10
+OP "~~" @2:14
+REGEX "a\/b[\/]" @2:17
+NEWLINE @2:27
+SIGIL "$b" @3:5
+OP "=" @3:8
+STR "y" @3:10
+OP "~~" @3:14
+REGEX "<{ Regex.literal("b/c") }>d" @3:17
+NEWLINE @3:46
+INT "0" @4:5
+NEWLINE @4:6
+PUNCT "}" @5:1
+NEWLINE @5:2
+EOF @6:1
+

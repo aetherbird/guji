@@ -1,0 +1,34 @@
+# P8d-2c-3c-7: scalar Option values cross channels by value.  The outer recv
+# Option must preserve delivered None separately from a closed/drained channel.
+sub main(): Int {
+    $ints: Chan[Option[Int]] = channel(3)
+    $i1: Option[Int] = Some(7)
+    $i2: Option[Int] = None
+    $i3: Option[Int] = Some(11)
+    $ints.send($i1)
+    $ints.send($i2)
+    $ints.send($i3)
+    $a = $ints.recv().unwrap()
+    $b = $ints.recv().unwrap()
+    $c = $ints.recv().unwrap()
+    print($a.unwrap())
+    print(match $b { Some($n) { $n } None { 0 } })
+    print($c.unwrap())
+
+    $bools: Chan[Option[Bool]] = channel(2)
+    $bt: Option[Bool] = Some(true)
+    $bn: Option[Bool] = None
+    $bools.send($bt)
+    $bools.send($bn)
+    $d = $bools.recv().unwrap()
+    $e = $bools.recv().unwrap()
+    print($d.unwrap())
+    print(match $e { Some($x) { $x } None { false } })
+
+    $floats: Chan[Option[Float]] = channel(1)
+    $fv: Option[Float] = Some(2.5)
+    $floats.send($fv)
+    $f = $floats.recv().unwrap()
+    print($f.unwrap())
+    6
+}

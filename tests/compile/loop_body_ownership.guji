@@ -1,0 +1,15 @@
+sub main(): Unit {
+    mut $i = 0
+    while $i < 3 {
+        $tag = "x" ~ "y"
+        $base = $i
+        @parts = "a,b,c".split(",")
+        %m = {"a": 1}.set("b", $i)
+        $fn = sub($n: Int): Int { $base + $n }
+        print($tag)
+        print(@parts[1])
+        print(%m{"b"})
+        print($fn(10))
+        $i = $i + 1
+    }
+}

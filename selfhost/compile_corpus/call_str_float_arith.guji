@@ -1,0 +1,7 @@
+# Float-returning Str-arg call composed in Float arithmetic, compared in an `if`.
+sub rate($s: Str): Float {
+    if $s == "hi" { 1.5 } else { 0.5 }
+}
+sub main(): Int {
+    if rate("hi") + 0.5 > 1.9 { 1 } else { 0 }
+}

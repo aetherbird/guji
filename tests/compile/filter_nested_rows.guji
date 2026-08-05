@@ -1,0 +1,30 @@
+# A-callback-prelude-map-filter-reduce (filter slice): filter over
+# List[List]/List[Map] receivers passes each row to the predicate lambda as a
+# borrowed collection view and appends whole matching rows into a fresh
+# shape-preserving result, retaining each kept row's storage handle (like
+# sort_by's output copy). The old nestedListGuard rejected ANY List[List]/
+# List[Map] receiver; this proves the generic row-binder path with no per-shape
+# code, on shapes deeper than any previously-implemented filter receiver.
+sub main(): Int {
+    # List[List[Int]] — keep non-empty rows.
+    @rows = [[1, 2, 3], [], [4], []]
+    @nonempty = @rows.filter(sub(@r) { @r.count() > 0 })
+    print(@nonempty)
+
+    # depth-3 List[List[List[Int]]] — keep planes with more than one row.
+    @cube = [[[9]], [[1, 2], [3]], [[4]]]
+    @big_planes = filter(@cube, sub(@plane) { @plane.count() > 1 })
+    print(@big_planes)
+
+    # List[Map[Str, List[Int]]] — keep maps with at least two keys; the
+    # predicate builds a temp keys() list per row, exercising temp release.
+    @maps = [{"z": [9]}, {"a": [1], "b": [2]}, {"empty": []}]
+    @multi = @maps.filter(sub(%m) { %m.keys().count() >= 2 })
+    print(@multi)
+
+    # Everything filtered out — empty result of a nested shape.
+    @none = @rows.filter(sub(@r) { @r.count() > 9 })
+    print(@none)
+    print(@none.count())
+    0
+}

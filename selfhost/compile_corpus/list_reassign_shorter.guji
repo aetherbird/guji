@@ -1,0 +1,15 @@
+# P9-6b-9: mut scalar stack-list reassignment may shrink (native copies a
+# shorter prefix into the fixed first-bind capacity and updates _len).
+# Empty `[]` rebinds stay out of subset — native rejects fixed←runtime-sized.
+sub main(): Int {
+    mut @xs = [1, 2, 3]
+    @xs = [9]
+    print(@xs.sum())
+    print(@xs.count())
+
+    mut @ys = [10, 20, 30, 40]
+    @ys = [1, 2]
+    print(@ys.sum())
+    print(@ys.count())
+    0
+}

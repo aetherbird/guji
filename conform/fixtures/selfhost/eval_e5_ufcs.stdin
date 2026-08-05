@@ -1,0 +1,8 @@
+# §7.2 UFCS: `$x.f(a)` is equivalent to `f($x, a)`.
+sub inc($x: Int): Int { $x + 1 }
+sub dbl($x: Int): Int { $x * 2 }
+sub main(): Int {
+    print(3.inc().dbl())
+    print(dbl(inc(3)))
+    0
+}

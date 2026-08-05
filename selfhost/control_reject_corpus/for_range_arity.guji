@@ -1,0 +1,7 @@
+# §5.4/§6.3: an Int Range iterator binds exactly one loop variable.
+sub main(): Int {
+    for $lo, $hi in 1..3 {
+        print($lo)
+    }
+    0
+}

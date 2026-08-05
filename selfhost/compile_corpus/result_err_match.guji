@@ -1,0 +1,6 @@
+sub mk($f: Int): Result[Int, Int] {
+    if $f > 0 { Ok($f) } else { Err(99) }
+}
+sub main(): Int {
+    match mk(-1) { Ok($v) { $v } Err($e) { $e } }
+}

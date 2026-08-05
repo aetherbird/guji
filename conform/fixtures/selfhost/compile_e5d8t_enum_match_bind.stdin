@@ -1,0 +1,60 @@
+# E5d-8t: a NON-FINAL local binding whose RHS is a value-position `match`
+# producing a user-enum carrier, then consumed downstream. This is the real
+# `add_sem_variant_symbols` shape (`$sym = match $v.fields { SemTNil { $enum_ty }
+# _ { TFn($v.fields, $enum_ty) } }` then `SSTCons($v.name, $sym, ..)`), reduced to
+# a plain-enum scrutinee so the program is native-accepted (three-way bar; the
+# real source's class-field-of-enum scrutinee is native-rejected -> interp-oracle).
+#
+# The binding-kind inference reads the arms: arm 1 returns a BOUND enum param
+# (borrowed -> retained into the result temp), arm 2 CONSTRUCTS a recursive enum
+# whose args read both enum params. `$sym` then flows into a downstream `STCons`
+# constructor (ownership transfer). Final/return-position enum matches already
+# lowered; this slice adds only the non-final binding kind inference.
+#
+# Declaration order respects native's "payload type declared before use" rule:
+# Shape (self-recursive) before Ty (which carries a Shape), then SymTable (Ty).
+
+enum Shape {
+    SLeaf
+    SNode($inner: Shape)
+}
+
+enum Ty {
+    TI
+    TFun($params: Shape, $ret: Ty)
+}
+
+enum SymTable {
+    STNil
+    STCons($sym: Ty, $tail: SymTable)
+}
+
+sub ty_tag($t: Ty): Int {
+    match $t {
+        TI { 1 }
+        TFun($p, $r) { 2 }
+    }
+}
+
+sub table_score($t: SymTable): Int {
+    match $t {
+        STNil { 0 }
+        STCons($s, $rest) { ty_tag($s) + table_score($rest) }
+    }
+}
+
+sub add_variant($enum_ty: Ty, $fields: Shape, $tail: SymTable): SymTable {
+    $sym = match $fields {
+        SLeaf { $enum_ty }
+        _ { TFun($fields, $enum_ty) }
+    }
+    STCons($sym, $tail)
+}
+
+sub main(): Int {
+    $base = TI
+    $t1 = add_variant($base, SLeaf, STNil)
+    $t2 = add_variant($base, SNode(SLeaf), $t1)
+    print("enum-match-bind")
+    table_score($t2)
+}

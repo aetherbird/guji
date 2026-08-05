@@ -1,0 +1,19 @@
+# P5b-2b(c): concrete generic class instantiation annotations.
+
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+}
+
+sub label($p: Pair[Str, Int]): Str {
+    "{ $p.first }:{ $p.second }"
+}
+
+sub flip_label($p: Pair[Int, Str]): Str {
+    "{ $p.first }/{ $p.second }"
+}
+
+sub main(): Unit {
+    print(label(Pair(first: "n", second: 7)))
+    print(flip_label(Pair(first: 3, second: "days")))
+}

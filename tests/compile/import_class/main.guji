@@ -1,0 +1,7 @@
+import geom
+
+sub main(): Int {
+    $p = geom::Point(x: 6, y: 2)
+    print("move: { $p.shift(4) }")
+    0
+}

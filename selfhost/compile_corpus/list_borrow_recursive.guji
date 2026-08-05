@@ -1,0 +1,21 @@
+# selfhost slice 5 EB-5e: pass a bound List[Int] variable RECURSIVELY to a sub.
+# This is the exact shape the lexer's scan_*/lex_step use over `@chars` (a
+# listlen-0 slice binding threaded once per token/char). Before EB-5e the codegen
+# deep-CLONED the list on every such call (alloc + element copy + retain), making
+# recursive char-list threading O(n^2) over the source -- the EB-5 gen2 self-compile
+# wall. EB-5e passes a bound list variable BY BORROW (the callee never frees a list
+# param and the subset has no list mutation), so the recursive `sum_from(@xs, ...)`
+# call forwards the slice handle directly with no per-call copy. Exits 18 (3+4+5+6)
+# iff the borrowed list still reads back correctly through the recursion.
+sub mk(): List[Int] { [3, 4, 5, 6] }
+sub sum_from(@xs: List[Int], $i: Int): Int {
+    if $i >= @xs.count() {
+        0
+    } else {
+        @xs[$i] + sum_from(@xs, $i + 1)
+    }
+}
+sub main(): Int {
+    @xs = mk()
+    sum_from(@xs, 0)
+}

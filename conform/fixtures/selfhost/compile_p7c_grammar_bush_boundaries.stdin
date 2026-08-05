@@ -1,0 +1,33 @@
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub pass($o: Option[Bush]): Option[Bush] { $o }
+sub left_text($b: Bush): Str { $b.text }
+sub id_bush($b: Bush): Bush { $b }
+
+sub main(): Int {
+    match pass(Pair.parse("aa-bb")) {
+        Some($b) { print(left_text($b)) }
+        None { print("?") }
+    }
+    match Pair.parse("ee-ff") {
+        Some($b) {
+            $c = id_bush($b)
+            print($c.text)
+        }
+        None { print("?") }
+    }
+    $o = Pair.parse("gg-hh")
+    $bare = $o.unwrap()
+    print($bare.text)
+    $from_expect = $o.expect("need-bush")
+    print($from_expect.text)
+    mut $cur = Pair.parse("p-q").unwrap()
+    print($cur.text)
+    $cur = Pair.parse("r-s").unwrap()
+    print($cur.text)
+    0
+}

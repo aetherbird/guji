@@ -1,0 +1,5 @@
+# This .guji is a SYMLINK to selfhost/lexer.guji (the shared parser module), not a
+# standalone test. gujiconform discovers every .guji, so we assert the library's
+# "no main()" contract here rather than excluding it via a select glob.
+engines: interp
+normalize: trailing-newline

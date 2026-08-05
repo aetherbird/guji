@@ -1,0 +1,13 @@
+# §5.2 `&&` and `||` short-circuit, so the side-effecting right operand never
+# runs in either binding.
+sub side(): Bool {
+    print(999)
+    true
+}
+sub main(): Int {
+    $a = false && side()
+    $b = true || side()
+    print($a)
+    print($b)
+    0
+}

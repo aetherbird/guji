@@ -1,0 +1,7 @@
+sub mk(): Map[Str, Str] {
+    %m: Map[Str, Str] = {"first": "al" ~ "pha", "second": "beta"}
+    %m
+}
+sub main(): Unit {
+    print(mk())
+}

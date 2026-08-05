@@ -1,0 +1,17 @@
+sub make_adder($base: Int) {
+    sub($n: Int): Int { $base + $n }
+}
+
+sub main(): Int {
+    $f = sub($n: Int): Int { $n + 1 }
+    $g = $f
+    print($g(10))
+    mut $cur = make_adder(1)
+    $cur = make_adder(2)
+    print($cur(3))
+    mut $first = sub($n: Int): Int { $n }
+    $made = sub($n: Int): Int { $n + 10 }
+    $first = $made
+    print($first(1))
+    0
+}

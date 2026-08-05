@@ -1,0 +1,9 @@
+# §17.6: a blocking scalar select with no possible sender participates in the
+# runtime's all-tasks-blocked detector and panics instead of busy-spinning.
+sub main(): Int {
+    $ch: Chan[Int] = channel()
+    select {
+        $v = $ch.recv() { print("unreachable") }
+    }
+    0
+}

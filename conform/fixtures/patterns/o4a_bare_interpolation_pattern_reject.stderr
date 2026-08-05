@@ -1,0 +1,1 @@
+type error: interpolated Str is not permitted in a pattern; pattern literals are static (§10.1)

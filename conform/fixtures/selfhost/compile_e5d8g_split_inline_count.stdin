@@ -1,0 +1,11 @@
+sub has_char($s: Str, $ch: Str): Bool {
+    split($s, $ch).count() > 1
+}
+
+sub main(): Int {
+    if has_char("a.b", ".") {
+        0
+    } else {
+        1
+    }
+}

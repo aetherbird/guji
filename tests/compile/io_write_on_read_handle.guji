@@ -1,0 +1,12 @@
+# W1 misuse: $h.write on a READ handle is a runtime error, identical in both
+# engines. `stdin` is a read-only Handle (a reader, no writer), so writing to it
+# aborts. The "before" line is flushed to stdout first (the gate compares stdout
+# + exit code: both engines print "before" then exit non-zero). The error text on
+# stderr differs between engines (Go message vs native "panic: ..."), so there is
+# deliberately NO .stderr sidecar.
+sub main(): Int {
+    print("before")
+    stdin.write("x")
+    print("unreachable")
+    0
+}

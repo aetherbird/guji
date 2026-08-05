@@ -1,0 +1,29 @@
+# I6f3: a nested Result[Option[class], Str] survives class storage and projection.
+# Heap-built labels/messages keep every active carrier arm visible to LeakSanitizer.
+class Parcel {
+    has $.label: Str
+}
+
+class Holder {
+    has $.value: Result[Option[Parcel], Str]
+}
+
+sub describe($value: Result[Option[Parcel], Str]): Str {
+    match $value {
+        Ok(Some($parcel)) { "some:" ~ $parcel.label }
+        Ok(None)          { "none" }
+        Err($message)     { "err:" ~ $message }
+    }
+}
+
+sub main(): Int {
+    $parcel = Parcel(label: upper("cargo"))
+    $some = Holder(value: Ok(Some($parcel)))
+    $none: Holder = Holder(value: Ok(None))
+    $failed: Holder = Holder(value: Err("bad" ~ " route"))
+
+    print(describe($some.value))
+    print(describe($none.value))
+    print(describe($failed.value))
+    0
+}

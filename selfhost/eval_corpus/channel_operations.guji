@@ -1,0 +1,51 @@
+# I10b: §17.3 scalar channel operations. Buffered channels keep this fixture
+# scheduler-independent while pinning both data-first spellings, close/drain
+# ordering, Closed results, Unit, and owned Str payload transfer.
+sub main(): Int {
+    $ints: Chan[Int] = channel(2)
+    $method_sent = $ints.send(7)
+    print($method_sent.is_ok())
+    $free_sent = send($ints, 9)
+    print($free_sent.is_ok())
+    $method_closed = $ints.close()
+    print($method_closed.is_ok())
+    $one = recv($ints)
+    print($one.unwrap())
+    $two = $ints.recv()
+    print($two.unwrap())
+    $drained = recv($ints)
+    print($drained.is_none())
+    $free_closed = close($ints)
+    print($free_closed.is_err())
+    $closed_send = send($ints, 11)
+    print($closed_send.is_err())
+
+    $units: Chan[Unit] = channel(1)
+    $unit_sent = $units.send(())
+    print($unit_sent.is_ok())
+    $unit_got = $units.recv()
+    print($unit_got.is_some())
+
+    $bools: Chan[Bool] = channel(1)
+    $bool_sent = send($bools, true)
+    print($bool_sent.is_ok())
+    $bool_got = $bools.recv()
+    print($bool_got.unwrap())
+
+    $floats: Chan[Float] = channel(1)
+    $float_sent = $floats.send(1.5)
+    print($float_sent.is_ok())
+    $float_got = recv($floats)
+    print($float_got.unwrap())
+
+    $strs: Chan[Str] = channel(1)
+    $str_sent = send($strs, "hello" ~ "!")
+    print($str_sent.is_ok())
+    $str_got = $strs.recv()
+    print($str_got.unwrap())
+    $str_closed = $strs.close()
+    print($str_closed.is_ok())
+    $str_rejected = $strs.send("drop" ~ "-me")
+    print($str_rejected.is_err())
+    0
+}

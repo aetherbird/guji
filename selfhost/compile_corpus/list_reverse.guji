@@ -1,0 +1,26 @@
+# §15 list `reverse`, P2c slice: a value-preserving fresh list in the opposite
+# order. Covers method and function spellings, scalar and Str elements, nested
+# List[Int] rows, and the empty-list path via `take(@xs, 0)`.
+sub main(): Int {
+    @xs = [1, 2, 3, 4]
+    @ri = @xs.reverse()
+    print("{ @ri[0] },{ @ri[3] }")
+
+    @ws = ["ant", "bee" ~ "tle", "cat"]
+    @rw = reverse(@ws)
+    print("{ @rw[0] }/{ @rw[2] }")
+
+    @rows = [[1, 2], [3, 4, 5], [6]]
+    @rr = @rows.reverse()
+    print("{ @rr[0][0] }/{ @rr[1][2] }/{ @rr[2][1] }")
+
+    @empty = take(@xs, 0)
+    @er = @empty.reverse()
+    print("{ count(@er) }")
+
+    if @ri[0] == 4 && @ri[3] == 1 && @rw[0] == "cat" && @rr[0][0] == 6 {
+        47
+    } else {
+        1
+    }
+}

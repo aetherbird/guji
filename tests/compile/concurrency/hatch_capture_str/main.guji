@@ -1,0 +1,11 @@
+sub main(): Int {
+    $ch: Chan[Str] = channel(0)
+    $base = "captured"
+    $suffix = "-str"
+    hatch {
+        $msg = $base ~ $suffix
+        $ch.send($msg)
+    }
+    print($ch.recv().unwrap())
+    0
+}

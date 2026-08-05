@@ -1,0 +1,9 @@
+sub first_piece($text: Str): Str {
+    @parts = $text.split(",")
+    @parts[0]
+}
+
+sub main(): Int {
+    print(first_piece("a,b"))
+    0
+}

@@ -1,0 +1,20 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P9-4a: §15.4 exit lowers to the runtime's flushing guji_exit in BOTH
+# positions — statement position (non-literal Int code expression) and a
+# Never-typed if-branch value (Never unifies with Int). The `(int)(` cast
+# pattern only occurs at generated call sites, never in the prologue.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_exit((int)(") == 2)
+            print(count_of($c, "guji_exit((int)(guji_add(3LL, 4LL)));") == 1)
+            0
+        }
+    }
+}

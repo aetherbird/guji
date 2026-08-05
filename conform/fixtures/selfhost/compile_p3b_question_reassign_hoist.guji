@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4 compiler codegen fixture.
+# Pins existing-name REASSIGNMENT whose RHS holds a hoistable `?`: the carrier
+# guard/early-return lifts into a synthetic scalar/Str payload local, then the
+# rebuilt RHS lowers through the ordinary reassign path (release-old-then-assign).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Hoisted carrier payload bound into a synthetic scalar local.
+            print(has_text($c, "gv5 = gr4.ok;"))
+            # Int EXPRESSION reassign: existing local gv0 reassigned via payload.
+            print(has_text($c, "gv0 = guji_add(gv5, 1LL);"))
+            # Int DIRECT reassign: existing local gv0 = hoisted payload.
+            print(has_text($c, "gv0 = gv5;"))
+            # Str reassign: existing local gv1 gets the rebuilt concat result.
+            print(has_text($c, "gv1 = gt8;"))
+            # Str payload hoist retains the synthetic Str local for the concat.
+            print(has_text($c, "gt6 = guji_retain(gv5);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

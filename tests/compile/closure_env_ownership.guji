@@ -1,0 +1,46 @@
+# RC1.4a: closure environments are counted heap objects. This fixture pins the
+# ownership shapes end to end: an owned call-result closure, an alias binding
+# (env retained, both names usable), a Str capture (env owns a +1 on the
+# captured value, released by guji_drop_env), a mut rebind (old env released),
+# an inline capturing lambda passed as an argument (unbound env temp released
+# at the statement boundary), and (RC1.6g-ii-b-iii) a loop-body Str binding
+# captured by a closure rebound each iteration (the env retains its own +1, so
+# the binding's per-iteration release is not suppressed by escape marking).
+sub make_adder($base: Int) {
+    sub($n: Int): Int { $base + $n }
+}
+
+sub make_tagger($tag: Str) {
+    sub($s: Str): Str { $tag ~ $s }
+}
+
+sub apply_fn($f, $x: Int): Int {
+    $f($x)
+}
+
+sub main(): Int {
+    $add10 = make_adder(10)
+    print($add10(5))
+    $alias = $add10
+    print($alias(1))
+    $salt = "X" ~ "Y"
+    $tagger = sub($s: Str): Str { $salt ~ $s }
+    print($tagger("z"))
+    mut $cur = make_adder(1)
+    $cur = make_adder(2)
+    print($cur(3))
+    print(apply_fn(sub($n: Int): Int { $n * 2 }, 21))
+    $b = 7
+    print(apply_fn(sub($n: Int): Int { $n + $b }, 1))
+    $named = make_tagger("T")
+    print($named("ok"))
+    mut $tag = sub($x: Str): Str { $x }
+    mut $m = 0
+    while $m < 2 {
+        $piece = "p{ $m }"
+        $tag = sub($x: Str): Str { $piece ~ $x }
+        $m = $m + 1
+    }
+    print($tag("z"))
+    0
+}

@@ -1,0 +1,23 @@
+# Match equality compares the complete capture state rather than pointer
+# identity: names and non-participation are observable and symmetric.
+sub show($b: Bool): Str {
+    if $b { "true" } else { "false" }
+}
+
+sub main(): Int {
+    $a = ("abc" ~~ /a(b)c/).unwrap()
+    $b = ("abc" ~~ /a(b)c/).unwrap()
+    print(show($a == $b))
+    print(show($a != $b))
+
+    $unnamed = ("ab" ~~ /(ab)/).unwrap()
+    $named = ("ab" ~~ /(?<word>ab)/).unwrap()
+    print(show($unnamed == $named))
+    print(show($named == $unnamed))
+
+    $none = ("ac" ~~ /a(?<mid>b)?c/).unwrap()
+    $empty = ("ac" ~~ /a(?<mid>x*)c/).unwrap()
+    print(show($none == $empty))
+    print(show($empty != $none))
+    0
+}

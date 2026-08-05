@@ -1,0 +1,7 @@
+# P9-6b-16: Unit-annotated main may end with a for — same RInt-as-Unit-main
+# final-loop admission as final_unit_while.
+sub main(): Unit {
+    for $i in 1..3 {
+        print($i)
+    }
+}

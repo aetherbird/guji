@@ -1,0 +1,6 @@
+sub half($x: Float): Float {
+    $x / 2.0
+}
+sub main(): Int {
+    if half(10.0) > 4.0 { 1 } else { 0 }
+}

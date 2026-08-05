@@ -1,0 +1,25 @@
+# Map[Str, List[T]] storage: map values are immutable copied list slices, and
+# iteration/values()/set/remove preserve sorted-key behavior and list contents.
+sub main(): Int {
+    mut @xs = [1, 2]
+    %m = {"b": [3], "a": @xs}
+    @xs = [9]
+
+    mut $out = ""
+    for $k, @row in %m {
+        $out = $out ~ $k ~ "{ @row.sum() }"
+    }
+    print($out)
+
+    @rows = %m.values()
+    print(@rows[0].sum())
+    print(@rows[1][0])
+
+    %m2 = %m.set("c", [4, 5]).remove("b")
+    print(%m{"a"}[1])
+    print(%m2{"c"}.sum())
+
+    %names = {"n": ["ada", "grace"]}
+    print(%names{"n"}.join("/"))
+    0
+}

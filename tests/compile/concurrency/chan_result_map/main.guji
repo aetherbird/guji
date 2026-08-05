@@ -1,0 +1,65 @@
+# Chan[Result[Map[Str, scalar|Str], Str]] must detach an active Ok map payload
+# on send (keys + vals arrays) and adopt it on recv; buffered Ok/Err messages
+# left unread exercise the carrier elem_drop under LSan.
+#
+# Results are built through sub returns because `Ok({...})` alone leaves the Err
+# arm polymorphic (so an annotated Result literal would not typecheck).
+
+sub classify_counts($n: Int): Result[Map[Str, Int], Str] {
+    if $n < 0 {
+        Err("negative")
+    } else {
+        Ok({"a": $n, "b": $n * 2})
+    }
+}
+
+sub classify_words($s: Str): Result[Map[Str, Str], Str] {
+    if $s == "" {
+        Err("empty")
+    } else {
+        Ok({"first": $s, "second": $s ~ "!"})
+    }
+}
+
+sub main(): Int {
+    $counts: Chan[Result[Map[Str, Int], Str]] = channel(4)
+    $counts.send(classify_counts(7))
+    $counts.send(classify_counts(-1))
+    # These two buffered messages are never received: one active Ok map and one
+    # active Err Str must both be dropped by the channel.
+    $counts.send(classify_counts(9))
+    $counts.send(classify_counts(-2))
+
+    $first = $counts.recv().unwrap()
+    print(match $first {
+        Ok(%m) { %m{"a"} + %m{"b"} }
+        Err($e) { 0 }
+    })
+
+    $second = $counts.recv().unwrap()
+    print(match $second {
+        Ok(%m) { %m{"a"} }
+        Err($e) { 99 }
+    })
+
+    $words: Chan[Result[Map[Str, Str], Str]] = channel(3)
+    $words.send(classify_words("gu"))
+    $words.send(classify_words(""))
+    # Buffered active Ok with Str-valued map arrays: vals release must cascade
+    # through copied Str elements.
+    $words.send(classify_words("drop"))
+
+    $w_first = $words.recv().unwrap()
+    print(match $w_first {
+        Ok(%m) { %m{"first"} ~ %m{"second"} }
+        Err($e) { $e }
+    })
+
+    $w_second = $words.recv().unwrap()
+    print(match $w_second {
+        Ok(%m) { %m{"first"} }
+        Err($e) { $e }
+    })
+
+    0
+}

@@ -1,0 +1,11 @@
+# P8d-2c-3c-8 panic path: unwrapping the recv presence-carrier of a CLOSED
+# drained Chan[Option[Str]] panics "unwrap on None" (exit 1, stderr
+# byte-identical native == selfhost). Distinguishes closed/drained from a
+# DELIVERED inner None, which chan_option_str.guji proves is a normal value.
+sub main(): Int {
+    $ch: Chan[Option[Str]] = channel(1)
+    $ch.close()
+    $a = $ch.recv().unwrap()
+    print(match $a { Some($s) { $s } None { "unreachable" } })
+    0
+}

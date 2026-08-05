@@ -1,0 +1,22 @@
+# §15.3 string `lines`, P2c slice: split a Str into its lines, chomping the
+# terminators. Covers the function form `lines($s)` and the method form
+# `$s.lines()`, an unannotated binding (element-kind inference must resolve
+# List[Str]), row count, and row indexing. A final terminator adds no empty
+# line, a string with no final terminator still yields its last line, and the
+# empty string yields no lines (§15.3), so the counts below are exact.
+sub main(): Int {
+    $text = "alpha\nbeta\ngamma\n"
+    @ls = lines($text)
+    print("{ count(@ls) }")
+    print("{ @ls[0] }/{ @ls[1] }/{ @ls[2] }")
+
+    $noterm = "one\ntwo\nthree"
+    @ms = $noterm.lines()
+    print("{ count(@ms) }/{ @ms[0] }/{ @ms[2] }")
+
+    $empty = ""
+    @es = lines($empty)
+    print("{ count(@es) }")
+
+    count(@ls) + count(@ms) + count(@es)
+}

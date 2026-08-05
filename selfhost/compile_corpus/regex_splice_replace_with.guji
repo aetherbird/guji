@@ -1,0 +1,9 @@
+# P6e-replace-c: replace_with compiles Str and Regex splices through host parts.
+sub main(): Int {
+    $needle = "a.b"
+    $a = "a.b aab".replace_with(/<{ $needle }>/, sub($m: Match): Str { "[" ~ $m.text ~ "]" })
+    $r = Regex.compile("ab|cd").unwrap()
+    $b = replace_with("ab cd ax", /<{ $r }>/, sub($m: Match): Str { "<" ~ $m.text ~ ">" })
+    print("$a|$b")
+    0
+}

@@ -1,0 +1,6 @@
+# Both value-if branches must yield one compatible type.
+sub main(): Int {
+    $value = if true { 1 } else { "one" }
+    print($value)
+    0
+}

@@ -1,0 +1,9 @@
+# Slice 4d: List[Int] carrier matched INLINE (owned scrutinee released after match).
+enum Box {
+    Nums(@xs: List[Int])
+}
+sub main(): Int {
+    match Nums([4, 5, 6]) {
+        Nums(@xs) { @xs[2] }
+    }
+}

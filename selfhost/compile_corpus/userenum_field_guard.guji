@@ -1,0 +1,13 @@
+enum Token {
+    Num($n: Int)
+    Nope
+}
+
+sub main(): Int {
+    $t: Token = Num(12)
+    match $t {
+        Num($n) if $n > 10 { $n - 2 }
+        Num($n) { $n }
+        Nope { 0 }
+    }
+}

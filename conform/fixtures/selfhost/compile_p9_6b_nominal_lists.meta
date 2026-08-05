@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost nominal List arrays retain and drop enum/class row fields

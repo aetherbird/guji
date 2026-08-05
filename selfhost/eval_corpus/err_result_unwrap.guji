@@ -1,0 +1,9 @@
+# Spec §15.5/§11.2: Result unwrap renders the Err payload in its panic text.
+sub bad(): Result[Str, Int] { Err(-7) }
+
+sub main(): Int {
+    $bad: Result[Str, Int] = bad()
+    print("before")
+    print(unwrap($bad))
+    0
+}

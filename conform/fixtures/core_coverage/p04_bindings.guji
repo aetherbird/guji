@@ -1,0 +1,16 @@
+# P04: mutable reassignment and immutable child-scope shadowing.
+sub main(): Int {
+    mut $total = 1
+    $total = $total + 4
+    $name = "outer"
+    print($total)
+    if true {
+        $name = "inner"
+        print($name)
+        $snapshot = $total
+        $add = sub($n: Int): Int { $n + $snapshot }
+        print($add(2))
+    }
+    print($name)
+    0
+}

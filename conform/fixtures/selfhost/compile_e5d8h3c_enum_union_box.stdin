@@ -1,0 +1,30 @@
+enum Expr {
+    ELit($n: Int)
+    EPair($l: Expr, $r: Expr)
+}
+
+enum Stmt {
+    SBind($flag: Bool)
+    SReturn($e: Option[Expr])
+    SExpr($e: Expr)
+}
+
+sub depth($e: Expr): Int {
+    match $e {
+        ELit($n) { 1 }
+        EPair($l, $r) { 1 + depth($l) + depth($r) }
+    }
+}
+
+sub eval_stmt($s: Stmt): Int {
+    match $s {
+        SBind($flag) { if $flag { 2 } else { 0 } }
+        SReturn(None) { 9 }
+        SReturn(Some($v)) { 10 + depth($v) }
+        SExpr($e) { 20 + depth($e) }
+    }
+}
+
+sub main(): Int {
+    eval_stmt(SExpr(ELit(1))) + eval_stmt(SReturn(Some(EPair(ELit(2), ELit(3)))))
+}

@@ -1,0 +1,19 @@
+# I5j: §15.1 stable sort_by. Equal Int keys preserve source order; Str and
+# Float keys cover both data-first spellings; nested rows prove values are kept.
+sub main(): Int {
+    @xs = [12, 22, 11, 21]
+    print(@xs.sort_by(sub($n: Int): Int { $n % 10 }))
+
+    @words = ["pear", "fig", "plum"]
+    print(sort_by(@words, sub($word: Str): Str { $word }))
+
+    @floats = [2.5, 1.25, 3.75]
+    print(@floats.sort_by(sub($f: Float): Float { 0.0 - $f }))
+
+    @rows = [[2, 20], [1, 10], [2, 21], [1, 11]]
+    print(sort_by(@rows, sub($row: List[Int]): Int { $row[0] }))
+
+    @empty: List[Int] = []
+    print(@empty.sort_by(sub($n2: Int): Int { $n2 }))
+    0
+}

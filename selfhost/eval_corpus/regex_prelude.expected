@@ -1,0 +1,8 @@
+compiled:42-zed:42
+a\+b
+literal:a.b
+bad-err
+a[1:1]b[22:22]|yx|m<3>!n
+a[1]b[2]c[3]
+a<1>b<2>
+<>a<>b<>c<>

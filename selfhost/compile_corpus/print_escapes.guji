@@ -1,0 +1,5 @@
+sub main(): Int {
+    print("quote: \" slash: \\")
+    print("line\nnext")
+    0
+}

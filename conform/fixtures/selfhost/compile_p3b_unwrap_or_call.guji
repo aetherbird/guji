@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 6 P3b-2b-1 compiler codegen fixture.
+# Pins `unwrap_or` over a CALL-produced Option carrier receiver: the call result
+# is materialised into a carrier temp (`goN = gf_...`), the same pure ternary as
+# the bound-local path reads it, and the Option[Str] shape retains the picked
+# pointer, releases the eager default temp, and releases the carrier's own owned
+# payload slot afterward.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "go0 = gf_chained(5LL);"))
+            print(has_text($c, ".tag != 0 ? go"))
+            print(has_text($c, ".val : guji_neg(1LL))"))
+            print(has_text($c, " = guji_retain((go"))
+            print(has_text($c, ".tag != 0LL) \{ guji_release(go"))
+            print(has_text($c, ".val = NULL; }"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

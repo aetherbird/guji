@@ -1,0 +1,18 @@
+# HISTORICAL AUDIT NAME (I10g3c): direct immutable class captures are now in
+# the canonical C/D surface. The filename stays stable so the accepted-surface
+# sweep does not silently remove or rename a row.
+class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub sum($self): Int { $self.x + $self.y }
+}
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $p = Point(x: 4, y: 9)
+    hatch {
+        $ch.send($p.sum())
+    }
+    print($ch.recv().unwrap())
+    0
+}

@@ -1,0 +1,22 @@
+# gujiconform — selfhost slice 6 P5b-2b(e-result) generic Result REJECTION
+# parity (§3.3). The stdin source is classified by the self-hosted type checker;
+# this pins bare Ok(...) as Result[Int, E] when no Result return context supplies
+# the error type.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

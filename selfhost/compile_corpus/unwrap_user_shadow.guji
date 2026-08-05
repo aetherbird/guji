@@ -1,0 +1,16 @@
+# A user `sub unwrap` / `sub expect` SHADOWS the §15.5 prelude for the function
+# form: each call must reach the user sub through the general call path, not the
+# Option-carrier lowering (the shadow guard checks `cg_env_lookup_sub`). All three
+# engines resolve the shadow identically (42 = 6 * 7).
+
+sub unwrap($a: Int): Int {
+    $a * 7
+}
+sub expect($a: Int, $b: Int): Int {
+    $a + $b
+}
+
+sub main(): Int {
+    print("{ unwrap(6) },{ expect(40, 2) }")
+    unwrap(6)
+}

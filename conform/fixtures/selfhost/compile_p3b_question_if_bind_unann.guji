@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4 compiler codegen fixture.
+# Pins UNANNOTATED fresh scalar/Str if-value binds whose branch-final expressions
+# contain hoistable `?` operations. The bind has no TypeRef, so the result kind is
+# inferred by cascade (Int -> Float -> Bool -> Str); each check confirms the
+# inference selected the right carrier kind and reused the branch-final `?` lowering.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr"))
+            print(has_text($c, " = guji_add(gv"))
+            print(has_text($c, "return (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr"))
+            print(has_text($c, " = guji_str_cat(gt"))
+            print(has_text($c, "return (guji_res_float_str)\{1LL, 0.0, gr"))
+            print(has_text($c, " + (1.5))"))
+            print(has_text($c, "return (guji_res_bool_str)\{1LL, 0LL, gr"))
+            print(has_text($c, "guji_release(gv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

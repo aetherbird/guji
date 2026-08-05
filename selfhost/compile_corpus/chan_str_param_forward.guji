@@ -1,0 +1,25 @@
+# P9-11b-2a: Str twin of chan_param_return_alias — a `: Unit` sub taking a
+# Chan[Str] plus a Str value, called from a hatch task in statement position.
+# The callee retains the borrowed Str param, copy-on-send detaches it, and the
+# trailing `()` closes the Unit body. Corpus twin of the gate fixture
+# tests/compile/concurrency/chan_str_param_forward.
+sub forward($ch: Chan[Str], $v: Str): Unit {
+    $alias = $ch
+    $alias.send($v);
+    ()
+}
+
+sub relay(): Chan[Str] {
+    channel()
+}
+
+sub main(): Int {
+    $ch: Chan[Str] = relay()
+    $alias = $ch
+    hatch {
+        forward($alias, "via-param")
+    }
+    print($ch.recv().unwrap())
+    $ch.close()
+    0
+}

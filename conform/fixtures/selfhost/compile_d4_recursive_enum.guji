@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 4d D4 compiler codegen fixture.
+# A same-enum payload field must be boxed, not embedded by value. The generated
+# C must include a runtime kind, pointer storage, box allocation, pointer
+# retain/release, and a drop-table entry for the recursive enum.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "#define GUJI_KIND_Tree 12"))
+            print(has_text($c, "Tree* f1;"))
+            print(has_text($c, "void* p;"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_Tree"))
+            print(has_text($c, "guji_release((const void*)p->f0.p);"))
+            print(has_text($c, "guji_drop_Tree, /* GUJI_KIND_Tree */"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

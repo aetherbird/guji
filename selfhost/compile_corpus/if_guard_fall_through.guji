@@ -1,0 +1,12 @@
+# A statement-position guard whose condition is FALSE: control falls through the
+# `if` and reaches the later statements. The owned Str local stays live across the
+# untaken guard and is released by the final function-level cleanup.
+sub main(): Int {
+    $tag = "live"
+    if 1 > 2 {
+        note("never")
+        return 1
+    }
+    note("after: " ~ $tag)
+    7
+}

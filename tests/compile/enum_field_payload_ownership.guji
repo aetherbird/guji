@@ -1,0 +1,117 @@
+# RC1.6f-ii: Str/List payload fields inside enum values are counted. The
+# constructor retains alias Str args, transfers fresh ones, and takes a fresh
+# element-retaining copy for List args; release_<E>_fields drops them when the
+# owning value dies. This fixture pins the SEMANTICS of those shapes (payloads
+# stay readable after the source is rebound or released) for both non-generic
+# and monomorphized generic enums; the sanitizer gate proves no UAF and the
+# leak census proves the stores no longer leak.
+
+enum Card {
+    Title($t: Str)
+    Tags(@ts: List[Str])
+    Meta(%m: Map[Str, Str])
+    Counts(@cs: List[Int])
+    Plain
+}
+
+enum Holder[T] {
+    Keep($v: T)
+    Lots(@vs: List[T])
+}
+
+# total exists so describe never method-calls a match capture: builtinReceiver
+# cannot type captures (only annotated params), so `@cs.sum()` inside describe
+# would conservatively flag describe's param as an escape sink and suppress the
+# caller's enum frame-exit releases (leak-only over-taint, RC1.6d-ii).
+sub total(@ns: List[Int]): Int {
+    @ns.sum()
+}
+
+sub describe($c: Card): Str {
+    match $c {
+        Title($t) { "title:" ~ $t }
+        Tags(@ts) { "tags:" ~ @ts[0] ~ "," ~ @ts[1] }
+        Meta(%m) {
+            $a = %m{"a"}
+            $b = %m{"b"}
+            "meta:" ~ $a ~ "," ~ $b
+        }
+        Counts(@cs) { "counts:{ total(@cs) }" }
+        Plain { "plain" }
+    }
+}
+
+sub wrap($x: Str): Card { Title($x ~ "!") }
+
+sub main(): Int {
+    # alias Str payload: ctor retains; the source binding stays usable
+    $s = "deep".upper()
+    $a = Title($s)
+    print(describe($a))
+    print($s)
+
+    # mut source rebound AFTER the store: the stored payload must survive
+    mut $m = "old".upper()
+    $kept = Title($m)
+    $m = "new"
+    print(describe($kept))
+    print($m)
+
+    # List[Str] payload is an independent copy of the variable
+    mut @xs = ["red", "blue".upper()]
+    $b = Tags(@xs)
+    @xs = ["green"]
+    print(describe($b))
+    print(@xs[0])
+
+    # unbound constructions consumed as borrowed arguments
+    print(describe(Tags(["x", "y"])))
+    print(describe(Counts([1, 2, 3])))
+
+    # Map payloads copy their key/value arrays; rebinding the source map cannot
+    # invalidate the stored enum payload.
+    mut %mm = {"a": "first".upper(), "b": "second"}
+    $mc = Meta(%mm)
+    %mm = {"a": "after"}
+    print(describe($mc))
+    print(%mm{"a"})
+
+    # alias enum copy: both owners hold the payload independently
+    $cp = $b
+    print(describe($cp))
+
+    # enum-returning sub transfers a fresh payload to the caller
+    $w = wrap("go")
+    print(describe($w))
+
+    # loop rebind AND loop-body first binding: each iteration's fields are
+    # released exactly once
+    mut $acc = Plain
+    for $i in 1..3 {
+        $acc = Title("t{ $i }")
+        $per = Tags(["p{ $i }", "q"])
+        print(describe($per))
+    }
+    print(describe($acc))
+
+    # monomorphized generic variants own their payloads too
+    $hs = Keep("hi".upper())
+    match $hs {
+        Keep($sv) { print($sv) }
+        Lots(_) { print("lots") }
+    }
+    $ls = Lots(["a", "b".upper()])
+    match $ls {
+        Lots(@sv) { print(@sv[1]) }
+        Keep($kv) { print($kv) }
+    }
+    # total() again: an inline-lowered `{ @iv.sum() }` display temp is a
+    # known pre-existing leak class (RC1.6g), not an enum-field shape.
+    $li = Lots([7, 8])
+    match $li {
+        Lots(@iv) { print("{ total(@iv) }") }
+        Keep($nv) { print("{ $nv }") }
+    }
+
+    0
+}

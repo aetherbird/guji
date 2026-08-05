@@ -1,0 +1,6 @@
+# §16: a transitive back-edge is rejected before execution with its active path.
+import reject_modules::cycle_a
+
+sub main(): Int {
+    0
+}

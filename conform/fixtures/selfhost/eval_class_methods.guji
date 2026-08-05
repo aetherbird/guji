@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 6 P4b-2 class-method EVALUATOR fixture (§8.2,
+# §8.3, §7.5). The stdin source proves the guji-written evaluator constructs
+# class instances (named args, field-decl order), dispatches instance methods
+# (receiver prepended as $self) and associated functions (Type.f), reads
+# `$!field` private shorthands inside methods, and displays/compares instances
+# exactly like the oracle.
+import lexer
+
+sub main(): Int {
+    match lexer::eval_main(stdin.slurp()) {
+        Ok($r) {
+            print(lexer::eval_env_delimiter())
+            print($r.dump)
+            $r.exit_code
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

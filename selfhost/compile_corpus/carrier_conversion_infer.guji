@@ -1,0 +1,35 @@
+# P5b-2b(carrier-conversion): UNANNOTATED binds of the §15.5 carrier conversions —
+# Result->Option via method `.ok()`/`.err()` and free-function `ok(..)`/`err(..)`
+# forms, and Option->Result via `.ok_or(..)`/`ok_or(..,..)` — must infer their
+# carrier kind from the receiver (the annotated forms were already covered; the
+# tests/compile/carrier_conversion.guji parity GAP was exactly this inference).
+# Mixes Int-ok/Str-err Results (Str slot retain discipline on the err path) and
+# checks the produced carriers observably via is_some/is_ok plus unwrap_or.
+sub some_int($x: Int): Option[Int] { Some($x) }
+sub none_int(): Option[Int] { None }
+sub ok_int($x: Int): Result[Int, Str] { Ok($x) }
+sub err_int($m: Str): Result[Int, Str] { Err($m) }
+
+sub main(): Int {
+    $r = ok_int(7)
+    $e = err_int("boom")
+
+    $o1 = $r.ok()
+    $o2 = ok($e)
+    print("{ $o1.is_some() } { $o2.is_some() }")
+
+    $o3 = $r.err()
+    $o4 = err($e)
+    print("{ $o3.is_some() } { $o4.is_some() }")
+    $q = $o4.unwrap_or("quiet")
+    print("{ $q }")
+
+    $s = some_int(5)
+    $n = none_int()
+    $r1 = $s.ok_or("missing")
+    $r2 = ok_or($n, "absent")
+    print("{ $r1.is_ok() } { $r2.is_err() }")
+    print("{ $r1.unwrap_or(0) } { $r2.unwrap_or(42) }")
+
+    $o1.unwrap_or(0) + $r1.unwrap_or(0)
+}

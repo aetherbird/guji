@@ -1,0 +1,5 @@
+sub main(): Int {
+  $i: Int = 2
+  @xs: List[Int] = [11, 22, 33, 44]
+  @xs[$i]
+}

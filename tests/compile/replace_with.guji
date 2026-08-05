@@ -1,0 +1,18 @@
+sub main(): Int {
+    $r1 = 'a1b22'.replace_with(/(?<digits>\d+)/, sub($m: Match): Str {
+        '[' ~ $m<digits>.unwrap() ~ ':' ~ $m[0].unwrap() ~ ':' ~ $m[1].unwrap() ~ ']'
+    })
+    print($r1)
+
+    $r2 = replace_with('abc', /(x)?/, sub($m: Match): Str {
+        '<' ~ $m.text ~ '>'
+    })
+    print($r2)
+
+    $r3 = 'hello'.replace_with(/z+/, sub($m: Match): Str {
+        'nope'
+    })
+    print($r3)
+
+    0
+}

@@ -1,0 +1,17 @@
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    if $n > 0 { Some("x" ~ "y") } else { None }
+}
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ss: Option[Str] = mks(5)
+    $a: Option[Int] = $si.map(sub($v: Int): Int { $v * 2 })
+    $b: Option[Str] = map($ss, sub($s: Str): Str { $s ~ "!" })
+    mut $code = 0
+    if $a.unwrap_or(0) == 10 { $code = $code + 1 }
+    if $b.is_some() { $code = $code + 2 }
+    print("{ $code }")
+    0
+}

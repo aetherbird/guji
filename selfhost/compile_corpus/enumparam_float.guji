@@ -1,0 +1,13 @@
+enum Tag { Lo($f: Float), Hi($f: Float) }
+
+sub score($t: Tag): Int {
+    match $t {
+        Lo($f) { if $f < 1.0 { 1 } else { 2 } }
+        Hi($f) { if $f > 9.0 { 9 } else { 8 } }
+    }
+}
+
+sub main(): Int {
+    $t: Tag = Hi(9.5)
+    score($t)
+}

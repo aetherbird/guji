@@ -1,0 +1,31 @@
+# G6-gen-2b: Option AND Result construction + match route their variant tags
+# (None/Some, Ok/Err) through the SHARED registry metadata bridge
+# (cg_reg_builtin_variant over cg_reg_option/cg_reg_result) — the same path user
+# enums use, with no open-coded 0LL/1LL tags. Oracle-visible behavior is ordinary
+# Option/Result construction + match. Exercises all four built-in variants:
+# Some/None constructed as locals + matched; Ok/Err constructed in a Result-return
+# sub + matched in tail position. Each match feeds an Int-returning sub so the
+# whole program stays inside the selfhost front-end subset.
+sub mk($f: Int): Result[Int, Int] {
+    if $f > 0 { Ok($f) } else { Err(99) }
+}
+
+sub unwrap_res($f: Int): Int {
+    match mk($f) {
+        Ok($v) { $v }
+        Err($e) { $e }
+    }
+}
+
+sub opt_or($o: Option[Int], $d: Int): Int {
+    match $o {
+        Some($v) { $v + 1 }
+        None { $d }
+    }
+}
+
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    $n: Option[Int] = None
+    opt_or($o, 0) + opt_or($n, 7) + unwrap_res(3) + unwrap_res(-1)
+}

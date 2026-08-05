@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 5 E5d-8aa compiler codegen fixture.
+# Pins the generated C shape for the `run(cmd, args)` prelude: the built-in Proc
+# record, Result[Proc, Str] carrier, `guji_run` call, Proc field assignment, and
+# field reads from the Ok payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "typedef struct Proc Proc;"))
+            print(has_text($c, "guji_res_Proc_str"))
+            print(has_text($c, " = guji_run("))
+            print(has_text($c, ".ok.f0 = "))
+            print(has_text($c, ".ok.f1 = "))
+            print(has_text($c, ".ok.f2 = "))
+            print(has_text($c, ".f0"))
+            print(has_text($c, ".f2"))
+            print(has_text($c, "guji_release_Proc_fields"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

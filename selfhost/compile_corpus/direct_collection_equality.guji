@@ -1,0 +1,37 @@
+# P5b-2b: direct List/Map equality lowers through the generic runtime KIND
+# recursion. It is structural (list order matters, map storage order does not),
+# accepts materialized call/literal operands, and recurses through alternating
+# List/Map rows without per-shape codegen arms.
+sub make_list(): List[Int] { [1, 2, 3] }
+
+sub make_map(): Map[Str, Int] { {"b": 2, "a": 1} }
+
+sub main(): Int {
+    @a = [1, 2, 3]
+    @b = [1, 2, 3]
+    %a = {"a": 1, "b": 2}
+    %b = {"b": 2, "a": 1}
+    print(@a == @b)
+    print(@a != [1, 2, 4])
+    print(make_list() == @a)
+    print(%a == %b)
+    print(%a != {"a": 1, "b": 3})
+    print(make_map() == %a)
+
+    @deep1 = [{"outer": [{"leaf": ["ada", "bob"]}]}]
+    @deep2 = [{"outer": [{"leaf": ["ada", "bob"]}]}]
+    @deep3 = [{"outer": [{"leaf": ["ada", "cy"]}]}]
+    print(@deep1 == @deep2)
+    print(@deep1 != @deep3)
+
+    %bools1 = {"tail": [{"ok": [true]}], "flags": [{"ok": [true, false]}]}
+    %bools2 = {"flags": [{"ok": [true, false]}], "tail": [{"ok": [true]}]}
+    %bools3 = {"flags": [{"ok": [false, false]}], "tail": [{"ok": [true]}]}
+    print(%bools1 == %bools2)
+    print(%bools1 != %bools3)
+
+    %floats1 = {"right": [{"v": [2.5]}], "left": [{"v": [1.5]}]}
+    %floats2 = {"left": [{"v": [1.5]}], "right": [{"v": [2.5]}]}
+    print(%floats1 == %floats2)
+    0
+}

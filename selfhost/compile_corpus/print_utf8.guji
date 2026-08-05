@@ -1,0 +1,4 @@
+sub main(): Int {
+    print("hé")
+    0
+}

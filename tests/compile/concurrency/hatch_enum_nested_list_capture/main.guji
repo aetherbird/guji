@@ -1,0 +1,47 @@
+# Section 17 hatch capture of enums with nested List payloads.
+#
+# Capturing one enum with List[List[Str]] and another with List[Map[Str, Int]]
+# proves hatchCopyEnum preserves nested payload metadata and recursively copies
+# the parent heap's container graph into the child task.
+enum Bag {
+    Rows($xs: List[List[Str]])
+    Dicts($ms: List[Map[Str, Int]])
+    Empty
+}
+
+sub main(): Int {
+    $rows = Rows([["north", "east"], ["south"]])
+    $dicts = Dicts([{"a": 10}, {"b": 20}])
+    $textCh: Chan[Str] = channel(0)
+    $numCh: Chan[Int] = channel(0)
+
+    hatch {
+        $text = match $rows {
+            Rows($xs) {
+                @first = $xs[0]
+                @second = $xs[1]
+                @first[0] ~ "/" ~ @second[0]
+            }
+            Dicts($ms) { "dicts" }
+            Empty { "empty" }
+        }
+        $textCh.send($text)
+    }
+
+    hatch {
+        $total = match $dicts {
+            Rows($xs) { 0 }
+            Dicts($ms) {
+                %a = $ms[0]
+                %b = $ms[1]
+                %a{"a"} + %b{"b"}
+            }
+            Empty { -1 }
+        }
+        $numCh.send($total)
+    }
+
+    print($textCh.recv().unwrap())
+    print($numCh.recv().unwrap())
+    0
+}

@@ -1,0 +1,5 @@
+# T2: the final block expression must satisfy the annotated sub return.
+sub main(): Int {
+    $x = "s"
+    $x
+}

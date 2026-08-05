@@ -1,0 +1,18 @@
+direct=3
+checked=4
+true
+contains=true/false
+count=4/false
+empty=true
+mapped=[6, 2, 8, 2]
+filtered=[3, 4]
+empty-map=[]
+source=[3, 1, 4, 1]
+sum=9
+min=1 max=4
+sort=[1, 1, 3, 4]
+reverse=[1, 4, 1, 3]
+take=[3, 1] drop=[4, 1]
+nested=[[a], [b, c]]
+equal=true
+source-still=[[a], [b, c]]

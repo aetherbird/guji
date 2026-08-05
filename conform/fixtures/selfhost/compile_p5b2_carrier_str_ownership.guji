@@ -1,0 +1,34 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P5b-2b(carrier-str-ownership): two §3.3 carrier constructs the selfhost codegen
+# previously declined.
+#   (1) A carrier-returning CALL used as a bare statement discards its value. Native
+#       assigns it to a temp, casts (void), then releases the active owned slot so
+#       the Some(Str) payload / Err(Str) slot does not leak. Selfhost mirrors this:
+#       the Option discard temp is `guji_opt_str gd*`, the Result discard temp is
+#       `guji_res_int_str gd*`, each followed by `(void)(gd*)` and a tag-guarded
+#       `guji_release(gd*.val/.err)`.
+#   (2) An UNANNOTATED bind of a list `.get()` result (`$w = @xs.get(i)`) infers its
+#       Option kind from the receiver element kind (the `find` twin), so the get
+#       lowering runs — its index temp is `int64_t gi*`.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "(void)(gd"))
+            print(has_text($c, "guji_opt_str gd"))
+            print(has_text($c, "guji_res_int_str gd"))
+            print(has_text($c, "guji_release(gd"))
+            print(has_text($c, "int64_t gi"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

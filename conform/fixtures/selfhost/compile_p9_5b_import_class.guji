@@ -1,0 +1,39 @@
+# gujiconform - selfhost slice 6 P9-5b compiler codegen fixture.
+# Pins an alias-qualified imported class constructor and its imported method C
+# symbol. The generated class value must retain ordinary class ownership cleanup.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    @geom_lines = [
+        "pub class Point \{",
+        "    has \$.x: Int",
+        "    has \$.y: Int",
+        "",
+        "    sub shift(\$self, \$delta: Int): Int \{",
+        "        \$self.x + \$self.y + \$delta",
+        "    }",
+        "}"
+    ]
+    match write_file("/tmp/geom.guji", @geom_lines.join("\n") ~ "\n") {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match lexer::compile_program_c_at("/tmp/guji_compile_p95b_main.guji", stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_imp_geom_Point_shift(Point gp0, int64_t gp1);"))
+            print(has_text($c, "gv0 = (Point)\{6LL, 2LL};"))
+            print(has_text($c, "gf_imp_geom_Point_shift(gv0, 4LL)"))
+            print(has_text($c, "guji_release_Point_fields(&gv0);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

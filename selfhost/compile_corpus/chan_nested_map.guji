@@ -1,0 +1,55 @@
+# P8d-2c-3c-3: Chan[Map[Str, List[…]]] and Chan[Map[Str, Map[Str, …]]] — one
+# nesting level of map values. Both ride the flat-map channel ABI
+# (sizeof(guji_map_t) + guji_chan_drop_map); guji_copy_arr detaches the whole
+# row graph on send and the vals-array release cascades through row storage.
+# Map-of-map loop bodies stick to native-accepted reads (row rebind + index,
+# display, key-only iteration); %v.count() on a nested row is a native reject.
+sub main(): Int {
+    %src: Map[Str, List[Int]] = {"a": [1, 2], "b": [3]}
+    $ch: Chan[Map[Str, List[Int]]] = channel(1)
+    $ch.send(%src)
+    $ch.close()
+    $row0 = %src{"a"}
+    print($row0.count())
+    mut $sum = 0
+    for %got in $ch {
+        $va = %got{"a"}
+        $vb = %got{"b"}
+        $sum = $sum + $va[1] + $vb[0]
+    }
+    print($sum)
+    $done = $ch.recv()
+    print($done.is_none())
+
+    # send consumes the detached two-array graph even on a closed channel.
+    %late: Map[Str, List[Int]] = {"late": [9]}
+    $rejected = $ch.send(%late)
+    print($rejected.is_err())
+
+    %inner: Map[Str, Map[Str, Int]] = {"x": {"i": 1}, "y": {"j": 2, "k": 3}}
+    $mm: Chan[Map[Str, Map[Str, Int]]] = channel(1)
+    $mm.send(%inner)
+    $mm.close()
+    for %mrow in $mm {
+        print(%mrow)
+        %ys = %mrow{"y"}
+        print(%ys{"k"})
+    }
+
+    # Scope cleanup drops undelivered nested-value messages (List and Map rows).
+    %uv: Map[Str, List[Str]] = {"s": ["ow" ~ "ned", "t"]}
+    $lm: Chan[Map[Str, List[Str]]] = channel(1)
+    $lm.send(%uv)
+    %um: Map[Str, Map[Str, Str]] = {"w": {"q": "he" ~ "ap"}}
+    $um: Chan[Map[Str, Map[Str, Str]]] = channel(1)
+    $um.send(%um)
+
+    $empty: Chan[Map[Str, Map[Str, Int]]] = channel(1)
+    $empty.close()
+    mut $drained = 0
+    for %erow in $empty {
+        $drained = $drained + 1
+    }
+    print($drained)
+    0
+}

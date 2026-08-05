@@ -1,0 +1,32 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P5b-2b(carrier-eq collections): a Result[List[Int], Str] carrier embeds a
+# by-value guji_slice_t in its ok slot. The program-dependent typedef
+# `guji_res_list_str` is collected + emitted per program (deduped by the
+# element-agnostic `list` word), and equality compares tags then the active
+# payload structurally: guji_list_equal over the ok slice, guji_str_equal over
+# the err Str. The Err construction zeroes the inactive `(guji_slice_t){0}` ok
+# slot. Negatively, no `guji_res_list_int` is emitted — the err slot resolves to
+# `str`, and only the carrier actually used is materialized.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_res_list_str;"))
+            print(has_text($c, "guji_slice_t ok;"))
+            print(has_text($c, "guji_list_equal((const void*)"))
+            print(has_text($c, "GUJI_LEAF_INT"))
+            print(has_text($c, "(guji_slice_t)\{0}"))
+            print(has_text($c, "guji_res_list_int"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

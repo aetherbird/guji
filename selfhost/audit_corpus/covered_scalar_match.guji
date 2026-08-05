@@ -1,0 +1,11 @@
+# DECLINE-AUDIT control: a scalar (Int) match over a non-name expression scrutinee
+# (match $x + 1). Scalar scrutinees ARE materialised into a fresh temp in every
+# position, so this is COVERED — it shows the gap is enum-specific, not a general
+# expression-scrutinee limitation.
+sub main(): Int {
+    $x = 2
+    match $x + 1 {
+        3 { 10 }
+        _ { 0 }
+    }
+}

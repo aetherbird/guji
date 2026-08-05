@@ -1,0 +1,12 @@
+sub main(): Int {
+    @xs = [1, 2, 3, 4, 5]
+    @r = @xs.reverse()
+    @t = @xs.take(3)
+    @d = @xs.drop(2)
+    print("reverse sum: { @r.sum() }")
+    print("take sum: { @t.sum() }")
+    print("drop sum: { @d.sum() }")
+    print("take count: { @t.count() }")
+    print("drop count: { @d.count() }")
+    0
+}

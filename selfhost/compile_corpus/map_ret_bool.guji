@@ -1,0 +1,6 @@
+sub mk(): Map[Str, Bool] {
+    {"a": true, "b": false}
+}
+sub main(): Unit {
+    print(mk())
+}

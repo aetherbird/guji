@@ -1,0 +1,29 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Value-position if with return-only arms: emit C `return` inside
+            # each branch (no shared-temp assign on the Never path).
+            print(has_text($c, "static guji_opt_int gf_choose(int64_t gp0)"))
+            print(has_text($c, "return (guji_opt_int)\{1LL, gp0};"))
+            print(has_text($c, "return (guji_opt_int)\{0LL, 0LL};"))
+            # Dead fall-through after the all-return if (native emits the same).
+            print(has_text($c, "return go0;"))
+            # Match return-only Str arms (pre-existing path; pin still).
+            print(has_text($c, "static const char* gf_label(Pick gp0)"))
+            print(has_text($c, "return gt2;"))
+            print(has_text($c, "return gt3;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

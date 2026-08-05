@@ -1,0 +1,6 @@
+# Spec 17.6: global send deadlock has one exact bounded failure.
+sub main(): Int {
+    $ch: Chan[Int] = channel()
+    $ch.send(1)
+    0
+}

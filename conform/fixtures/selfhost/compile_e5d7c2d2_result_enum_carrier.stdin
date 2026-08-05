@@ -1,0 +1,23 @@
+enum Piece {
+    PText($s: Str)
+    PNum($n: Int)
+}
+
+sub mk(): Result[Piece, Str] {
+    Ok(PText("piece"))
+}
+
+sub mk_err(): Result[Piece, Str] {
+    Err("bad")
+}
+
+sub score(): Int {
+    match mk() {
+        Ok($p) { 4 }
+        Err($e) { print($e) 9 }
+    }
+}
+
+sub main(): Int {
+    return score()
+}

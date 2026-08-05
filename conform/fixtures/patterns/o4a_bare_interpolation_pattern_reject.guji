@@ -1,0 +1,8 @@
+# O4a: bare-sigil interpolation is an expression and cannot be a pattern.
+sub main(): Int {
+    $needle = "x"
+    match "x" {
+        "$needle" { 0 }
+        _ { 1 }
+    }
+}

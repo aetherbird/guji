@@ -1,0 +1,87 @@
+# §15.5 Result `and_then`, method form `$r.and_then(f)` and function form
+# `and_then($r, f)`, over bound `Result[T,E]` locals producing a fresh
+# `Result[U,E]` through a single-expression inline lambda that returns a Result
+# carrier: `Ok(v)` -> `f(v)`, `Err(e)` -> `Err(e)`. The Err slot is copied from
+# the source carrier and retained when it is Str. Exit 255 (code 2047) iff every
+# polarity/payload assertion holds.
+
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+sub ok_s($s: Str): Result[Str, Str] { Ok($s) }
+sub ok_b($b: Bool): Result[Bool, Str] { Ok($b) }
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+
+sub to_i($n: Int): Result[Int, Str] {
+    if $n > 0 { Ok($n + 7) } else { Err("neg") }
+}
+sub to_s($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("s{ $n }") } else { Err("neg") }
+}
+sub to_f($b: Bool): Result[Float, Str] {
+    if $b { Ok(1.5) } else { Err("false") }
+}
+sub to_b($s: Str): Result[Bool, Str] {
+    if $s == "yes" { Ok(true) } else { Err("no") }
+}
+sub to_s_int_err($n: Int): Result[Str, Int] {
+    if $n > 0 { Ok("n={ $n }") } else { Err(5) }
+}
+sub fail_i($s: Str): Result[Int, Str] { Err($s) }
+sub to_j($n: Int): Result[Str, Str] { Ok("j{ $n }") }
+sub forty_two($s: Str): Result[Int, Str] { Ok(42) }
+
+sub main(): Int {
+    $ri: Result[Int, Str] = ok_i(5)
+    $ei: Result[Int, Str] = err_i("bo" ~ "om")
+    $rs: Result[Str, Str] = ok_s("yes")
+    $rb: Result[Bool, Str] = ok_b(true)
+    $eii: Result[Int, Int] = err_ii(9)
+    $base = 10
+
+    mut $code = 0
+
+    $a: Result[Int, Str] = $ri.and_then(sub($v_i: Int): Result[Int, Str] { to_i($v_i) })
+    $b: Result[Int, Str] = and_then($ei, sub($e_i: Int): Result[Int, Str] { to_i($e_i) })
+    if $a.unwrap_or(0) == 12 { $code = $code + 1 }
+    if $b.is_err() { $code = $code + 2 }
+    match $b {
+        Ok($bad_ok) { print("{ $bad_ok }") }
+        Err($copied_err) { print($copied_err) }
+    }
+
+    $c: Result[Str, Str] = $ri.and_then(sub($v_s: Int): Result[Str, Str] { to_s($v_s) })
+    $d: Result[Bool, Str] = $rs.and_then(sub($s_b: Str): Result[Bool, Str] { to_b($s_b) })
+    $e: Result[Float, Str] = and_then($rb, sub($b_f: Bool): Result[Float, Str] { to_f($b_f) })
+    print($c.unwrap_or("x"))
+    if $c.unwrap_or("x") == "s5" { $code = $code + 4 }
+    if $d.unwrap_or(false) { $code = $code + 8 }
+    if $e.unwrap_or(0.0) == 1.5 { $code = $code + 16 }
+
+    $f: Result[Str, Int] = $eii.and_then(sub($ii_s: Int): Result[Str, Int] { to_s_int_err($ii_s) })
+    match $f {
+        Ok($no_f) { print($no_f) }
+        Err($err_f) { if $err_f == 9 { $code = $code + 32 } }
+    }
+
+    $g: Result[Int, Str] = $ri.and_then(sub($g_i: Int): Result[Int, Str] { to_i($g_i + $base - 7) })
+    $h: Result[Int, Str] = $ri.and_then(sub($h_i: Int): Result[Int, Str] { fail_i("stop" ~ "!") })
+    if $g.unwrap_or(0) == 15 { $code = $code + 64 }
+    if $h.is_err() { $code = $code + 128 }
+
+    $j: Result[Str, Str] = $ri.and_then(sub($j_i: Int): Result[Str, Str] { to_j($j_i) })
+    $k: Result[Int, Str] = $j.and_then(sub($k_s: Str): Result[Int, Str] { forty_two($k_s) })
+    if $j.unwrap_or("x") == "j5" { $code = $code + 256 }
+    if $k.unwrap_or(0) == 42 { $code = $code + 512 }
+
+    $m: Result[Str, Str] = and_then($ri, sub($m_i: Int): Result[Str, Str] { to_s($m_i) })
+    match $m {
+        Ok($mok) {
+            print($mok)
+            $code = $code + 1024
+        }
+        Err($mer) { print($mer) }
+    }
+
+    print("{ $code }")
+    $code - 1792
+}

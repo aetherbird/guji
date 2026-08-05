@@ -1,0 +1,61 @@
+# §15.2 map `set` / `remove`, P2c slice: bound map locals support both the
+# ordinary data-first `set(%m, k, v)` / `remove(%m, k)` and the method-style
+# `%m.set(k, v)` / `%m.remove(k)` spellings as the RHS of an annotated map
+# binding. Each call produces a fresh COPY; the source map is unchanged and
+# stays usable afterwards. Covers replace-existing vs append-new keys,
+# remove-hit vs remove-miss, computed keys, all four value kinds (Str values
+# exercise the copy retains and the replaced-slot release), set on an empty
+# map, and chaining through a produced map.
+
+sub key($s: Str): Str {
+    "k" ~ $s
+}
+
+sub main(): Int {
+    %m: Map[Str, Int] = {"ka": 1, "kb": 2}
+    %r: Map[Str, Int] = set(%m, "ka", 10)
+    %a: Map[Str, Int] = %m.set("kc", 3)
+    %d: Map[Str, Int] = remove(%m, key("a"))
+    %n: Map[Str, Int] = %m.remove("kz")
+    print(%m)
+    print(%r)
+    print(%a)
+    print(%d)
+    print(%n)
+
+    %s: Map[Str, Str] = {"a": "x", "b": "y"}
+    %sr: Map[Str, Str] = %s.set("a", "z" ~ "!")
+    %sa: Map[Str, Str] = set(%s, "c", "w")
+    %sd: Map[Str, Str] = remove(%s, "a")
+    print(%s)
+    print(%sr)
+    print(%sa)
+    print(%sd)
+
+    %f: Map[Str, Float] = {"pi": 3.5}
+    %fr: Map[Str, Float] = %f.set("pi", 2.5)
+    print(%fr)
+
+    %b: Map[Str, Bool] = {"on": true}
+    %br: Map[Str, Bool] = set(%b, "off", false)
+    print(%br)
+
+    %e: Map[Str, Int] = {}
+    %ea: Map[Str, Int] = %e.set("first", 1)
+    print(%ea)
+    %ed: Map[Str, Int] = remove(%e, "ghost")
+    print(%ed)
+
+    %c1: Map[Str, Int] = set(%m, "kq", 9)
+    %c2: Map[Str, Int] = %c1.remove("kb")
+    print(%c2)
+
+    mut $score = 0
+    if %c2.has_key("kq") { $score = $score + 1 } else { $score = $score + 0 }
+    if %c2.has_key("kb") { $score = $score + 0 } else { $score = $score + 2 }
+    if %r.has_key("ka") { $score = $score + 4 } else { $score = $score + 0 }
+    if has_key(%sd, "a") { $score = $score + 0 } else { $score = $score + 8 }
+    if has_key(%ea, "first") { $score = $score + 16 } else { $score = $score + 0 }
+    print("{ $score }")
+    $score
+}

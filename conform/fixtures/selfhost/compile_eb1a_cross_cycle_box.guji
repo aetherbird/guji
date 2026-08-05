@@ -1,0 +1,27 @@
+# gujiconform - EB-1a cross-type recursive layout fixture.
+# Pins the first safe piece of the bootstrap wall: an enum variant field naming a
+# later class that reaches back to the enum is stored as a counted class box.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct TypeRef* f0;"))
+            print(has_text($c, "#define GUJI_KIND_TypeRef 14"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_TypeRef, 0, sizeof(TypeRef))"))
+            print(has_text($c, "guji_release((const void*)p->f0);"))
+            print(has_text($c, "guji_drop_TypeRef, /* GUJI_KIND_TypeRef */"))
+            print(has_text($c, "*((TypeRef*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

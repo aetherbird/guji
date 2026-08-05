@@ -1,0 +1,18 @@
+# O4: class initializers run in field declaration order. The trapping `first`
+# initializer therefore prevents the earlier-written `second` initializer.
+class Pair {
+    has $.first: Int
+    has $.second: Int
+}
+
+sub later(): Int {
+    print("late")
+    2
+}
+
+sub main(): Int {
+    $zero = 0
+    $p = Pair(second: later(), first: 10 / $zero)
+    print($p.first)
+    0
+}

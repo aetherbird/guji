@@ -1,0 +1,5 @@
+# T3a: a map literal whose later value disagrees with the first is rejected.
+sub main(): Int {
+    @m = {"a": 1, "b": "x"}
+    0
+}

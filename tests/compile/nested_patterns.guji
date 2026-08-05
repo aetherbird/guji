@@ -1,0 +1,31 @@
+enum Token {
+    Word($s: Str)
+    Number($n: Int)
+}
+
+enum Wrapped {
+    One($t: Token)
+    Pair($left: Token, $right: Token)
+    Empty
+}
+
+sub describe($w: Wrapped): Str {
+    match $w {
+        One(Word($s)) { "one word " ~ $s }
+        One(Number($n)) { "one number { $n }" }
+        Pair(Word($s), Number($n)) { "word+number { $s }/{ $n }" }
+        Pair(Number($i), Word($name)) { "number+word { $i }/{ $name }" }
+        Pair(_, _) { "other pair" }
+        Empty { "empty" }
+    }
+}
+
+sub main(): Int {
+    print(describe(One(Word("guji"))))
+    print(describe(One(Number(7))))
+    print(describe(Pair(Word("x"), Number(3))))
+    print(describe(Pair(Number(4), Word("y"))))
+    print(describe(Pair(Word("a"), Word("b"))))
+    print(describe(Empty))
+    0
+}

@@ -1,0 +1,36 @@
+# P8d-2c-3c-1: `for` over Chan[List[Int|Str]] adopts each detached channel-owned
+# list message. Distinct binder names avoid a native C redefinition when two
+# sequential List channel fors would both emit `guji_slice_t gv_<name>` (oracle
+# limit — selfhost can reuse names; keep reuse out of the three-way corpus).
+# Empty drain proves zero-adoption final release is a safe empty-slice no-op.
+sub main(): Int {
+    $rows: Chan[List[Int]] = channel(3)
+    $rows.send([1, 2])
+    $rows.send([3])
+    $rows.send([4, 5, 6])
+    $rows.close()
+    mut $sum = 0
+    for $row in $rows {
+        @tagged: List[Int] = [$row.count()]
+        $sum = $sum + @tagged[0] + $row[0]
+    }
+
+    $again: Chan[List[Str]] = channel(2)
+    $again.send(["re" ~ "use"])
+    $again.send(["done", "x"])
+    $again.close()
+    mut $count = 0
+    for $words in $again {
+        $count = $count + $words.count()
+    }
+
+    $empty: Chan[List[Int]] = channel(1)
+    $empty.close()
+    mut $drained = 0
+    for $e in $empty {
+        $drained = $drained + 1
+    }
+
+    print("$sum|$count|$drained")
+    0
+}

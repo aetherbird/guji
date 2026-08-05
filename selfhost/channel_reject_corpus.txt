@@ -1,0 +1,4 @@
+# Exact §17.3 channel-operation type rejections. Every .guji file in
+# channel_reject_corpus must appear here; channel_reject_diff.sh fails closed.
+send_arity.guji
+send_payload_type.guji

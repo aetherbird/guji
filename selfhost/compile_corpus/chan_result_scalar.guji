@@ -1,0 +1,96 @@
+# P8d-2c-3c-11: flat Result[T,E] channel elements (T/E ∈ Int|Bool|Float|Str).
+# Send is copy-on-send for active Str arms; recv yields Option[Result] and
+# fresh/bound unwrap adopts the carrier. A final buffered Err stays undelivered
+# so the elem_drop hook must release it (sanitizer twin covers that path).
+# Bind names are unique across matches — native codegen rebinds match locals
+# in the function frame and rejects Str→Int reuse of the same C name.
+sub ok_int($n: Int): Result[Int, Str] { Ok($n) }
+sub err_str($s: Str): Result[Int, Str] { Err($s) }
+sub ok_bool($b: Bool): Result[Bool, Str] { Ok($b) }
+sub ok_float($f: Float): Result[Float, Str] { Ok($f) }
+sub ok_str($s: Str): Result[Str, Str] { Ok($s) }
+sub err_str2($s: Str): Result[Str, Str] { Err($s) }
+sub ok_ii($n: Int): Result[Int, Int] { Ok($n) }
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+
+sub main(): Int {
+    $ints: Chan[Result[Int, Str]] = channel(3)
+    $ok = ok_int(7)
+    $err = err_str("bad")
+    $ints.send($ok)
+    $ints.send($err)
+    $ints.close()
+    $got = $ints.recv().unwrap()
+    print($got.unwrap())
+    $got2 = $ints.recv().unwrap()
+    print(match $got2 {
+        Ok($n0) { "{ $n0 }" }
+        Err($e0) { $e0 }
+    })
+    # Source locals stay independently owned after copy-on-send.
+    print($ok.unwrap())
+
+    $bools: Chan[Result[Bool, Str]] = channel(1)
+    $ob = ok_bool(true)
+    $bools.send($ob)
+    $bools.close()
+    $gb = $bools.recv().unwrap()
+    print($gb.unwrap())
+
+    $floats: Chan[Result[Float, Str]] = channel(1)
+    $of = ok_float(1.5)
+    $floats.send($of)
+    $floats.close()
+    $gf = $floats.recv().unwrap()
+    print($gf.unwrap())
+
+    $strs: Chan[Result[Str, Str]] = channel(2)
+    $os = ok_str("hi" ~ "!")
+    $es = err_str2("er" ~ "r")
+    $strs.send($os)
+    $strs.send($es)
+    $strs.close()
+    $gs = $strs.recv().unwrap()
+    print($gs.unwrap())
+    $gs2 = $strs.recv().unwrap()
+    print(match $gs2 {
+        Ok($s1) { $s1 }
+        Err($e1) { $e1 }
+    })
+
+    # No-Str Result still builds with NULL elem_drop. Avoid chained
+    # `$ch.recv().unwrap().unwrap()` — native rejects that spelling for
+    # some Ok payloads ("unsupported enum expression"); bind the outer.
+    $ii: Chan[Result[Int, Int]] = channel(2)
+    $ii.send(ok_ii(1))
+    $ii.send(err_ii(2))
+    $ii.close()
+    $gi = $ii.recv().unwrap()
+    print($gi.unwrap())
+    $gi2 = $ii.recv().unwrap()
+    print(match $gi2 {
+        Ok($n2) { "{ $n2 }" }
+        Err($e2) { "{ $e2 }" }
+    })
+
+    # Bound outer-carrier unwrap (native-accepted for Result).
+    $one: Chan[Result[Int, Str]] = channel(1)
+    $one.send(ok_int(42))
+    $one.close()
+    $held = $one.recv()
+    $r = $held.unwrap()
+    print($r.unwrap())
+
+    # Function-form unwrap of a fresh recv.
+    $two: Chan[Result[Int, Str]] = channel(1)
+    $two.send(ok_int(9))
+    $two.close()
+    $r2 = unwrap($two.recv())
+    print($r2.unwrap())
+
+    # Buffered Err left undelivered so channel release invokes the Result
+    # elem_drop under LeakSanitizer (native chan_result_scalar_str shape).
+    $drop: Chan[Result[Int, Str]] = channel(1)
+    $drop.send(err_str("drop" ~ "!"))
+    0
+}

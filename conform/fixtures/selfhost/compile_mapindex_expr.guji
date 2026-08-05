@@ -1,0 +1,26 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 MAP-INDEX-PARSE: postfix `%m{key}` map indexing parses in
+# call-argument / binary / if-branch positions and lowers through the existing
+# g7_lower_map_index shape: a found-flag, a strcmp key scan, a not-found panic,
+# and a retain on Str-valued reads.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "int64_t gfnd"))
+            print(has_text($c, "if (strcmp("))
+            print(has_text($c, "guji_panic(\"map key not found\")"))
+            print(has_text($c, "= guji_retain("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

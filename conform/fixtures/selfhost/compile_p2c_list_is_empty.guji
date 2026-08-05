@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins the §15 `is_empty(@xs)` / `@xs.is_empty()` prelude lowering. `is_empty`
+# reports whether a List has no elements (result Bool). Native lowers it to
+# `(<len> == 0)` — a borrowed `.len` read for a bound-var receiver — and both the
+# function form and the data-first method form emit the SAME expression, since both
+# route through `count`'s length machinery rather than rescanning the elements.
+# Checks the generated C carries the Bool display `guji_bool_str(((<len>) == 0))`
+# (used by the interpolation position for both spellings) and the same length
+# predicate reused directly in an `if` condition position.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_bool_str(((gv0_len) == 0))"))
+            print(has_text($c, "if (((gv0_len) == 0))"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

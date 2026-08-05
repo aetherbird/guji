@@ -1,0 +1,26 @@
+# Nested-brace `{ expr }` interpolations (§12). The close scan must BALANCE
+# braces (native scanBraceExpr), not stop at the first `}`: before the 2026-07-05
+# fix the unparseable prefix of `{ match … { … } … }` was emitted literally and
+# the inner `{ 1 }` fragments evaluated on their own — a silent divergence from
+# both Go oracles. Covers: match-in-interpolation over a fieldless enum and a
+# payload enum, if-value-in-interpolation, an escaped `\{` next to a real
+# interpolation, and a brace-free literal on the same paths.
+enum Color { Red Green Blue }
+enum Shape { Dot Wide($w: Int) }
+
+sub main(): Int {
+    $d = Green
+    print("{ match $d { Red { 0 } Green { 1 } Blue { 2 } } }")
+
+    $s = Wide(4)
+    print("w={ match $s { Dot { 0 } Wide($w) { $w } } }!")
+
+    $b = false
+    print("pick { if $b { 10 } else { 20 } } end")
+
+    $x = 5
+    print("lit \{ x } and { $x }")
+
+    print("plain literal")
+    match $d { Red { 3 } Green { 4 } Blue { 5 } }
+}

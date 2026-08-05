@@ -1,0 +1,15 @@
+# §11.2 Never must unify in every scalar expression position below. All panic
+# calls are unreachable, so a correct native program prints one stable line.
+sub add($a: Int, $b: Int): Int { $a + $b }
+
+sub main(): Int {
+    $x = 42
+    $a = if true { $x } else { 1 + panic("dead binary") }
+    $b = if true { $x } else { -panic("dead unary") }
+    $c = if true { $x } else { add(1, panic("dead arg")) }
+    $d = if true { $x } else { [1, 2][panic("dead index")] }
+    $e = if true { $x } else { panic("dead object")[0] }
+    $f = if true { $x } else { panic("dead field").nope }
+    print("ok $a $b $c $d $e $f")
+    0
+}

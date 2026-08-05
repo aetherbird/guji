@@ -1,0 +1,5 @@
+sub main(): Int {
+  $a = 3
+  $b = 4
+  if $a < $b && $b < 10 { 8 } else { 0 }
+}

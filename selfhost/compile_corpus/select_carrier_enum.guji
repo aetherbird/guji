@@ -1,0 +1,179 @@
+# P8f-2b: `select` over CARRIER + USER-ENUM element channels (§17.5–§17.6).
+# Recv binds Option[element]: Option[Option[T]] / Option[Result[T,E]] /
+# Option[E]. Bound arms ADOPT the detached message (owned → arm-exit + early
+# return release); unbound arms discard the ready element before the body.
+# Shapes mirror native select_carrier_* / select_enum_* fixtures (no nested
+# `Some($m) { match $m }` on Chan[E] — that is a native codegen reject).
+# NOTE: native rejects Chan[E] as a *sub parameter* (scalar-only Chan params);
+# keep enum channels as locals. Also: do not rebind one `$name` across
+# different Option/Result carrier types (native: "cannot rebind ... type").
+enum Signal {
+    Stop
+    Go
+    Wait($secs: Int)
+}
+
+enum Msg {
+    Text($s: Str)
+    Pair($a: Str, $b: Str)
+    Done
+}
+
+sub show_msg($m: Msg): Str {
+    match $m {
+        Text($s) { $s }
+        Pair($a, $b) { $a ~ "/" ~ $b }
+        Done { "done" }
+    }
+}
+
+sub err_str($s: Str): Result[Int, Str] { Err($s) }
+
+sub main(): Int {
+    # Chan[Option[Int]]: scalar carrier baseline (no heap release).
+    $oi: Chan[Option[Int]] = channel(1)
+    $some_i: Option[Int] = Some(7)
+    $oi.send($some_i)
+    select {
+        $v = $oi.recv() {
+            $ii = $v.unwrap()
+            print(match $ii {
+                Some($n) { $n }
+                None { 0 }
+            })
+        }
+        else { print(99) }
+    }
+
+    # Chan[Option[Str]]: bound adopt of a fresh Str; unbound discard.
+    $os: Chan[Option[Str]] = channel(2)
+    $some_s: Option[Str] = Some("x" ~ "y")
+    $os.send($some_s)
+    select {
+        $v = $os.recv() {
+            $is = $v.unwrap()
+            match $is {
+                Some($s) { print("a " ~ $s) }
+                None { print("a none") }
+            }
+        }
+        else { print("idle") }
+    }
+    $drop_s: Option[Str] = Some("z" ~ "z")
+    $os.send($drop_s)
+    select {
+        $os.recv() { print("dropped") }
+    }
+
+    # Chan[Option[List[Int]]] / Chan[Option[Map[Str,Str]]].
+    $ol: Chan[Option[List[Int]]] = channel(1)
+    @nums = [2, 4, 6]
+    $ol_msg: Option[List[Int]] = Some(@nums)
+    $ol.send($ol_msg)
+    select {
+        $v = $ol.recv() {
+            $il = $v.unwrap()
+            print(match $il {
+                Some(@xs) { @xs[0] + @xs[2] }
+                None { 0 }
+            })
+        }
+        else { print(99) }
+    }
+    $om: Chan[Option[Map[Str, Str]]] = channel(1)
+    %ws = {"first": "gu", "second": "ji"}
+    $om_msg: Option[Map[Str, Str]] = Some(%ws)
+    $om.send($om_msg)
+    select {
+        $v = $om.recv() {
+            $im = $v.unwrap()
+            print(match $im {
+                Some(%m) { %m{"first"} ~ %m{"second"} }
+                None { "none" }
+            })
+        }
+        else { print("idle") }
+    }
+
+    # Chan[Result[Int, Str]]: Err Str ownership at arm exit.
+    $rr: Chan[Result[Int, Str]] = channel(1)
+    $rr.send(err_str("ba" ~ "d"))
+    select {
+        $v = $rr.recv() {
+            $ir = $v.unwrap()
+            print(match $ir {
+                Ok($n) { "{ $n }" }
+                Err($e) { "a " ~ $e }
+            })
+        }
+        else { print("idle") }
+    }
+
+    # Chan[Option[Match]]: pointer-payload carrier (deep-copied on send).
+    $omatch: Chan[Option[Match]] = channel(1)
+    $m1 = 'aa-bb' ~~ /(?<a>\w+)-(?<b>\w+)/
+    $omatch.send($m1)
+    select {
+        $v = $omatch.recv() {
+            $imt = $v.unwrap()
+            print(match $imt {
+                Some($m) { $m.text }
+                None { "none" }
+            })
+        }
+        else { print("idle") }
+    }
+
+    # Chan[Signal]: scalar-payload enum.
+    $sig: Chan[Signal] = channel(1)
+    $sig.send(Wait(7))
+    select {
+        $v = $sig.recv() {
+            if $v.is_some() {
+                print(match $v.unwrap() {
+                    Stop { 0 }
+                    Go { 1 }
+                    Wait($secs) { $secs }
+                })
+            } else {
+                print(0 - 1)
+            }
+        }
+        else { print(99) }
+    }
+
+    # Hatch wake over Chan[Option[Str]] (blocking select, no else) — before the
+    # early-return enum arm so this path is reachable.
+    $ha: Chan[Option[Str]] = channel()
+    $hb: Chan[Option[Str]] = channel()
+    hatch {
+        $wake: Option[Str] = Some("hel" ~ "lo")
+        $ha.send($wake)
+    }
+    select {
+        $v = $ha.recv() {
+            $ih = $v.unwrap()
+            print(match $ih { Some($s) { "a " ~ $s } None { "a none" } })
+        }
+        $w = $hb.recv() {
+            $ihb = $w.unwrap()
+            print(match $ihb { Some($s) { "b " ~ $s } None { "b none" } })
+        }
+    }
+
+    # Chan[Msg]: Str-payload enum + early return inside the arm (frame releases
+    # the adopted message). Channel stays LOCAL — native rejects Chan[E] params.
+    $msg: Chan[Msg] = channel(1)
+    $msg.send(Pair("left" ~ "-one", "right" ~ "-two"))
+    select {
+        $v = $msg.recv() {
+            if $v.is_some() {
+                print(show_msg($v.unwrap()))
+            } else {
+                print("closed")
+            }
+            return 0
+        }
+    }
+    1
+}

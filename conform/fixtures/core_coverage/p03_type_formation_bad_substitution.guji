@@ -1,0 +1,7 @@
+# The first argument binds T=Int, so the second argument cannot be Str.
+sub same[T]($left: T, $right: T): T { $left }
+
+sub main(): Int {
+    same(1, "two")
+    0
+}

@@ -1,0 +1,10 @@
+# G6b-b-3-ii: variant patterns must belong to the subject enum.
+enum Color { Red, Green }
+
+sub main(): Int {
+    $c = Red
+    match $c {
+        Red { 0 }
+        Blue { 1 }
+    }
+}

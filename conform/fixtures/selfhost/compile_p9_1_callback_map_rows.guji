@@ -1,0 +1,20 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P9-1: map/each/reduce callback binders are by-value guji_map_t views. Pin
+# all three callback paths using the struct fields that g7_map_var_* must emit;
+# the old named-map sentinel instead produced undeclared `gmvN_*` companions.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "guji_map_order(gmv") == 3)
+            print(count_of($c, ".keys, ") >= 3)
+            print(count_of($c, ".len);") >= 3)
+            0
+        }
+    }
+}

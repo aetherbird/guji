@@ -1,0 +1,16 @@
+# I10a1 bootstrap fixture: inspect C for all five scalar channel enum fields,
+# direct opaque display, identity comparison, and balanced handle ownership.
+import lexer
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(split($c, "guji_chan_t*").count() > 10)
+            print(split($c, "guji_chan_retain").count() > 10)
+            print(split($c, "guji_chan_release").count() > 10)
+            print(split($c, "<chan>").count() > 2)
+            0
+        }
+    }
+}

@@ -1,0 +1,5 @@
+sub main(): Unit {
+    %m: Map[Str, List[Int]] = { "a": [1, 2], "b": [3, 4] }
+    print(%m.get("a").unwrap_or([]))
+    print(%m.get("c").unwrap_or([]))
+}

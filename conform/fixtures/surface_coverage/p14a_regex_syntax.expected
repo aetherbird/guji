@@ -1,0 +1,16 @@
+classes=true
+negated=true
+alternation=true
+group=true
+lazy=true
+possessive=true
+atomic=true
+lookahead=true
+negative-lookahead=true
+lookbehind=true
+negative-lookbehind=true
+multiline=true
+dotall=true
+extended=true
+scoped-case=true
+boundary=true

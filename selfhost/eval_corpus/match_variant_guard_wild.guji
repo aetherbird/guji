@@ -1,0 +1,14 @@
+# §6.2/§10 match: first matching arm wins; a guarded variant arm, an unguarded
+# variant arm, and a wildcard. Uses only the oracle's built-in Some/None.
+sub classify($n: Int): Str {
+    match Some($n) {
+        Some($v) if $v > 10 { "big" }
+        Some($v) { "small" }
+        _ { "none" }
+    }
+}
+sub main(): Int {
+    print(classify(20))
+    print(classify(3))
+    0
+}

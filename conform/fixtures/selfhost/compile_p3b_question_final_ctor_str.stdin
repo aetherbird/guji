@@ -1,0 +1,13 @@
+sub tag($s: Str): Result[Str, Int] {
+    if $s == "" { Err(9) } else { Ok("t-" ~ $s) }
+}
+sub wrap_r($s: Str): Result[Str, Int] {
+    Ok(tag($s)?)
+}
+sub find_s($n: Int): Option[Str] {
+    if $n > 0 { Some("v") } else { None }
+}
+sub wrap_o($n: Int): Option[Str] {
+    Some(find_s($n)?)
+}
+sub main(): Int { 0 }

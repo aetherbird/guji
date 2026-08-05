@@ -1,0 +1,18 @@
+# WAS oracle-limit (Go rejected Option/Result hatch capture). I10g2 admits
+# immutable Option/Result captures with deep-copy of counted arms; this file
+# remains as a compile/sanity probe that must now succeed under native C/D.
+sub pick($flag: Bool): Option[Str] {
+    if $flag { Some("he" ~ "ap") } else { None }
+}
+sub main(): Int {
+    $ch: Chan[Str] = channel(0)
+    $o = pick(true)
+    hatch {
+        match $o {
+            Some($s) { $ch.send($s) }
+            None { $ch.send("none") }
+        }
+    }
+    print($ch.recv().unwrap())
+    0
+}

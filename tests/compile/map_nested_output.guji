@@ -1,0 +1,13 @@
+sub main(): Unit {
+    @rows = [[1, 2], [3]]
+    @id = @rows.map(sub(@r) { @r })
+    print(@id)
+
+    @nums = [1, 2, 3]
+    @pairs = @nums.map(sub($n) { [$n, $n * 2] })
+    print(@pairs)
+
+    @maps = [{"a": 1}, {"b": 2, "c": 3}]
+    @id_maps = @maps.map(sub(%m) { %m })
+    print(@id_maps)
+}

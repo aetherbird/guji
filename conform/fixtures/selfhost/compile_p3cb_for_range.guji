@@ -1,0 +1,30 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P3c-b-2: a SYNTACTIC range `for` lowers to native's captured-
+# bounds Int loop — both bounds assigned once into temps, the half-open `..<`
+# form decrementing hi behind an INT64_MIN empty-range guard, an `if (lo <= hi)`
+# empty guard, and a break AFTER the final element so the counter never advances
+# past hi (no guji_add(INT64_MAX, 1) panic).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "if (gi1 <= gi2)"))
+            print(has_text($c, "for (gi3 = gi1; ; gi3 = guji_add(gi3, 1))"))
+            print(has_text($c, "if (gi3 == gi2) break;"))
+            print(has_text($c, "if (gi5 == INT64_MIN)"))
+            print(has_text($c, "gi4 = (int64_t)0;"))
+            print(has_text($c, "gi5 = (int64_t)-1;"))
+            print(has_text($c, "gi5 = gi5 - 1;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

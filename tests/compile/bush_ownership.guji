@@ -1,0 +1,92 @@
+grammar Pair {
+    rule  TOP   { <left> '-' <right> }
+    token left  { \w+ }
+    token right { \w+ }
+}
+
+grammar Alt {
+    rule TOP { <w> 'x' | <w> 'y' }
+    token w  { \w }
+}
+
+sub parse_pair($s: Str): Option[Bush] {
+    Pair.parse($s)
+}
+
+sub parse_local($s: Str): Option[Bush] {
+    $opt = Pair.parse($s)
+    $opt
+}
+
+sub pass($o: Option[Bush]): Option[Bush] {
+    $o
+}
+
+sub left_text($b: Bush): Str {
+    match $b<left> {
+        Some($l) { $l.text }
+        None { '?' }
+    }
+}
+
+sub right_text($b: Bush): Str {
+    match $b<right> {
+        Some($r) { $r.text }
+        None { '?' }
+    }
+}
+
+sub main(): Unit {
+    $opt = parse_pair('aa-bb')
+    $r1 = match $opt {
+        Some($b) { $b.text }
+        None { '?' }
+    }
+    print($r1)
+    match $opt {
+        Some($b) { print(left_text($b)) }
+        None { print('?') }
+    }
+    $alias = $opt
+    $r3 = match $alias {
+        Some($b) { $b.text }
+        None { '?' }
+    }
+    print($r3)
+    mut $cur = Pair.parse('p-q')
+    $cur = Pair.parse('r-s')
+    match $cur {
+        Some($b) { print(left_text($b)) }
+        None { print('?') }
+    }
+    $kept = pass(parse_local('m-n'))
+    $r5 = match $kept {
+        Some($b) { $b.text }
+        None { '?' }
+    }
+    print($r5)
+    Pair.parse('zz-yy')
+    $partial = Pair.parse('aa-bb!')
+    $r6 = match $partial {
+        Some($b) { $b.text }
+        None { 'partial' }
+    }
+    print($r6)
+    $back = Alt.parse('ay')
+    $r7 = match $back {
+        Some($b) { $b.text }
+        None { '?' }
+    }
+    print($r7)
+    $fail = Alt.parse('az')
+    $r8 = match $fail {
+        Some($b) { $b.text }
+        None { 'no' }
+    }
+    print($r8)
+    $caps = parse_pair('cc-dd')
+    match $caps {
+        Some($b) { print(right_text($b)) }
+        None { print('?') }
+    }
+}

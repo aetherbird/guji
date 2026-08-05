@@ -1,0 +1,29 @@
+# P9-8b-1: statement-position Option match with pure payload guards.
+# Value-position enum/Option guards were already IN; the gate fixture's
+# print-arm Option matches need the same `variant && guard` fold on the
+# statement-match path so a failing guard falls through to the next arm.
+sub make_opt($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub main(): Int {
+    $o1 = make_opt(5)
+    $o2 = make_opt(15)
+    $o3 = make_opt(-1)
+    match $o1 {
+        Some($v) if $v > 10 { print("opt1 big") }
+        Some($v) { print("opt1 { $v }") }
+        None { print("opt1 none") }
+    }
+    match $o2 {
+        Some($v) if $v > 10 { print("opt2 big") }
+        Some($v) { print("opt2 { $v }") }
+        None { print("opt2 none") }
+    }
+    match $o3 {
+        Some($v) if $v > 10 { print("opt3 big") }
+        Some($v) { print("opt3 { $v }") }
+        None { print("opt3 none") }
+    }
+    0
+}

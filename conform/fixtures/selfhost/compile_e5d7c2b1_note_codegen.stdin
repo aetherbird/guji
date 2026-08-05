@@ -1,0 +1,5 @@
+sub main(): Int {
+    $who = "driver"
+    note("hello " ~ $who)
+    5
+}

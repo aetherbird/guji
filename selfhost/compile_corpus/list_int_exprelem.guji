@@ -1,0 +1,5 @@
+sub main(): Int {
+  $n: Int = 4
+  @xs: List[Int] = [$n * 2, $n + 1, 100]
+  @xs[0] + @xs[1]
+}

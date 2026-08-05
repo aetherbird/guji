@@ -1,0 +1,6 @@
+sub add($a: Int, $b: Int): Int { $a + $b }
+sub sum_opts($o: Option[Int], $p: Option[Int]): Option[Int] { Some(add($o?, $p?)) }
+sub diff_parse($s: Str, $t: Str): Result[Int, Str] { Ok(parse_int($s)? - parse_int($t)?) }
+sub main(): Int {
+    0
+}

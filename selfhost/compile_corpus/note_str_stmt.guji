@@ -1,0 +1,7 @@
+# `note` is print's stderr twin. This pins statement-position lowering for a
+# non-literal Str expression and checks stdout+stderr+exit through compile_diff.
+sub main(): Int {
+    $who = "driver"
+    note("hello " ~ $who)
+    5
+}

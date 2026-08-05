@@ -1,0 +1,7 @@
+sub main(): Int {
+    mut @xs: List[Str] = ["first", "second"]
+    @xs = [@xs[1], @xs[0]]
+    print(@xs[0])
+    print(@xs[1])
+    0
+}

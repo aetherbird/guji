@@ -1,0 +1,25 @@
+sub maybe_int($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub chain($n: Int): Option[Int] {
+    $v = maybe_int($n)?
+    if $v > 0 { Some($v + 1) } else { None }
+}
+
+sub parse_plus($s: Str): Result[Int, Str] {
+    $n = parse_int($s)?
+    Ok($n + 1)
+}
+
+sub main(): Int {
+    match chain(1) {
+        Some($n) { print("{ $n }") }
+        None { print("0") }
+    }
+    match parse_plus("bad") {
+        Ok($n) { print("{ $n }") }
+        Err($e) { print("{ $e }") }
+    }
+    0
+}

@@ -1,0 +1,8 @@
+# A bare-`Func` parameter escapes through the identity return and the bound
+# result is called twice (native RC1.5b-ii: `sub id_fn($f: Func): Func { $f }`).
+sub id_func($f: Func): Func { $f }
+
+sub main(): Unit {
+    $h = id_func(sub($n: Int): Int { $n + 1 })
+    print("{ $h(0) } { $h(99) }")
+}

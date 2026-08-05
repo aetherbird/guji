@@ -1,0 +1,6 @@
+# §18 requires a main entry point; a module without it fails deterministically
+# before any helper body can run.
+sub helper(): Int {
+    print(99)
+    0
+}

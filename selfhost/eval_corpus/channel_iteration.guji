@@ -1,0 +1,105 @@
+# I10c: §17.4 for over scalar channels. Close then drain (buffered, no hatch);
+# outer mut; early return; empty drain; fresh returned iterator; Str heap
+# payloads. Chan[Unit] for is omitted — C declines it. List/Map/enum channel
+# payloads need evaluator Chan carriers and stay I10c2.
+sub early_sum($ch: Chan[Int]): Int {
+    mut $s = 0
+    for $n in $ch {
+        $s = $s + $n
+        if $n > 10 {
+            return $s
+        }
+    }
+    $s
+}
+
+sub make_ints(): Chan[Int] {
+    $ch: Chan[Int] = channel(2)
+    $ch.send(3)
+    $ch.send(4)
+    $ch.close()
+    $ch
+}
+
+sub deep_channel_count(): Int {
+    $ch: Chan[Int] = channel(10000)
+    mut $i = 0
+    while $i < 10000 {
+        $ch.send($i)
+        $i = $i + 1
+    }
+    $ch.close()
+
+    mut $count = 0
+    for $n in $ch {
+        $count = $count + 1
+    }
+    $count
+}
+
+sub main(): Int {
+    $ints: Chan[Int] = channel(3)
+    $ints.send(10)
+    $ints.send(20)
+    $ints.send(30)
+    $ints.close()
+    mut $sum = 0
+    for $n in $ints {
+        $sum = $sum + $n
+    }
+    print($sum)
+
+    $bools: Chan[Bool] = channel(2)
+    $bools.send(true)
+    $bools.send(false)
+    $bools.close()
+    mut $truths = 0
+    for $b in $bools {
+        if $b { $truths = $truths + 1 }
+    }
+    print($truths)
+
+    $floats: Chan[Float] = channel(2)
+    $floats.send(1.5)
+    $floats.send(2.25)
+    $floats.close()
+    mut $total = 0.0
+    for $f in $floats {
+        $total = $total + $f
+    }
+    print($total)
+
+    $words: Chan[Str] = channel(3)
+    $words.send("al" ~ "pha")
+    $words.send("beta")
+    $words.send("ga" ~ "mma")
+    $words.close()
+    mut $joined = ""
+    for $w in $words {
+        $joined = $joined ~ "<" ~ $w ~ ">"
+    }
+    print($joined)
+
+    $empty: Chan[Int] = channel(1)
+    $empty.close()
+    mut $drained = 0
+    for $e in $empty {
+        $drained = $drained + 1
+    }
+    print($drained)
+
+    $early: Chan[Int] = channel(3)
+    $early.send(5)
+    $early.send(15)
+    $early.send(100)
+    $early.close()
+    print(early_sum($early))
+
+    mut $fresh = 0
+    for $n in make_ints() {
+        $fresh = $fresh + $n
+    }
+    print($fresh)
+    print(deep_channel_count())
+    0
+}

@@ -1,0 +1,12 @@
+# F2a: an unannotated local enum constructor binding must be registered as a
+# CgEnum carrier so a later match over the bound name lowers through G6-gen.
+enum N { A($v: Int), B }
+
+sub main(): Int {
+    $x = A(7)
+    print("bound-inferred")
+    match $x {
+        A($v) { $v }
+        B { 0 }
+    }
+}

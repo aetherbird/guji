@@ -1,0 +1,20 @@
+sub hex_digit_val($c: Str): Int {
+    $lc = lower($c)
+    if $lc == "a" {
+        10
+    } else {
+        0
+    }
+}
+
+sub norm($s: Str): Str {
+    upper(trim($s))
+}
+
+sub main(): Int {
+    if norm("  x  ") == "X" {
+        hex_digit_val("A")
+    } else {
+        1
+    }
+}

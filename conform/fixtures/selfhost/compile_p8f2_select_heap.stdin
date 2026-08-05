@@ -1,0 +1,34 @@
+sub main(): Int {
+    $s: Chan[Str] = channel(1)
+    $s.send("a" ~ "b")
+    select {
+        $got = $s.recv() {
+            match $got {
+                Some($x) { print("g " ~ $x) }
+                None { print("n") }
+            }
+        }
+        else { print("e") }
+    }
+    $l: Chan[List[Int]] = channel(1)
+    $l.send([1, 2])
+    select {
+        $l.recv() { print("ld") }
+    }
+    $m: Chan[Map[Str, Int]] = channel(1)
+    select {
+        $r = $m.send({"k": 3}) {
+            match $r {
+                Ok($u) { print("ms") }
+                Err($e) { print("mc") }
+            }
+        }
+        else { print("me") }
+    }
+    $w: Chan[Map[Str, Str]] = channel(1)
+    $w.send({"g": "h" ~ "i"})
+    select {
+        $w.recv() { print("wd") }
+    }
+    0
+}

@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins the §15 `reverse(@xs)` / `@xs.reverse()` lowering. `reverse` materializes
+# the receiver to an owned slice, allocates a same-length destination, copies from
+# `src.len - 1 - i`, retains counted destination slots for Str and nested-list
+# elements, then releases the materialized receiver.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gl3.data = guji_arr_alloc(GUJI_KIND_ARR_SCALAR, sizeof(int64_t), gl1.len);"))
+            print(has_text($c, "((int64_t*)gl3.data)[gi4] = ((int64_t*)gl1.data)[gl1.len - 1 - gi4];"))
+            print(has_text($c, "guji_retain(((const char**)gl15.data)[gi16]);"))
+            print(has_text($c, "guji_retain((const void*)(((guji_slice_t*)gl23.data)[gi24].data));"))
+            print(has_text($c, "guji_release((const void*)gl1.data);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

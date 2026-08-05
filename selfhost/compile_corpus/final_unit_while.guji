@@ -1,0 +1,10 @@
+# P9-6b-16: Unit-annotated main may end with a while. g5_emit_sub_named
+# forces main to RInt for the C ABI; g3_final_stmt must still lower the loop
+# (same path as a non-final while) and return 0LL.
+sub main(): Unit {
+    mut $i = 0
+    while $i < 2 {
+        print($i)
+        $i = $i + 1
+    }
+}

@@ -1,0 +1,7 @@
+sub describe($opt: Option[Int]): Str {
+    match $opt {
+        Some($n) if $n > 0 { "pos" }
+        Some($n) { "other" }
+        _ { "none" }
+    }
+}

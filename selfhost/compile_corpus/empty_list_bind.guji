@@ -1,0 +1,53 @@
+# P5b-2b(a-list-empty): annotated EMPTY list-literal bindings (`@e: List[T] = []`).
+# A zero-length C array is non-portable, so the selfhost compiler mirrors native's
+# emitted shape — a ONE-slot stack backing array `<cn>_data[1] = {0}` with
+# `<cn>_len = 0`, no heap alloc, no release. The empty list is observable through
+# `.count()` (0), iteration (0 rounds), and being passed to a generic sub whose
+# `List[T]` param sees length 0. Covers Int/Str/Float/Bool element annotations plus
+# the mixed empty-and-nonempty use that unblocks native's generic_list_param_subs.
+# Three-way: interp == native == selfhost.
+
+sub first_or[T](@xs: List[T], $default: T): T {
+    if @xs.is_empty() { $default } else { @xs[0] }
+}
+
+sub list_count[T](@xs: List[T]): Int {
+    @xs.count()
+}
+
+sub main(): Int {
+    # --- empty lists of every scalar element kind: counted (0) ---
+    @ei: List[Int] = []
+    @es: List[Str] = []
+    @ef: List[Float] = []
+    @eb: List[Bool] = []
+    print("{ @ei.count() }")
+    print("{ @es.count() }")
+    print("{ @ef.count() }")
+    print("{ @eb.count() }")
+
+    # --- an empty Int list iterated: the loop body runs zero times ---
+    mut $seen = 0
+    for $x in @ei {
+        $seen = $seen + $x
+    }
+    print("{ $seen }")
+
+    # --- an empty list passed to a generic sub: List[T] param has length 0, so
+    #     first_or returns the default and list_count returns 0 ---
+    $fallback_i = first_or(@ei, 42)
+    print("{ $fallback_i }")
+    $cnt = list_count(@ei)
+    print("{ $cnt }")
+
+    # --- a non-empty list through the SAME templates, so both instantiations of
+    #     first_or/list_count coexist and the empty path is not the only shape ---
+    @nums = [9, 8, 7]
+    $head = first_or(@nums, 0)
+    print("{ $head }")
+    $cnt2 = list_count(@nums)
+    print("{ $cnt2 }")
+
+    # deterministic exit code: 42 (fallback) + 9 (head) + 0 (empty count) = 51
+    $fallback_i + $head + $cnt
+}

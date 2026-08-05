@@ -1,0 +1,20 @@
+sub forward($ch: Chan[Int], $v: Int): Unit {
+    $alias = $ch
+    $alias.send($v);
+    ()
+}
+
+sub make_chan(): Chan[Int] {
+    channel()
+}
+
+sub main(): Int {
+    $ch: Chan[Int] = make_chan()
+    $alias = $ch
+    hatch {
+        forward($alias, 77)
+    }
+    print($ch.recv().unwrap())
+    $ch.close()
+    0
+}

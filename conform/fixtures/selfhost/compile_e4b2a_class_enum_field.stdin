@@ -1,0 +1,22 @@
+enum Tag {
+    Anon
+    Named($who: Str)
+}
+class Rec {
+    has $.tag: Tag
+    has $.id: Int
+}
+sub mk(): Rec {
+    Rec(tag: Named("alice"), id: 9)
+}
+sub describe($r: Rec): Int {
+    $n = match $r.tag {
+        Anon { 0 }
+        Named($who) { print($who) 1 }
+    }
+    $n + $r.id
+}
+sub main(): Int {
+    $r = mk()
+    describe($r)
+}

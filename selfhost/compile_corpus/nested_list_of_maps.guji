@@ -1,0 +1,36 @@
+# P5b-2b(nested-list-of-maps): a list whose ELEMENTS are maps
+# (`List[Map[Str, V]]`), the first nested non-scalar collection literal beyond
+# nested lists. Native lowers this to a `GUJI_KIND_ARR_MAP` backing of `guji_map_t`
+# (measured via a throwaway GenerateC dumper); the selfhost compiler materializes
+# each element map to an owned `guji_map_t` value (reusing the existing map-value
+# path) and MOVES it into the array slot, nulling the temp's keys/vals. The ARR_MAP
+# drop cascades to release each element map when the outer list dies.
+#
+# Covers Int/Str/Float/Bool value kinds, multi-entry and multi-element maps, the
+# annotated AND unannotated (inferred) binding forms, and list-of-lists-of-maps
+# (which composes through the existing nested-list path). Observed through
+# `.count()`. Three-way: interp == native == selfhost.
+
+sub main(): Int {
+    # --- annotated List[Map[Str, V]] for every scalar value kind ---
+    @mi: List[Map[Str, Int]] = [{"a": 1, "b": 2}, {"c": 3}]
+    @ms: List[Map[Str, Str]] = [{"k": "v", "j": "w"}]
+    @mf: List[Map[Str, Float]] = [{"x": 1.5}, {"y": 2.5}]
+    @mb: List[Map[Str, Bool]] = [{"t": true, "f": false}]
+    print("{ @mi.count() }")
+    print("{ @ms.count() }")
+    print("{ @mf.count() }")
+    print("{ @mb.count() }")
+
+    # --- unannotated: the element kind is inferred from the first map literal ---
+    @u = [{"p": 10}, {"q": 20}, {"r": 30}]
+    print("{ @u.count() }")
+
+    # --- a list of LISTS of maps: the ARR_MAP element path composes with the
+    #     existing ARR_SLICE nested-list path with no extra codegen ---
+    @nn = [[{"a": 1}], [{"b": 2}, {"c": 3}]]
+    print("{ @nn.count() }")
+
+    # deterministic exit: 2 + 1 + 2 + 1 + 3 + 2 = 11
+    @mi.count() + @ms.count() + @mf.count() + @mb.count() + @u.count() + @nn.count()
+}

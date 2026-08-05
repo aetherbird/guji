@@ -1,0 +1,28 @@
+# Explicit-return-only if/match branches are Never-typed expression branches.
+# Native codegen must not synthesize a bogus Int result temp after the branches.
+enum Pick { Left, Right }
+
+sub choose($x: Int): Option[Int] {
+    if $x > 0 { return Some($x) } else { return None }
+}
+
+sub label($p: Pick): Str {
+    match $p {
+        Left { return "left" }
+        Right { return "right" }
+    }
+}
+
+sub main(): Int {
+    match choose(3) {
+        Some($v) { print("{ $v }") }
+        None { print("none") }
+    }
+    match choose(0) {
+        Some($v) { print("{ $v }") }
+        None { print("none") }
+    }
+    print(label(Left))
+    print(label(Right))
+    0
+}

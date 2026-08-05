@@ -1,0 +1,83 @@
+# §15.5 Result `map`, method form `$r.map(f)` and function form `map($r, f)`,
+# over bound `Result[T,E]` locals producing a fresh `Result[U,E]` through a
+# single-expression inline lambda: `Ok(v)` -> `Ok(f(v))`, `Err(e)` -> `Err(e)`.
+# The Err slot is copied from the source carrier; a Str Err is retained so the
+# fresh Result co-owns it. Exit 255 (code 4095) iff every polarity/payload
+# assertion holds.
+
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+sub ok_s($s: Str): Result[Str, Str] { Ok($s) }
+sub ok_f($n: Int): Result[Float, Str] {
+    if $n > 0 { Ok(1.5) } else { Err("bad") }
+}
+sub ok_b($b: Bool): Result[Bool, Str] { Ok($b) }
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+
+sub main(): Int {
+    $ri: Result[Int, Str] = ok_i(5)
+    $ei: Result[Int, Str] = err_i("bo" ~ "om")
+    $rs: Result[Str, Str] = ok_s("he" ~ "y")
+    $rf: Result[Float, Str] = ok_f(1)
+    $rb: Result[Bool, Str] = ok_b(false)
+    $eii: Result[Int, Int] = err_ii(9)
+    $base = 100
+
+    mut $code = 0
+
+    # Int -> Int, both spellings; Err propagates unchanged and never runs the body.
+    $a: Result[Int, Str] = $ri.map(sub($v_i: Int): Int { $v_i * 2 })
+    $b: Result[Int, Str] = map($ei, sub($e_i: Int): Int { $e_i + 1 })
+    if $a.unwrap_or(0) == 10 { $code = $code + 1 }
+    if $b.is_err() { $code = $code + 2 }
+    match $b {
+        Ok($bad_ok) { print("bad") }
+        Err($copied_err) { print($copied_err) }
+    }
+
+    # Cross-kind Ok maps and Str Ok ownership.
+    $c: Result[Str, Str] = $ri.map(sub($v_s: Int): Str { "n={ $v_s }" })
+    $d: Result[Str, Str] = $rs.map(sub($s_s: Str): Str { $s_s ~ "!" })
+    $e: Result[Int, Str] = $rs.map(sub($s_i: Str): Int { 42 })
+    print($c.unwrap_or("x"))
+    print($d.unwrap_or("x"))
+    if $c.unwrap_or("x") == "n=5" { $code = $code + 4 }
+    if $d.unwrap_or("x") == "hey!" { $code = $code + 8 }
+    if $e.unwrap_or(0) == 42 { $code = $code + 16 }
+
+    # Float, Bool, and non-Str Err slots.
+    $f: Result[Float, Str] = $rf.map(sub($f_f: Float): Float { $f_f * 2.0 })
+    $g: Result[Int, Str] = $rb.map(sub($b_i: Bool): Int { if $b_i { 1 } else { 0 } })
+    $h: Result[Str, Int] = $eii.map(sub($ii_s: Int): Str { "bad" })
+    if $f.unwrap_or(0.0) == 3.0 { $code = $code + 32 }
+    if $g.unwrap_or(9) == 0 { $code = $code + 64 }
+    match $h {
+        Ok($no_h) { print($no_h) }
+        Err($err_h) { if $err_h == 9 { $code = $code + 128 } }
+    }
+
+    # The callback body may reference enclosing locals; a mapped result can be
+    # mapped again as a bound local.
+    $j: Result[Int, Str] = $ri.map(sub($j_i: Int): Int { $j_i + $base })
+    $k: Result[Int, Str] = $a.map(sub($k_i: Int): Int { $k_i - 3 })
+    if $j.unwrap_or(0) == 105 { $code = $code + 256 }
+    if $k.unwrap_or(0) == 7 { $code = $code + 512 }
+
+    # Bound mapped Results remain normal Result match scrutinees.
+    $m: Result[Int, Str] = $ri.map(sub($m_i: Int): Int { $m_i + 1 })
+    $n: Result[Int, Str] = map($ei, sub($m_e: Int): Int { $m_e + 99 })
+    match $m {
+        Ok($mok) { if $mok == 6 { $code = $code + 1024 } }
+        Err($mer) { print($mer) }
+    }
+    match $n {
+        Ok($badm) { print("{ $badm }") }
+        Err($mcopied) {
+            print($mcopied)
+            $code = $code + 2048
+        }
+    }
+
+    print("{ $code }")
+    $code - 3840
+}

@@ -1,0 +1,5 @@
+exit=7
+out=<><a|b><100%>:child input
+err=warn:a|b
+ufcs=ufcs-ok
+cannot run command: guji-run-definitely-absent-command-0000021

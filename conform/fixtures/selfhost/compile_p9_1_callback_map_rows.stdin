@@ -1,0 +1,9 @@
+sub main(): Int {
+    @maps = [{"a": [1], "b": [2, 3]}, {"z": []}]
+    @counts = @maps.map(sub(%m) { %m.keys().count() })
+    @maps.each(sub(%m) { print(%m.keys().count()) })
+    $total = @maps.reduce(0, sub($acc, %m) { $acc + %m.keys().count() })
+    print(@counts)
+    print($total)
+    0
+}

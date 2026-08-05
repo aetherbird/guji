@@ -1,0 +1,56 @@
+# P5b-2b(c-enum-enum-payloads): generic enum monomorphization must preserve
+# declared-enum payloads. Two shapes: (1) a FIXED enum field beside a type param
+# (`Pair[T] { Both($value: T, $color: Color) }` -> Pair__Int / Pair__Str, both
+# owning `Both`, disambiguated by the enum-typed arg kind), and (2) the type
+# param BINDING to an enum value (`Box[T] { Wrap($value: T) }` instantiated at
+# Color by `Wrap(Red(9))` -> Box__Color, alongside Box__Int / Box__Str). Expected
+# output is the interpreter oracle (== native).
+
+enum Color {
+    Red($n: Int)
+    Blue($name: Str)
+}
+
+enum Pair[T] {
+    Both($value: T, $color: Color)
+}
+
+enum Box[T] {
+    Wrap($value: T)
+}
+
+sub color_text($c: Color): Str {
+    match $c {
+        Red($n) { "red { $n }" }
+        Blue($name) { "blue $name" }
+    }
+}
+
+sub main(): Int {
+    $pi = Both(7, Red(1))
+    match $pi {
+        Both($n, $c) { print("pair int { $n } { color_text($c) }") }
+    }
+
+    $ps = Both("tag", Blue("sky"))
+    match $ps {
+        Both($s, $c) { print("pair str $s { color_text($c) }") }
+    }
+
+    $bi = Wrap(42)
+    match $bi {
+        Wrap($n) { print("box int { $n }") }
+    }
+
+    $bs = Wrap("word")
+    match $bs {
+        Wrap($s) { print("box str $s") }
+    }
+
+    $bc = Wrap(Red(9))
+    match $bc {
+        Wrap($c) { print("box color { color_text($c) }") }
+    }
+
+    0
+}

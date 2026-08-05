@@ -1,0 +1,3 @@
+sub main(): Unit {
+    print(if false { "bad" } else { "ok" })
+}

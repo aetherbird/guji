@@ -1,0 +1,8 @@
+pub enum Choice {
+    Hot
+    Cold
+
+    sub pick($n: Int): Choice {
+        if $n > 0 { Hot } else { Cold }
+    }
+}

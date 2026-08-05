@@ -1,0 +1,25 @@
+# P8d-2c-3d-2c: pin scalar-enum receive-carrier extraction. Six unwraps
+# (fresh method, function-form, bound, fieldless, Float, Bool) each emit a
+# recv fill, an unwrap-on-None guard, and a plain by-value `.val` copy into a
+# named enum temp (no retain — scalar owns no heap). Three channel element
+# sizes cover Signal / Flag / Measure.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, ".tag = guji_chan_recv(") == 6)
+            print(count_of($c, "guji_panic(\"unwrap on None\")") == 6)
+            print(count_of($c, ".val;") == 6)
+            print(count_of($c, "sizeof(Signal), NULL") == 2)
+            print(count_of($c, "sizeof(Flag), NULL") == 1)
+            print(count_of($c, "sizeof(Measure), NULL") == 1)
+            0
+        }
+    }
+}

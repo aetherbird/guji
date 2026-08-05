@@ -1,0 +1,3 @@
+sub main(): Int {
+  if 1.0 / 0.0 > 1e308 { 1 } else { 0 }
+}

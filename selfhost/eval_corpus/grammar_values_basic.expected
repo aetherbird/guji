@@ -1,0 +1,7 @@
+word:alpha
+rule-whitespace
+pair:left:right
+token-tight
+prefix-rejected
+regex:2048
+choice:no

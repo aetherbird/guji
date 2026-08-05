@@ -1,0 +1,13 @@
+# Spec 16: qualified public imports, final-segment aliases, nested paths, and a
+# diamond graph whose common leaf remains a single coherent module identity.
+import p22_modules_deps::left
+import p22_modules_deps::right
+import p22_modules_deps::nested::extra
+
+sub main(): Int {
+    print("left={ left::value() }")
+    print("right={ right::value() }")
+    print("extra={ extra::value() }")
+    print("diamond={ left::leaf_value() + right::leaf_value() }")
+    0
+}

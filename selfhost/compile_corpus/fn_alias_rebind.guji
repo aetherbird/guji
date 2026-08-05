@@ -1,0 +1,21 @@
+# P9-9b-1 three-way row: CgFn alias binds and non-literal mut rebinds
+# (§7.4 / RC1.4a). Covers `$g = $f` (shared-env retain), `$cur = make_adder(N)`
+# (fresh call transfer + old-env release), and `$first = $made` (alias rebind
+# retain). ASan/UBSan/LSan pin the retain/release pairing.
+sub make_adder($base: Int) {
+    sub($n: Int): Int { $base + $n }
+}
+
+sub main(): Int {
+    $f = sub($n: Int): Int { $n + 1 }
+    $g = $f
+    print($g(10))
+    mut $cur = make_adder(1)
+    $cur = make_adder(2)
+    print($cur(3))
+    mut $first = sub($n: Int): Int { $n }
+    $made = sub($n: Int): Int { $n + 10 }
+    $first = $made
+    print($first(1))
+    0
+}

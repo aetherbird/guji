@@ -1,0 +1,13 @@
+sub main(): Unit {
+    # Option[Str]-valued if branches transfer the selected branch payload into
+    # the shared result carrier.
+    $o: Option[Str] = if 3 > 1 {
+        Some("ye" ~ "s")
+    } else {
+        None
+    }
+    print(match $o {
+        Some($v) { $v }
+        None { "none" }
+    })
+}

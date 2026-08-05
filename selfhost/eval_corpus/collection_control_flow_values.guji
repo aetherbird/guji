@@ -1,0 +1,104 @@
+# Aggregate values must keep their List/Map kind and ownership when selected by
+# `if` or `match`, including branch-local values moved across branch cleanup.
+sub owned($s: Str): Str {
+    $s ~ "!"
+}
+
+sub first(@items: List[Str]): Str {
+    @items[0]
+}
+
+sub lookup(%items: Map[Str, Str]): Str {
+    %items{"k"}
+}
+
+sub choose_list($take: Bool): List[Str] {
+    if $take {
+        [owned("return-list")]
+    } else {
+        [owned("unused")]
+    }
+}
+
+sub choose_map($take: Bool): Map[Str, Str] {
+    match $take {
+        true { {"k": owned("return-map")} }
+        _ { {"k": owned("unused")} }
+    }
+}
+
+sub main(): Int {
+    print(if true {
+        @local: List[Str] = [owned("list-if")]
+        @local
+    } else {
+        [owned("unused")]
+    })
+
+    print(match 1 {
+        1 {
+            %local: Map[Str, Str] = {owned("k"): owned("map-match")}
+            %local
+        }
+        _ { {"unused": owned("unused")} }
+    })
+
+    @list_match = match false {
+        true { [owned("unused")] }
+        _ { [owned("list-bind")] }
+    }
+    %map_if = if false {
+        {"k": owned("unused")}
+    } else {
+        {"k": owned("map-bind")}
+    }
+    print(@list_match)
+    print(%map_if)
+
+    @typed_list: List[Str] = if true {
+        [owned("typed-list")]
+    } else {
+        [owned("unused")]
+    }
+    %typed_map: Map[Str, Str] = match 2 {
+        2 { {"k": owned("typed-map")} }
+        _ { {"k": owned("unused")} }
+    }
+    print(@typed_list)
+    print(%typed_map)
+
+    # A call-produced list uses the owned slice form, so whole-value
+    # reassignment can move the selected control-flow result into it.
+    mut @moving_list: List[Str] = choose_list(false)
+    @moving_list = if true {
+        [owned("after-list")]
+    } else {
+        [owned("unused")]
+    }
+    mut %moving_map: Map[Str, Str] = {"k": owned("before-map")}
+    %moving_map = match 3 {
+        3 { {"k": owned("after-map")} }
+        _ { {"k": owned("unused")} }
+    }
+    print(@moving_list)
+    print(%moving_map)
+
+    print(first(if true {
+        [owned("list-arg")]
+    } else {
+        [owned("unused")]
+    }))
+    print(lookup(match 4 {
+        4 { {"k": owned("map-arg")} }
+        _ { {"k": owned("unused")} }
+    }))
+
+    print(choose_list(true))
+    print(choose_map(true))
+    print(if true { [{"a": 1}] } else { [{"b": 2}] })
+    print(match 5 {
+        5 { {"a": [1, 2]} }
+        _ { {"b": [3]} }
+    })
+    0
+}

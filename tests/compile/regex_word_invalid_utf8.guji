@@ -1,0 +1,30 @@
+# D5 differential fixture: native `\w` must agree with the interpreter on
+# malformed UTF-8 bytes. The committed input regex_word_invalid_utf8.input holds
+# three lines:
+#   1.  the two bytes  0xFF 0xFE         -- invalid UTF-8 (no valid scalar)
+#   2.  "word9"                          -- ASCII word characters
+#   3.  the bytes  0xC3 0xA9 "clair"     -- "éclair" (é is a valid \w scalar)
+#
+# Before the D5 fix, the native regex decoder fell back to reading a lone
+# invalid byte as the raw codepoint equal to its value (0xFF -> U+00FF 'ÿ',
+# 0xFE -> U+00FE 'þ'), both of which ARE \w word characters, so native `~~ /\w/`
+# matched line 1 while the interpreter -- which decodes through Go's
+# utf8.DecodeRuneInString and yields U+FFFD (not a word char) for invalid bytes
+# -- did not. The decoder now mirrors Go exactly, so both engines agree:
+# line 1 has no \w, lines 2 and 3 do. \d and [a-z] are also probed to show the
+# fix does not perturb the classes that already agreed.
+sub main(): Int {
+    match read_file("regex_word_invalid_utf8.input") {
+        Ok($s) {
+            @ls = lines($s)
+            for $ln in @ls {
+                $w = match $ln ~~ /\w/ { Some($m) { "w:Y" } None { "w:N" } }
+                $d = match $ln ~~ /\d/ { Some($m) { "d:Y" } None { "d:N" } }
+                $a = match $ln ~~ /[a-z]/ { Some($m) { "a:Y" } None { "a:N" } }
+                print($w ~ " " ~ $d ~ " " ~ $a)
+            }
+        }
+        Err($e) { print("err: $e") }
+    }
+    return 0
+}

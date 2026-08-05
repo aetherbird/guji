@@ -1,0 +1,18 @@
+# gujiconform parser fixture for selfhost slice 6 P3c `for` loops (§6.3, §20).
+# Pins the `for` statement at the AST boundary — one loop variable for list/range
+# iteration and two (key, value) for maps — while codegen remains deliberately out
+# of subset for a later P3c slice.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,24 @@
+# P8d-2c-3c-12: pin the flat counted-enum channel ABI, active-variant Str
+# detachment, per-enum drop wrapper, and fresh/bound recv extraction ownership.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "sizeof(Msg), guji_chan_drop_Msg") == 1)
+            print(count_of($c, "static void guji_chan_drop_Msg") == 1)
+            print(count_of($c, ".tag = guji_chan_send(") == 3)
+            print(count_of($c, ".tag = guji_chan_recv(") == 2)
+            print(count_of($c, " = guji_str_copy(") >= 3)
+            print(count_of($c, "guji_panic(\"unwrap on None\")") == 2)
+            print(count_of($c, "guji_retain_Msg_fields(&") >= 3)
+            print(count_of($c, "guji_release_Msg_fields(&") >= 5)
+            0
+        }
+    }
+}

@@ -1,0 +1,9 @@
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    $s: Option[Str] = Some("a" ~ "b")
+    $d = "fall" ~ "back"
+    mut $c = 0
+    if $o.unwrap_or(9) == 5 { $c = $c + 1 }
+    print(unwrap_or($s, $d))
+    $c
+}

@@ -1,0 +1,29 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d compiler codegen fixture.
+# Result[class] carriers are NATIVE-REJECTED, so this is interp-oracle work. It pins
+# the generated-C shape of a `Result[Scan, Str]` carrier (the real source's
+# scan_dquote return type): a program-dependent typedef whose Ok slot embeds the
+# class struct by value, the inactive class slot zeroed as (Scan){0}, and per-slot
+# class retain/release keyed off the tag. The end-to-end build+run+ASan agreement
+# with the interpreter is covered by selfhost/result_class_diff.sh.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_res_Scan_str;"))
+            print(has_text($c, "guji_res_Scan_str gf_mk"))
+            print(has_text($c, "(Scan)\{0}"))
+            print(has_text($c, "guji_release_Scan_fields(&gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

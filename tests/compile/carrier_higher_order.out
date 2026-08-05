@@ -1,0 +1,10 @@
+some.map: 10
+none.map: 99
+some.filter_keep: 5
+some.filter_drop: -1
+some.map_match: 6
+ok.map: 8
+err.map: 42
+ok.map_err: 7
+err.uoe: 77
+ok.uoe: 7

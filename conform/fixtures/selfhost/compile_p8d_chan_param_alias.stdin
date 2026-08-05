@@ -1,0 +1,39 @@
+# P8d-2c-1: channel PARAMETERS (callee-owned +1 handles: caller retains at the
+# call site, callee scope-exit releases) and channel ALIASES (annotated and
+# unannotated binds retain). Channel returns (RChan), channel `for`,
+# collection/carrier payloads, and chained recv unwrap remain later P8d-2c
+# chunks. Sequential (no hatch) so the oracle is scheduler-independent; recv
+# carriers bind before unwrap.
+sub forward($ch: Chan[Int], $v: Int): Int {
+    $alias = $ch
+    $alias.send($v);
+    3
+}
+
+sub take_two($ch: Chan[Int]): Int {
+    $a = $ch.recv()
+    $b = $ch.recv()
+    $a.unwrap() + $b.unwrap()
+}
+
+sub drop_owner($ch: Chan[Str]): Int {
+    5
+}
+
+sub main(): Int {
+    $ch: Chan[Int] = channel(2)
+    $alias = $ch
+    print(forward($alias, 30))
+    print(forward($ch, 12))
+    print(take_two($ch))
+    $ch.close()
+    $after = $ch.recv()
+    print($after.is_none())
+
+    # The callee releases its owned Str-channel param while the caller still
+    # holds the handle; main's release drops the undelivered detached copy.
+    $u: Chan[Str] = channel(1)
+    $u.send("un" ~ "read");
+    print(drop_owner($u))
+    0
+}

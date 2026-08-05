@@ -1,0 +1,26 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Alias bind: copy pair then retain the shared env.
+            print(has_text($c, "guji_retain("))
+            print(has_text($c, ".env)"))
+            # Mut rebind releases the previous env before overwrite.
+            print(has_text($c, "guji_release("))
+            # Fresh maker still emits a guji_fn_t-returning sub.
+            print(has_text($c, "static guji_fn_t gf_make_adder("))
+            print(has_text($c, ".fn = (void*)gf_lambda_"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

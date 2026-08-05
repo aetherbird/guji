@@ -1,0 +1,5 @@
+sub main(): Unit {
+    @deep = [{"flags": [true, false]}, {"more": [true]}]
+    print(@deep)
+    print("deep=@deep")
+}

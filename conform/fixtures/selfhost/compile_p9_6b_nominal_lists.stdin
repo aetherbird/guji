@@ -1,0 +1,24 @@
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    $tag = Named("A" ~ "da")
+    @tags = [$tag, Anon(7)]
+    for $t in @tags {
+        print(match $t { Named($s) { $s } Anon($n) { "anon" } })
+    }
+
+    $person = Person(name: "B" ~ "ob", age: 28)
+    @people = [$person, Person(name: "C" ~ "y", age: 5)]
+    for $p in @people {
+        print($p.name)
+    }
+    0
+}

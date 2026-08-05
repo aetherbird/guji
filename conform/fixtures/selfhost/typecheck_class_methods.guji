@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 6 P4b-1 class method typechecker fixture.
+# The stdin source proves class methods and associated functions are resolved by
+# the guji-written type checker.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

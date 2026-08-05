@@ -1,0 +1,14 @@
+# gujiconform — selfhost slice 5 E1 (lexer DOGFOOD). Thin wrapper running the
+# guji-written lexer (selfhost/lexer.guji, co-located via the lexer.guji symlink)
+# over the source on stdin and printing the canonical one-token-per-line stream.
+# The token stream is HUMAN-AUTHORED in <name>.expected from guji-spec.md §2.4
+# (sigil-names) and §8.1 (twigil field decls: '$'/'@'/'%' sigil + '.'/'!'
+# visibility + field name), never captured from output. Pins that a standalone
+# field sigil lexes as a lone OP token (Go DOLLAR/AT/PERCENT) followed by the
+# '.'/'!' visibility op and the bare field IDENT.
+import lexer
+
+sub main(): Int {
+    print(lexer::lex_to_string(stdin.slurp()))
+    0
+}

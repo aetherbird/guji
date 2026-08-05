@@ -1,0 +1,5 @@
+# An ASCII binding identifier may not begin with a digit.
+sub main(): Int {
+    $9bad = 1
+    0
+}

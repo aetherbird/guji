@@ -1,0 +1,17 @@
+# Differential-gate regression guard for conformance bug #4: named capture keys
+# and participation state must affect Match equality symmetrically.
+sub show($b: Bool): Str {
+    if $b { "true" } else { "false" }
+}
+
+sub main(): Unit {
+    $unnamed = ("ab" ~~ /(ab)/).unwrap()
+    $named = ("ab" ~~ /(?<word>ab)/).unwrap()
+    print("unnamed==named: { show($unnamed == $named) }")
+    print("named==unnamed: { show($named == $unnamed) }")
+
+    $none = ("ac" ~~ /a(?<mid>b)?c/).unwrap()
+    $empty = ("ac" ~~ /a(?<mid>x*)c/).unwrap()
+    print("nonparticipating==empty: { show($none == $empty) }")
+    print("empty==nonparticipating: { show($empty == $none) }")
+}

@@ -1,0 +1,15 @@
+# O4c: task topology is not observable. The unbuffered rendezvous requires the
+# child to run; its following receive can never complete, while main still
+# returns without an implicit join.
+sub main(): Int {
+    $ready: Chan[Int] = channel()
+    $abandoned: Chan[Int] = channel()
+    hatch {
+        $ready.send(42)
+        $abandoned.recv()
+        print("unreachable")
+    }
+    print($ready.recv().unwrap())
+    print("main returns")
+    0
+}

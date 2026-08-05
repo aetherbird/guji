@@ -1,0 +1,8 @@
+# A Str-returning call owns its return temp; print consumes and releases it.
+sub greet($s: Str): Str {
+    "hi " ~ $s
+}
+
+sub main(): Unit {
+    print(greet("ada"))
+}

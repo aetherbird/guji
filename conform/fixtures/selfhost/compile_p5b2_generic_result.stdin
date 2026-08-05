@@ -1,0 +1,26 @@
+sub ok_or_default[T, E]($r: Result[T, E], $default: T): T {
+    match $r {
+        Ok($v) { $v }
+        Err($e) { $default }
+    }
+}
+
+sub keep[T, E]($v: T, $e: E): Result[T, E] {
+    Ok($v)
+}
+
+sub fail[T, E]($v: T, $e: E): Result[T, E] {
+    Err($e)
+}
+
+sub main(): Int {
+    $a = ok_or_default(keep(7, "err"), 0)
+    $b = ok_or_default(fail(9, "bad"), 42)
+    $c = ok_or_default(keep("hi", "err"), "bye")
+    $d = ok_or_default(fail(1.5, "no"), 2.5)
+    print("{ $a }")
+    print("{ $b }")
+    print($c)
+    print("{ $d }")
+    if $a == 7 && $b == 42 && $c == "hi" && $d == 2.5 { 0 } else { 1 }
+}

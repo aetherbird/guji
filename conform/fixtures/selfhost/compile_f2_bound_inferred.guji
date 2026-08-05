@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 4b F2a compiler codegen fixture.
+# The stdin source uses an unannotated enum constructor binding as a later match
+# scrutinee; compile_program_c must accept it instead of declining the binding.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct N"))
+            print(has_text($c, "guji_retain_N_fields"))
+            print(has_text($c, "bound-inferred"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

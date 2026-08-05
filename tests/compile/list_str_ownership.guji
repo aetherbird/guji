@@ -1,0 +1,41 @@
+# RC1.2b (first slice): List[Str] ownership. Heap ARR_STR storage owns its
+# slots (+1 each): transforms and copies retain alias stores, fresh map results
+# transfer, and the owning local's release at scope exit drops the elements.
+# Covers split/lines producers, alias + fresh map bodies, filter/sort/reverse/
+# take/drop copies, element reads bound to Str locals, a Str returned out of a
+# released list, and a sub-call List[Str] result released by the caller.
+sub first_owned(): Str {
+    @p = "alpha,beta,gamma".split(",")
+    @p[0]
+}
+
+sub fixed_list(): List[Str] {
+    ["red", "green", "blue"]
+}
+
+sub main(): Unit {
+    @parts = "one,two,three,four".split(",")
+    print("{ @parts[1] }")
+    $s = @parts[2]
+    @upper = @parts.map({ $_.upper() })
+    print("{ @upper[0] }")
+    @same = @parts.map({ $_ })
+    print("{ @same[3] }")
+    @kept = @parts.filter({ $_ != "one" })
+    print("{ @kept[0] }")
+    @sorted = @parts.sort()
+    print("{ @sorted[0] }")
+    @rev = @parts.reverse()
+    print("{ @rev[0] }")
+    @two = @parts.take(2)
+    print("{ @two[1] }")
+    @rest = @parts.drop(1)
+    print("{ @rest[0] }")
+    @ls = "a\nb".lines()
+    print("{ @ls[1] }")
+    @fixedcopy = fixed_list()
+    print("{ @fixedcopy[1] }")
+    print(first_owned())
+    @b = @parts
+    print("{ @b[0] } { $s }")
+}

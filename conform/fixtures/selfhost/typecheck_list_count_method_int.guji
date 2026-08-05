@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 5 E5d-4: list.count() method form types as Int.
+# Pins that `@cs.count()` in operand position type-checks (TInt, not TUnknown),
+# so `$i >= @cs.count()` passes the matching-operand-types check (oracle parity).
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

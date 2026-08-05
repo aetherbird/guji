@@ -1,0 +1,50 @@
+#[
+  G2b slice: generic subs that RETURN a scalar-valued Map[Str, T] monomorphize
+  natively. The callee heap-copies its map into a guji_map_t so the result
+  outlives the call frame; the caller views it as a borrowed map and can bind,
+  index, iterate, and query it. Covers Int/Str/Bool/Float instantiations, a
+  non-generic Map return, a transitive generic->generic map return, and a map
+  result passed as a Map argument.
+]#
+
+sub single[T]($k: Str, $v: T): Map[Str, T] {
+    {$k: $v}
+}
+
+sub double[T]($k1: Str, $v1: T, $k2: Str, $v2: T): Map[Str, T] {
+    {$k1: $v1, $k2: $v2}
+}
+
+sub transitive[T]($k: Str, $v: T): Map[Str, T] {
+    %base = single($k, $v)
+    %base.set($k, $v)
+}
+
+sub map_count(%m: Map[Str, Int]): Int {
+    %m.keys().count()
+}
+
+sub main(): Int {
+    %m = single("x", 42)
+    print(%m{"x"})
+
+    %two = double("a", 1, "b", 2)
+    print(%two{"b"})
+
+    %t = transitive("k", 7)
+    print(%t{"k"})
+
+    %labels = single("name", "ada")
+    print(%labels{"name"})
+
+    %flags = single("ok", true)
+    print(%flags{"ok"})
+
+    %ratios = single("pi", 3.14)
+    print(%ratios{"pi"})
+
+    $count = map_count(double("x", 10, "y", 20))
+    print($count)
+
+    0
+}

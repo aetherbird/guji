@@ -1,0 +1,53 @@
+# G2b: transitive + recursive generic-sub monomorphization. A specialized
+# generic body may itself call generic subs: another template (describe -> id),
+# itself (rep), a mutually recursive pair (ping <-> pong), and a template whose
+# type-param name differs from its callee's (box_opt[A] -> id[T]) and whose
+# return is an open carrier (Option[A]).
+
+sub id[T]($x: T): T {
+  $x
+}
+
+sub describe[T]($x: T): T {
+  id($x)
+}
+
+sub rep[T]($x: T, $n: Int): T {
+  if $n <= 1 {
+    id($x)
+  } else {
+    rep($x, $n - 1)
+  }
+}
+
+sub box_opt[A]($v: A): Option[A] {
+  Some(id($v))
+}
+
+sub ping[T]($x: T, $n: Int): T {
+  if $n <= 0 { $x } else { pong($x, $n - 1) }
+}
+
+sub pong[T]($x: T, $n: Int): T {
+  if $n <= 0 { $x } else { ping($x, $n - 1) }
+}
+
+sub main() {
+  $i = describe(7)
+  print("{ $i }")
+  $s = describe("hello")
+  print($s)
+  $r = rep("x", 3)
+  print($r)
+  $f = rep(2.5, 2)
+  print("{ $f }")
+  $o = box_opt(21)
+  match $o {
+    Some($v) { print("{ $v * 2 }") }
+    None { print("none") }
+  }
+  $p = ping("bounce", 3)
+  print($p)
+  $q = ping(9, 4)
+  print("{ $q }")
+}

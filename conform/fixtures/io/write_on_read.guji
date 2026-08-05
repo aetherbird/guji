@@ -1,0 +1,11 @@
+# gujiconform -- Platform slice 2 (write IO): $h.write on a READ handle is a
+# RUNTIME error (Section 15.4 misuse model), identical in both engines. `stdin`
+# is a read-only Handle, so writing to it aborts after flushing stdout. The
+# pre-error line is on stdout; the process exits non-zero. Engine error text on
+# stderr differs, so stderr is not pinned. Derived from the spec, not captured.
+sub main(): Int {
+    print("before")
+    stdin.write("x")
+    print("unreachable")
+    0
+}

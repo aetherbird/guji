@@ -1,0 +1,108 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub verdict($src: Str, $spec: Str): Str {
+    match lexer::compile_program_c($src) {
+        Ok($c) { if has_text($c, "struct " ~ $spec) { "compiled" } else { "wrong-spec" } }
+        Err($e) { "declined" }
+    }
+}
+
+sub verdict_both($src: Str, $spec1: Str, $spec2: Str): Str {
+    match lexer::compile_program_c($src) {
+        Ok($c) {
+            if has_text($c, "struct " ~ $spec1) && has_text($c, "struct " ~ $spec2) {
+                "compiled"
+            } else {
+                "wrong-spec"
+            }
+        }
+        Err($e) { "declined" }
+    }
+}
+
+sub main(): Int {
+    print("param:" ~ verdict(
+        'class Box[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub use(@items: List[Str]): Unit { $box = Box(items: @items) print($box.items) }' ~ "\n" ~
+        'sub main(): Int { use(["x"]) 0 }',
+        "Box__List_Str"
+    ))
+    print("for:" ~ verdict(
+        'class Box[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    @matrix: List[List[Float]] = [[1.5]]' ~ "\n" ~
+        '    for @row in @matrix { $box = Box(items: @row) print($box.items) }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "Box__List_Float"
+    ))
+    print("map-for:" ~ verdict_both(
+        'class KeyBox[T] { has $.item: T }' ~ "\n" ~
+        'class ValueBox[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    %groups: Map[Str, List[Bool]] = {"flags": [true, false]}' ~ "\n" ~
+        '    for $key, @flags in %groups {' ~ "\n" ~
+        '        $keys = KeyBox(item: $key)' ~ "\n" ~
+        '        $values = ValueBox(items: @flags)' ~ "\n" ~
+        '        print($keys.item)' ~ "\n" ~
+        '        print($values.items)' ~ "\n" ~
+        '    }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "KeyBox__Str",
+        "ValueBox__List_Bool"
+    ))
+    print("channel-for:" ~ verdict(
+        'class Box[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    $ch: Chan[List[Int]] = channel(1)' ~ "\n" ~
+        '    $ch.send([1, 2])' ~ "\n" ~
+        '    $ch.close()' ~ "\n" ~
+        '    for @items in $ch { $box = Box(items: @items) print($box.items) }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "Box__List_Int"
+    ))
+    print("option-match:" ~ verdict(
+        'class Box[T] { has @.items: List[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    $items: Option[List[Str]] = Some(["x"])' ~ "\n" ~
+        '    match $items {' ~ "\n" ~
+        '        Some(@bound) { $box = Box(items: @bound) print($box.items) }' ~ "\n" ~
+        '        None { print("none") }' ~ "\n" ~
+        '    }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "Box__List_Str"
+    ))
+    print("enum-match:" ~ verdict(
+        'class Box[T] { has %.items: Map[Str, T] }' ~ "\n" ~
+        'enum Payload { Values(%items: Map[Str, Float]) }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    %values: Map[Str, Float] = {"x": 1.5}' ~ "\n" ~
+        '    $payload: Payload = Values(%values)' ~ "\n" ~
+        '    match $payload {' ~ "\n" ~
+        '        Values(%bound) { $box = Box(items: %bound) print($box.items) }' ~ "\n" ~
+        '    }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "Box__Map_Str_Float"
+    ))
+    print("select:" ~ verdict(
+        'class Box[T] { has $.item: Option[T] }' ~ "\n" ~
+        'sub main(): Int {' ~ "\n" ~
+        '    $ch: Chan[Float] = channel(1)' ~ "\n" ~
+        '    $ch.send(1.5)' ~ "\n" ~
+        '    select {' ~ "\n" ~
+        '        $value = $ch.recv() { $box = Box(item: $value) print($box.item) }' ~ "\n" ~
+        '    }' ~ "\n" ~
+        '    0' ~ "\n" ~
+        '}',
+        "Box__Option_Float"
+    ))
+    0
+}

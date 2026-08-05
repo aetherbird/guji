@@ -1,0 +1,6 @@
+sub main(): Unit {
+    mut %m = {"seed": 0}.set("seed", 0)
+    %m = %m.set("k1", 10)
+    %m = %m.remove("seed")
+    print(%m{"k1"})
+}

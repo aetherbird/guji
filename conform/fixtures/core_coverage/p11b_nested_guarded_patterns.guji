@@ -1,0 +1,31 @@
+# P11b: nested variants, bound leaves, ordered guards, and guard fallthrough.
+enum Tree {
+    Leaf($value: Int)
+    Branch($left: Tree, $right: Tree)
+    Empty
+}
+
+sub describe($tree: Tree): Str {
+    match $tree {
+        Branch(Leaf($left), Leaf($right)) if $left > $right {
+            "descending { $left }:{ $right }"
+        }
+        Branch(Leaf($left), Leaf($right)) {
+            "pair { $left }:{ $right }"
+        }
+        Branch($left, $right) { "branch" }
+        Leaf($value) if $value < 0 { "negative { $value }" }
+        Leaf($value) { "leaf { $value }" }
+        Empty { "empty" }
+    }
+}
+
+sub main(): Int {
+    print(describe(Branch(Leaf(9), Leaf(2))))
+    print(describe(Branch(Leaf(2), Leaf(9))))
+    print(describe(Branch(Empty, Leaf(1))))
+    print(describe(Leaf(-3)))
+    print(describe(Leaf(3)))
+    print(describe(Empty))
+    0
+}

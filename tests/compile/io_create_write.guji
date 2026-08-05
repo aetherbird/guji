@@ -1,0 +1,15 @@
+# W2 (Platform slice 2, write IO): create opens a WRITE Handle for a file,
+# creating it if needed and truncating any previous contents. The fixture writes
+# raw text, then reads it back so the differential gate observes the result on
+# stdout. Repeating the fixture stays idempotent because create truncates first.
+sub main(): Int {
+    $path = "io_create_write.generated"
+    $h = create($path).unwrap()
+    $h.write("alpha\n")
+    write($h, "beta")
+    print(read_file($path).unwrap())
+
+    "io_create_method.generated".create().unwrap().write("method")
+    print(read_file("io_create_method.generated").unwrap())
+    0
+}

@@ -1,0 +1,17 @@
+# P8e-4: scalar-value and Str-value maps captured by hatch tasks.
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    %nums = {"a": 10, "b": 20}
+    hatch {
+        $ch.send(%nums{"a"} + %nums{"b"})
+    }
+    print($ch.recv().unwrap())
+    $sch: Chan[Str] = channel(0)
+    $a = "re" ~ "d"
+    %labels = {"x": $a, "y": "green"}
+    hatch {
+        $sch.send(%labels{"x"} ~ "/" ~ %labels{"y"})
+    }
+    print($sch.recv().unwrap())
+    0
+}

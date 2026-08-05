@@ -1,0 +1,13 @@
+sub mk($s: Str): Result[List[Str], Str] {
+    if $s == "" { Err("empty") } else { Ok([$s, $s]) }
+}
+
+sub main(): Int {
+    $ch: Chan[Result[List[Str], Str]] = channel(2)
+    $ch.send(mk("a"))
+    $ch.send(mk(""))
+    $got = $ch.recv().unwrap()
+    print(match $got { Ok(@ys) { @ys[0] } Err($e) { $e } })
+    $ch.recv()
+    0
+}

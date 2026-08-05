@@ -1,0 +1,20 @@
+# gujiconform bug #4 — Match equality must account for named-capture keys
+# symmetrically, including participation state.
+sub show($b: Bool): Str {
+    if $b { "true" } else { "false" }
+}
+
+sub main(): Unit {
+    # Same text and positional captures, but only one match has the named key.
+    $unnamed = ("ab" ~~ /(ab)/).unwrap()
+    $named = ("ab" ~~ /(?<word>ab)/).unwrap()
+    print("unnamed==named: { show($unnamed == $named) }")
+    print("named==unnamed: { show($named == $unnamed) }")
+
+    # Same named key and empty capture text, but different participation state:
+    # None is not equal to Some("").
+    $none = ("ac" ~~ /a(?<mid>b)?c/).unwrap()
+    $empty = ("ac" ~~ /a(?<mid>x*)c/).unwrap()
+    print("nonparticipating==empty: { show($none == $empty) }")
+    print("empty==nonparticipating: { show($empty == $none) }")
+}

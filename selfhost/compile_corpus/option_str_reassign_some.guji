@@ -1,0 +1,14 @@
+sub make($s: Str): Option[Str] {
+    Some($s)
+}
+
+sub main(): Unit {
+    # Reassigning a mutable Option[Str] releases the previous Some payload after
+    # evaluating the new RHS, then stores the new carrier.
+    mut $o: Option[Str] = Some("old" ~ "!")
+    $o = make("new" ~ "!")
+    print(match $o {
+        Some($v) { $v }
+        None { "none" }
+    })
+}

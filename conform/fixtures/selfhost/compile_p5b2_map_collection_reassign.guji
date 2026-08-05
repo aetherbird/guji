@@ -1,0 +1,35 @@
+# P5b-2b: whole-map reassignment (`%m = {...}`) of a `mut` map whose VALUES are
+# collections. The scalar reassign copy loop only understood scalar/Str value
+# slots; collection values now materialise each new row into an owned by-value
+# temp, release the old two arrays, reallocate to the new length, and MOVE the
+# rows into the fresh value array (the collection twin of g7_lower_map_assigns).
+# Assert the reassign REALLOCATES the value array (more collection-vals allocs
+# than declarations) and emits the row MOVE for both List and Map values.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # List[Int] value rows MOVE into the ARR_SLICE value array.
+            print(has_text($c, "((guji_slice_t*)"))
+            # Map[Str,Bool] value rows MOVE into the ARR_MAP value array.
+            print(has_text($c, "((guji_map_t*)"))
+            # A List-valued map reassign REALLOCATES the value array: more
+            # `_vals = (guji_slice_t*)guji_arr_alloc` sites than NULL declarations
+            # (bind decls once, then bind + reassign each allocate).
+            print(split($c, "_vals = (guji_slice_t*)guji_arr_alloc(GUJI_KIND_ARR_SLICE").count() > split($c, "guji_slice_t* gv").count())
+            # Same for the nested-Map-valued map reassign (ARR_MAP value array).
+            print(split($c, "_vals = (guji_map_t*)guji_arr_alloc(GUJI_KIND_ARR_MAP").count() > split($c, "guji_map_t* gv").count())
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,7 @@
+# P08: named local subs are declaration statements and immutable closures (§7.4, §20).
+sub main(): Int {
+    $base = 40
+    sub add($n: Int): Int = $base + $n
+    print(add(2))
+    0
+}

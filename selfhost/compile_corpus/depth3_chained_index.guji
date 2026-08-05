@@ -1,0 +1,21 @@
+# P5b-2b: chained indexing preserves recursive Map/List kinds and releases
+# each owned intermediate only after copying the next collection row.
+sub main(): Int {
+    %deep = {"a": {"b": {"n": 7, "m": 2}}}
+    print(%deep{"a"}{"b"}{"n"})
+
+    # A bound inner row owns an independent deep copy.
+    %row = %deep{"a"}
+    print(%row{"b"}{"m"})
+
+    # Str leaves exercise retain/release below two Map hops.
+    %words = {"root": {"lang": {"name": "gu" ~ "ji"}}}
+    print(%words{"root"}{"lang"}{"name"})
+
+    # Both direct Map -> List -> Map and projected nested-list hops.
+    %buckets = {"left": [{"x": 3}], "right": [{"x": 4}, {"x": 5}]}
+    print(%buckets{"left"}[0]{"x"})
+    @groups = %buckets.values()
+    print(@groups[1][1]{"x"})
+    0
+}

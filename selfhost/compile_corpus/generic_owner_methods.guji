@@ -1,0 +1,45 @@
+# P5b-2b(owner-methods): generic METHODS with their own type param `[U]` on a
+# GENERIC owner. The owner's type param (T) is substituted into the still-generic
+# method at spec-clone time (g8_clone_owner_generic_method), so a method whose
+# RETURN is the owner param resolves to the concrete instantiation — get_with
+# returns T -> Int / Str / Float — while the method's own `[U]` is bound per call
+# site. This reduces the case to the already-working "generic method on a
+# NON-generic owner". Spec names are native-identical:
+#   gf_GBox__Int_get_with__GBox__Int_Bool_Int      (returns int64_t)
+#   gf_GBox__Str_get_with__GBox__Str_Float_Str     (returns const char*)
+#   gf_EBox__Float_get_with__EBox__Float_Bool_Float (enum owner, returns double)
+# The identity methods (return = the method's own U) worked before this slice and
+# stay covered.
+class GBox[T] {
+    has $.value: T
+
+    sub identity[U]($self, $v: U): U { $v }
+
+    sub get_with[U]($self, $unused: U): T { $self.value }
+}
+
+enum EBox[T] {
+    Full($value: T)
+
+    sub identity[U]($self, $v: U): U { $v }
+
+    sub get_with[U]($self, $unused: U): T {
+        match $self {
+            Full($v) { $v }
+        }
+    }
+}
+
+sub main(): Unit {
+    $gi = GBox(value: 40)
+    print("{ $gi.get_with(true) }")   # 40  (T=Int,   U=Bool)
+    print("{ $gi.identity(2) }")      # 2   (U=Int)
+    print($gi.identity("cls"))        # cls (U=Str)
+
+    $gs = GBox(value: "owner")
+    print($gs.get_with(3.5))          # owner (T=Str, U=Float)
+
+    $ef = Full(1.25)
+    print("{ $ef.get_with(false) }")  # 1.25 (T=Float, U=Bool)
+    print("{ $ef.identity(7) }")      # 7    (U=Int)
+}

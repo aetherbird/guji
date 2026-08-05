@@ -1,0 +1,6 @@
+# Spec 15.1: max over an empty numeric list is an exact runtime failure.
+sub main(): Int {
+    @empty: List[Int] = []
+    print("before-max")
+    @empty.max()
+}

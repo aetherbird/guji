@@ -1,0 +1,34 @@
+# P8d-2c-3c-15: carrier iteration over Chan[Option[Str]] and held outer
+# carrier unwrap. Heap-built payloads make every retain/release observable to
+# the sanitizer; delivered inner None remains distinct from channel closure.
+sub main(): Int {
+    $loop_ch: Chan[Option[Str]] = channel(3)
+    $one: Option[Str] = Some("o" ~ "ne")
+    $none: Option[Str] = None
+    $two: Option[Str] = Some("t" ~ "wo")
+    $loop_ch.send($one)
+    $loop_ch.send($none)
+    $loop_ch.send($two)
+    $loop_ch.close()
+
+    for $item in $loop_ch {
+        print(match $item {
+            Some($s) { $s }
+            None { "none" }
+        })
+    }
+
+    # A bound recv carrier remains live after unwrap: each extraction retains
+    # an independent inner Option[Str], while the held outer owns its message
+    # until scope cleanup.
+    $held_ch: Chan[Option[Str]] = channel(1)
+    $held_value: Option[Str] = Some("he" ~ "ld")
+    $held_ch.send($held_value)
+    $held_ch.close()
+    $held = $held_ch.recv()
+    $inner = $held.unwrap()
+    $again = $held.unwrap()
+    print($inner.unwrap())
+    print($again.unwrap())
+    0
+}

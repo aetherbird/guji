@@ -1,0 +1,21 @@
+# gujiconform — selfhost slice 5 E5d-3 recursive enum pattern typecheck.
+# Pins that nested variant patterns over recursive enum fields deepen the field's
+# shallow enum type before variant lookup.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

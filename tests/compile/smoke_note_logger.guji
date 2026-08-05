@@ -1,0 +1,16 @@
+# W5 smoke tool (Platform slice 2, write IO acceptance): a tiny "logger" tool that
+# separates results from diagnostics -- results go to stdout via print, diagnostics
+# go to stderr via note (print's diagnostic twin, Section 15.4). This proves note
+# writes a full line (display form + newline) to STDERR and never contaminates
+# stdout. The .stderr sidecar gates the diagnostic stream byte-for-byte; the .out
+# sidecar gates the clean result stream. Both engines must agree on both streams.
+sub main(): Int {
+    note("start")
+    @items = ["alpha", "beta", "gamma"]
+    for $i in @items {
+        print($i)
+        note("processed: { $i }")
+    }
+    note("done: { @items.count() }")
+    0
+}

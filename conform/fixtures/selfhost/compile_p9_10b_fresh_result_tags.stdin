@@ -1,0 +1,15 @@
+sub probe($path: Str): Str {
+    $out = if read_file($path).is_ok() {
+        return "present"
+    } else {
+        "missing"
+    }
+    $out
+}
+
+sub main(): Int {
+    print(probe("present.txt"))
+    print(is_ok(read_file("present.txt")))
+    print(is_err(read_file("absent.txt")))
+    0
+}

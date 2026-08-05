@@ -1,0 +1,12 @@
+sub main(): Int {
+    @nums = [3, 8, 11, 14]
+    $first: Option[Int] = @nums.find(sub($n: Int): Bool { $n > 10 })
+    print(match $first { Some($n) { "{ $n }" } None { "none" } })
+    print(match find(@nums, sub($n: Int): Bool { $n > 20 }) { Some($n) { "{ $n }" } None { "none" } })
+    print(match @nums.find({ $_ == 14 }) { Some($n) { "{ $n }" } None { "none" } })
+
+    @words = ["red" ~ "", "blue", "rust"]
+    print(match @words.find(sub($w: Str): Bool { $w == "blue" }) { Some($hit) { $hit } None { "missing" } })
+    print(match find(@words, sub($w: Str): Bool { $w == "green" }) { Some($hit) { $hit } None { "missing" } })
+    19
+}

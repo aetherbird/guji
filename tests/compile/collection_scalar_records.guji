@@ -1,0 +1,33 @@
+class Point {
+    has $.x: Int
+    has $.y: Int
+}
+
+enum Mark {
+    Hit($score: Int)
+    Miss
+}
+
+sub main(): Int {
+    @points = [Point(x: 3, y: 4), Point(x: 5, y: 6)]
+    print(@points.count())
+    print(@points[1].x + @points[0].y)
+
+    mut $total = 0
+    for $p in @points {
+        $total = $total + $p.x
+    }
+    print($total)
+
+    @marks = [Hit(7), Miss, Hit(2)]
+    mut $score = 0
+    for $m in @marks {
+        $delta = match $m {
+            Hit($n) { $n }
+            Miss { 1 }
+        }
+        $score = $score + $delta
+    }
+    print($score)
+    0
+}

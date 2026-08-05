@@ -1,0 +1,15 @@
+# I10d1/I10g1: the evaluator packages its runtime AST and lexical Env in a
+# function binding before handing it to a host task. A captured Int forces a
+# real closure env; the ordinary name proves this is the general §7.4 function
+# value path rather than a compiler-private exception. The unbuffered channel
+# makes completion observable and proves the env survives the frame crossing.
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $answer = 42
+    $worker = sub(): Int { $answer }
+    hatch {
+        $ch.send($worker())
+    }
+    print($ch.recv().unwrap())
+    0
+}

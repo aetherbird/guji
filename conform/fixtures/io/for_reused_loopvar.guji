@@ -1,0 +1,16 @@
+# gujiconform -- D7: reusing ONE loop-variable name across a List[Str] `for` and
+# a Chan[Str] `for` in the same scope must behave identically in both engines.
+# Before the fix, native double-freed (the list-`for` left $line holding a
+# borrowed list element, and the channel-`for`'s first-iteration release freed
+# it; the source list freed it again at scope exit), while the interpreter ran
+# both loops cleanly. Expected output is the spec/interpreter answer.
+sub main(): Int {
+    @ls = lines("x\ny\nz")
+    for $line in @ls {
+        print("L:" ~ $line)
+    }
+    for $line in stdin.lines() {
+        print("C:" ~ $line)
+    }
+    0
+}

@@ -1,0 +1,11 @@
+sub drop_two($s: Str): Str {
+    drop(split($s, ""), 2).join("")
+}
+
+sub main(): Int {
+    if drop_two("abcd") == "cd" {
+        0
+    } else {
+        1
+    }
+}

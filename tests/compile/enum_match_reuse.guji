@@ -1,0 +1,32 @@
+enum Tree {
+    Leaf($value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf($v) { $v }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub main(): Unit {
+    # Unique self-rebind: the native compiler may keep the existing recursive
+    # boxes instead of constructing replacement boxes.
+    mut $t = Node(Leaf(1), Node(Leaf(2), Leaf(3)))
+    $t = match $t {
+        Leaf($v) { Leaf($v) }
+        Node($l, $r) { Node($l, $r) }
+    }
+    print("{ sum($t) }")
+
+    # Aliased recursive boxes take the fallback path; the alias must still see
+    # the original immutable value.
+    mut $u = Node(Leaf(4), Leaf(5))
+    $alias = $u
+    $u = match $u {
+        Leaf($v) { Leaf($v) }
+        Node($l, $r) { Node($l, $r) }
+    }
+    print("{ sum($u) } { sum($alias) }")
+}

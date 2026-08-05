@@ -1,0 +1,19 @@
+# gujiconform — selfhost slice 4 G6b-b-2b-ii-b-3-i (user-enum PARSER DOGFOOD). This
+# thin wrapper runs the guji-written parser (selfhost/lexer.guji, co-located here via
+# symlink) over the source piped on stdin and prints the canonical AST, or notes the
+# positioned lex/parse error and exits nonzero. The parser is a PROGRAM UNDER TEST:
+# every <name>.expected is HUMAN-AUTHORED from guji-spec.md §9/§14, never captured.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

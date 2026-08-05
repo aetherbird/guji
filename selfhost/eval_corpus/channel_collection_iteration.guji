@@ -1,0 +1,72 @@
+# I10c2b: §17.4 for over Chan[List[Int]], Chan[Map[Str,Str]], and Chan[user-enum].
+# Close-then-drain (no hatch); outer mut; empty drains; heap Str map/enum
+# payloads; nested List indexing after recv. Distinct binders avoid C's
+# same-name guji_slice_t redefinition limit on sequential List channel fors.
+enum Notice {
+    Quiet
+    Text($value: Str)
+}
+
+sub main(): Int {
+    $rows: Chan[List[Int]] = channel(3)
+    $rows.send([1, 2])
+    $rows.send([3])
+    $rows.send([4, 5, 6])
+    $rows.close()
+    mut $sum = 0
+    for $row in $rows {
+        $sum = $sum + $row.count() + $row[0]
+    }
+    print($sum)
+
+    $empty_rows: Chan[List[Int]] = channel(1)
+    $empty_rows.close()
+    mut $drained_rows = 0
+    for $e in $empty_rows {
+        $drained_rows = $drained_rows + 1
+    }
+    print($drained_rows)
+
+    %first: Map[Str, Str] = {"k": "m" ~ "ap"}
+    %second: Map[Str, Str] = {"k": "o" ~ "k"}
+    $words: Chan[Map[Str, Str]] = channel(2)
+    $words.send(%first)
+    $words.send(%second)
+    $words.close()
+    mut $seen = ""
+    for %w in $words {
+        $seen = $seen ~ %w{"k"}
+    }
+    print($seen)
+
+    $empty_maps: Chan[Map[Str, Str]] = channel(1)
+    $empty_maps.close()
+    mut $drained_maps = 0
+    for %e in $empty_maps {
+        $drained_maps = $drained_maps + 1
+    }
+    print($drained_maps)
+
+    $notes: Chan[Notice] = channel(3)
+    $notes.send(Quiet)
+    $notes.send(Text("al" ~ "pha"))
+    $notes.send(Text("beta"))
+    $notes.close()
+    mut $decoded = ""
+    for $n in $notes {
+        $decoded = $decoded ~ (match $n {
+            Quiet { "<Quiet>" }
+            Text($value) { "<Text:" ~ $value ~ ">" }
+        })
+    }
+    print($decoded)
+
+    $empty_notes: Chan[Notice] = channel(1)
+    $empty_notes.close()
+    mut $drained_notes = 0
+    for $z in $empty_notes {
+        $drained_notes = $drained_notes + 1
+    }
+    print($drained_notes)
+    0
+}

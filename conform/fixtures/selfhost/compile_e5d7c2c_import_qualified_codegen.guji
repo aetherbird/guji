@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 5 E5d-7c-2c compiler codegen fixture.
+# Pins path-aware imported-module C emission plus lowering of an enum-returning
+# qualified call used as a statement-match scrutinee.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    $lib = "pub enum Verdict \{ Accept Reject(\$m: Str) }\n\nsub helper(): Verdict \{ Accept }\n\npub sub check(\$x: Int): Verdict \{ helper() }\n"
+    match write_file("/tmp/guji_compile_import_qualified_lib.guji", $lib) {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match lexer::compile_program_c_at("/tmp/guji_compile_import_qualified_main.guji", stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "typedef struct Verdict Verdict;"))
+            print(has_text($c, "static Verdict gf_imp_guji_compile_import_qualified_lib_helper(void);"))
+            print(has_text($c, "static Verdict gf_imp_guji_compile_import_qualified_lib_check(int64_t gp0);"))
+            print(has_text($c, "gf_imp_guji_compile_import_qualified_lib_check(0LL)"))
+            print(has_text($c, "guji_release_Verdict_fields("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 6 P9-6b collection-carrier fixture.
+# List/map get and list find copy borrowed collection rows into Option payloads;
+# the generated carrier must retain every counted backing array before its
+# source owner can release it.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_list"))
+            print(has_text($c, "guji_opt_map"))
+            print(has_text($c, ".val.data);"))
+            print(has_text($c, ".val.keys);"))
+            print(has_text($c, ".val.vals);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

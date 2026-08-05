@@ -1,0 +1,23 @@
+grammar Email {
+    rule  TOP    { <user> '@' <domain> }
+    token user   { \w+ }
+    token domain { \w+ '.' \w+ }
+}
+
+sub main(): Int {
+    match Email.parse('ada@example.com') {
+        Some($b) {
+            print($b.text)
+            match $b<user> {
+                Some($u) { print($u.text) }
+                None     { print('no user') }
+            }
+            match $b<domain> {
+                Some($d) { print($d.text) }
+                None     { print('no domain') }
+            }
+        }
+        None { print('invalid') }
+    }
+    0
+}

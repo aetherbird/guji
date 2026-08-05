@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P3b-2a compiler codegen fixture.
+# Pins straight-line non-final `SBind = carrier?` lowering: the operand carrier
+# is evaluated once into a temp, the failure tag emits an early carrier return
+# after frame cleanup, and the success arm binds the scalar payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag == 0LL"))
+            print(has_text($c, "return (guji_opt_int)\{0LL, 0LL};"))
+            print(has_text($c, ".tag != 0LL"))
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr"))
+            print(has_text($c, ".err};"))
+            print(has_text($c, " = gr"))
+            print(has_text($c, ".ok;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

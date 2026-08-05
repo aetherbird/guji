@@ -1,0 +1,4 @@
+Catalog(colors: {"a": Red, "b": Named(blue)}, groups: [{"lead": Person(age: 36, name: Ada)}], palettes: {"main": [Red, Named(green)]}, people: [Person(age: 36, name: Ada), Person(age: 28, name: Bob)])
+true
+true
+catalog=Catalog(colors: {"a": Red, "b": Named(blue)}, groups: [{"lead": Person(age: 36, name: Ada)}], palettes: {"main": [Red, Named(green)]}, people: [Person(age: 36, name: Ada), Person(age: 28, name: Bob)])

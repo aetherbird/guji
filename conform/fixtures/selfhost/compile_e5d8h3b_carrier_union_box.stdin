@@ -1,0 +1,26 @@
+enum Expr {
+    EInt($n: Int)
+    EStr($s: Str)
+}
+
+enum Stmt {
+    SFlag($flag: Bool)
+    SReturn($e: Option[Expr])
+}
+
+sub eval_stmt($s: Stmt): Int {
+    match $s {
+        SFlag($flag) { if $flag { 1 } else { 0 } }
+        SReturn(None) { 7 }
+        SReturn(Some($v)) {
+            match $v {
+                EInt($n) { 50 + $n }
+                EStr($s) { 20 }
+            }
+        }
+    }
+}
+
+sub main(): Int {
+    eval_stmt(SReturn(Some(EStr("x"))))
+}

@@ -1,0 +1,5 @@
+# §5.4 permits only Int bounds; reject before evaluation.
+sub main(): Int {
+    $bad = 1.5 .. 3
+    0
+}

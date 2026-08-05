@@ -1,0 +1,10 @@
+import tokens
+
+sub main(): Int {
+    $choice = tokens::Choice.pick(1)
+    print(match $choice {
+        Hot { "hot" }
+        Cold { "cold" }
+    })
+    0
+}

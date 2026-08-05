@@ -1,0 +1,23 @@
+tick 3
+Ok(4)
+tick -1
+Err(neg)
+Ok(99)
+tick 4
+Ok(14)
+tick -2
+Err(neg)
+tick 5
+Ok(10)
+tick -3
+Err(neg)
+Some(7)
+None
+Ok(8)
+Err(invalid integer: bad)
+Ok(13)
+Err(invalid integer: x)
+Ok(1)
+Ok(11)
+Ok(5)
+Err(invalid integer: y)

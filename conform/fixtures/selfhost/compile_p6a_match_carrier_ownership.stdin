@@ -1,0 +1,61 @@
+sub find($s: Str): Option[Match] {
+    $s ~~ /(?<a>\w+)-(?<b>\w+)/
+}
+sub find_local($s: Str): Option[Match] {
+    $opt = $s ~~ /(\w+)\.(\w+)/
+    $opt
+}
+sub pass($o: Option[Match]): Option[Match] {
+    $o
+}
+sub first_of($s: Str): Str {
+    $found = $s ~~ /(?<x>\w+) (\w+)/
+    match $found {
+        Some($m) { $m<x>.unwrap_or('?') }
+        None { '?' }
+    }
+}
+sub main(): Unit {
+    $opt = find('aa-bb')
+    $r1 = match $opt {
+        Some($m) { $m[1].unwrap_or('?') }
+        None { '?' }
+    }
+    $r2 = match $opt {
+        Some($m) { $m[2].unwrap_or('?') }
+        None { '?' }
+    }
+    print($r1)
+    print($r2)
+    $alias = $opt
+    $r3 = match $alias {
+        Some($m) { $m.text }
+        None { '?' }
+    }
+    print($r3)
+    mut $cur = 'p-q' ~~ /(?<l>\w)-(?<r>\w)/
+    $cur = 'r-s' ~~ /(?<l>\w)-(?<r>\w)/
+    $r4a = match $cur {
+        Some($m) { $m<l>.unwrap_or('?') }
+        None { '?' }
+    }
+    $r4b = match $cur {
+        Some($m) { $m<r>.unwrap_or('?') }
+        None { '?' }
+    }
+    print($r4a ~ $r4b)
+    $kept = pass(find_local('m.n'))
+    $r5 = match $kept {
+        Some($m) { $m[2].unwrap_or('?') }
+        None { '?' }
+    }
+    print($r5)
+    print(first_of('hi yo'))
+    'zz' ~~ /(q)(x)/
+    $none = 'zz' ~~ /q-x/
+    $r6 = match $none {
+        Some($m) { $m.text }
+        None { 'none' }
+    }
+    print($r6)
+}

@@ -1,0 +1,22 @@
+class TypeRef {
+    has $.name: Str
+}
+
+class ROptType {
+    has $.node: Option[TypeRef]
+    has $.depth: Int
+}
+
+sub describe($r: ROptType): Str {
+    match $r.node {
+        None { "none" }
+        Some($t) { $t.name }
+    }
+}
+
+sub main() {
+    $a = ROptType(node: Some(TypeRef(name: "Int")), depth: 0)
+    $b = ROptType(node: None, depth: 9)
+    print(describe($a))
+    print(describe($b))
+}

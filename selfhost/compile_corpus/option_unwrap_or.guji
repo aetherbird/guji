@@ -1,0 +1,66 @@
+# §15.5 Option `unwrap_or`, function form `unwrap_or($o, $d)` and method form
+# `$o.unwrap_or($d)`, over bound `Option[T]` locals for every scalar/Str payload
+# kind. Scalar payloads lower to native's pure borrow ternary
+# `(opt.tag != 0 ? opt.val : <default>)`; a Str result is an owned tmp that retains
+# the picked pointer and releases the eagerly-lowered default (refcounts balance on
+# BOTH arms — verified under ASan/LSan). Native `guji build` supports all of it, so
+# this is a THREE-WAY case (interp == native == selfhost). Exit code is 61 iff every
+# positive lands and every guard holds.
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mkf($n: Int): Option[Float] {
+    if $n > 0 { Some(2.5) } else { None }
+}
+sub mkb($n: Int): Option[Bool] {
+    if $n > 0 { Some(false) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    # A heap-built Some payload: a wrong retain/release shows under ASan.
+    if $n > 0 { Some("pay" ~ "load" ~ "{ $n }") } else { None }
+}
+
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ni: Option[Int] = mki(-1)
+    $sf: Option[Float] = mkf(1)
+    $nf: Option[Float] = mkf(-1)
+    $sb: Option[Bool] = mkb(1)
+    $nb: Option[Bool] = mkb(-1)
+    $ss: Option[Str] = mks(7)
+    $ns: Option[Str] = mks(-1)
+
+    mut $code = 0
+
+    # Int: both forms; Some picks the payload, None picks the default.
+    if unwrap_or($si, 0) == 5 { $code = $code + 1 }
+    if $ni.unwrap_or(9) == 9 { $code = $code + 2 }
+    print("{ $si.unwrap_or(0) },{ unwrap_or($ni, 41) }")
+
+    # Float: interpolation + arithmetic value positions.
+    print("{ $sf.unwrap_or(9.5) }|{ unwrap_or($nf, 0.75) + 0.25 }")
+
+    # Bool: condition positions, both forms. Some(false) must pick the PAYLOAD
+    # (false), not the default (true) — a tag-polarity bug adds 1000.
+    if $sb.unwrap_or(true) { $code = $code + 1000 }
+    if unwrap_or($nb, true) { $code = $code + 4 }
+
+    # Str: heap Some payload, static and HEAP defaults (the owned default tmp must
+    # be released on BOTH arms), method + function forms, sink/interp/concat slots.
+    $dflt = "de" ~ "fault"
+    print($ss.unwrap_or($dflt))
+    print(unwrap_or($ns, $dflt))
+    print("{ $ns.unwrap_or('lit') }!")
+    print(unwrap_or($ss, 'x') ~ "-tail")
+
+    # find-produced Options, hit and miss, queried through unwrap_or.
+    @xs = [10, 20, 30]
+    $hit: Option[Int] = @xs.find(sub($n: Int): Bool { $n == 20 })
+    $miss: Option[Int] = @xs.find(sub($n: Int): Bool { $n == 99 })
+    if $hit.unwrap_or(0) == 20 { $code = $code + 8 }
+    if unwrap_or($miss, 46) == 46 { $code = $code + 16 }
+
+    # Return-arithmetic position closes the exit code: 31 + 5 + 25 = 61.
+    $code + $si.unwrap_or(0) + unwrap_or($ni, 25)
+}

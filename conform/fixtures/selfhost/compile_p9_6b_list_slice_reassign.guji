@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 6 P9-6b heap-slice List reassignment.
+# Pins release of the old backing array before moving a newly lowered owned
+# guji_slice_t and nulling the source temp after ownership transfers.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_release((const void*)"))
+            print(has_text($c, ".data = NULL;"))
+            print(has_text($c, ".len = 0;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

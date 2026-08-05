@@ -1,0 +1,12 @@
+sub ok_int($x: Int): Result[Int, Str] { Ok($x) }
+sub none_int(): Option[Int] { None }
+
+sub main(): Int {
+    $r = ok_int(7)
+    $o1 = $r.ok()
+    $o3 = err($r)
+    $n = none_int()
+    $r2 = ok_or($n, "absent")
+    print("{ $o1.is_some() } { $o3.is_some() } { $r2.is_err() }")
+    0
+}

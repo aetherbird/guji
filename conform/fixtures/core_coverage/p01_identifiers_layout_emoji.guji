@@ -1,0 +1,17 @@
+# Emoji scalar values and emoji sequences are valid identifier components.
+sub main(): Int {
+    $🚀 = 40
+    $👩‍💻 = 1
+    $✈️ = 2
+    $👍🏽 = 3
+    @🎯 = [4, 5]
+    %🗺 = {"east": 6}
+
+    print($🚀)
+    print($👩‍💻)
+    print($✈️)
+    print($👍🏽)
+    print(@🎯)
+    print(%🗺)
+    0
+}

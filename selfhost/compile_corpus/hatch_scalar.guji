@@ -1,0 +1,13 @@
+# P8e-1: hatch with scalar + Chan captures (§17.1) — three-way with native.
+# Unbuffered rendezvous: task sends, main recvs. Proves guji_task_spawn +
+# env retain/copy + task-exit chan release.
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $x = 42
+    hatch {
+        $ch.send($x)
+    }
+    $r = $ch.recv().unwrap()
+    print($r)
+    0
+}

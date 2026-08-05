@@ -1,0 +1,11 @@
+# Binding a Str from `match read_file(...)` exercises a Result[Str,Str] builtin
+# scrutinee, an Ok payload borrow, and ownership transfer into the local binding.
+sub main(): Int {
+    $path = "selfhost/compile_corpus/read_file_match_bind.input"
+    $src = match read_file($path) {
+        Ok($s) { $s }
+        Err($e) { note("missing input") return 9 }
+    }
+    print($src)
+    0
+}

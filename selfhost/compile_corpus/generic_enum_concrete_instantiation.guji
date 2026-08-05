@@ -1,0 +1,28 @@
+# P5b-2b(c-enum): fully concrete generic enum annotations create concrete
+# enum specs, and fieldless variants lower under the expected enum context.
+
+enum Box[T] {
+  Wrap($value: T)
+  Empty
+}
+
+sub unwrap_or_zero($b: Box[Int]): Int {
+  match $b {
+    Wrap($v) { $v }
+    Empty { 0 }
+  }
+}
+
+sub describe($b: Box[Str]): Str {
+  match $b {
+    Wrap($v) { "wrap({ $v })" }
+    Empty { "empty" }
+  }
+}
+
+sub main(): Unit {
+  print(unwrap_or_zero(Wrap(9)))
+  print(unwrap_or_zero(Empty))
+  print(describe(Wrap("hi")))
+  print(describe(Empty))
+}

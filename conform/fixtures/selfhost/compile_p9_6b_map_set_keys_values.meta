@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost keys/values on set/remove receivers release owned map temp after projection

@@ -1,0 +1,17 @@
+enum Shape {
+    Circle($r: Int)
+    Square($s: Int)
+}
+
+sub area($shape: Shape): Int {
+    match $shape {
+        Circle($r) { 3 * $r * $r }
+        Square($s) { $s * $s }
+    }
+}
+
+sub main(): Int {
+    print("circle: { area(Circle(2)) }")
+    print("square: { area(Square(5)) }")
+    0
+}

@@ -1,0 +1,36 @@
+# Post-D11 follow-up: a method call on a bare nullary enum variant in value
+# position (`Red.name()`, `Empty.describe()`) must lower like a method call on a
+# materialized enum value. The generic `Empty` case has no payload args to infer
+# T from; codegen uses the checker's template receiver type to select an
+# already-collected concrete specialization.
+
+enum Color {
+    Red
+    Blue
+
+    sub name($self): Str {
+        match $self {
+            Red { "red" }
+            Blue { "blue" }
+        }
+    }
+}
+
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub describe($self): Str {
+        match $self {
+            Wrap($v) { "wrap({ $v })" }
+            Empty { "empty" }
+        }
+    }
+}
+
+sub main(): Unit {
+    print(Red.name())
+    print(Blue.name())
+    print(Wrap(42).describe())
+    print(Empty.describe())
+}

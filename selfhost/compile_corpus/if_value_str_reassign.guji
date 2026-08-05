@@ -1,0 +1,5 @@
+sub main(): Unit {
+    mut $s = "old"
+    $s = if true { "new" } else { "bad" }
+    print($s)
+}

@@ -1,0 +1,7 @@
+sub poly($x: Int): Int {
+    $sq = $x * $x
+    $sq + $x + 1
+}
+sub main(): Int {
+    poly(4)
+}

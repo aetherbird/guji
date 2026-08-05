@@ -1,0 +1,11 @@
+# Phase 2 (Platform IO): read_file on a path that does not exist returns
+# Err("cannot read file: <path>") — a fixed, OS-reason-free message so the
+# interpreter and the native binary agree byte-for-byte (§15.4). This fixture is
+# working-directory independent: the path is absent everywhere.
+sub main(): Int {
+    match read_file("io_read_missing.absent") {
+        Ok($s)  { print("read $s") }
+        Err($e) { print($e) }
+    }
+    0
+}

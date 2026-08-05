@@ -1,0 +1,28 @@
+# P01 supported slice: UTF-8 source, comments, ASCII identifiers, and item layout.
+#[
+  A UTF-8 block comment may span lines.  The characters λ and 漢 are comment text.
+]#
+sub add($left: Int, $right: Int): Int {
+    $left + $right
+}
+
+sub main(): Int {
+    $snake_2 = 7 # line comments run to the physical newline
+    $rocket = "rocket"
+    $developer = 11
+    @targets = [1,
+             2]
+    %map = {
+        "east": 3
+    }
+
+    print($snake_2); print($rocket)
+    print($developer)
+    print(@targets)
+    print(%map)
+    print(add(
+        4,
+        6
+    ))
+    0
+}

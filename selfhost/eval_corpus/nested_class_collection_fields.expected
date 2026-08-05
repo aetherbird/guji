@@ -1,0 +1,8 @@
+Nested(lists: {"x": [a, b], "y": [b]}, maps: {"outer": {"alt": 8, "inner": 7}}, matrix: [[1, 2], [3]], rows: [{"a": 1, "b": 2}, {"c": 3}])
+true
+true
+[[1, 2], [3]]
+[{"a": 1, "b": 2}, {"c": 3}]
+{"x": [a, b], "y": [b]}
+{"outer": {"alt": 8, "inner": 7}}
+nested=Nested(lists: {"x": [a, b], "y": [b]}, maps: {"outer": {"alt": 8, "inner": 7}}, matrix: [[1, 2], [3]], rows: [{"a": 1, "b": 2}, {"c": 3}])

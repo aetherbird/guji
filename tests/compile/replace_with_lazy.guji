@@ -1,0 +1,7 @@
+sub main(): Int {
+    $r = 'a123b'.replace_with(/\d+?/, sub($m: Match): Str {
+        '[' ~ $m.text ~ ']'
+    })
+    print($r)
+    0
+}

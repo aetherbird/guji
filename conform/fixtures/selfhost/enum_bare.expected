@@ -1,0 +1,1 @@
+Program(decls=[Enum(public=false,name="Direction",tparams=[],variants=[Variant(name="North",fields=[]),Variant(name="South",fields=[]),Variant(name="East",fields=[]),Variant(name="West",fields=[])],subs=[])])

@@ -1,0 +1,44 @@
+# selfhost slice 6 P3c-b-3: map `for` codegen must iterate in sorted-key
+# order, borrow key/value loop bindings, and clean up owned map iterators even
+# when a body returns early.
+sub mk(): Map[Str, Int] {
+    {"c": 3, "a": 1, "b": 2}
+}
+
+sub first_from_call(): Int {
+    for $k, $v in mk() {
+        if $v > 1 {
+            return $v
+        }
+    }
+    0
+}
+
+sub main(): Int {
+    %m: Map[Str, Int] = {"z": 4, "a": 1, "m": 2}
+    mut $sum = 0
+
+    for $k, $v in %m {
+        print($k ~ "=" ~ "{ $v }")
+        $sum = $sum + $v
+    }
+
+    for $lk, $lv in {"b": 20, "a": 10} {
+        print($lk ~ "!" ~ "{ $lv }")
+        $sum = $sum + $lv
+    }
+
+    for $ck, $cv in mk() {
+        $sum = $sum + $cv
+    }
+
+    %words: Map[Str, Str] = {"b": "bee", "a": "aye"}
+    for $wk, $wv in %words {
+        $line = $wk ~ ":" ~ $wv
+        print($line)
+        $sum = $sum + count(split($line, ":"))
+    }
+
+    print("first { first_from_call() }")
+    $sum + first_from_call()
+}

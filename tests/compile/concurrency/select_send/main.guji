@@ -1,0 +1,67 @@
+# §17.5 native select send arms: buffered sends are ready, full buffered sends
+# fall through to else, closed sends bind Err(Closed), and unbuffered sends are
+# ready when a receiver is already parked. The Str arms exercise try_send's
+# ownership rule: the detached copy is consumed and released even when the arm is
+# not chosen or the channel is closed.
+sub main(): Int {
+    $buf: Chan[Int] = channel(1)
+    select {
+        $r = $buf.send(7) {
+            print("buf ok")
+        }
+        else { print("buf idle") }
+    }
+
+    select {
+        $r = $buf.send(8) {
+            print("full bad")
+        }
+        else { print("full idle") }
+    }
+
+    $closed: Chan[Int] = channel()
+    $closed.close()
+    select {
+        $r = $closed.send(9) {
+            print("closed err")
+        }
+    }
+
+    $words: Chan[Str] = channel(1)
+    $words.send("held")
+    select {
+        $r = $words.send("drop" ~ " me") {
+            print("str bad")
+        }
+        else { print("str full") }
+    }
+
+    $closed_words: Chan[Str] = channel()
+    $closed_words.close()
+    select {
+        $r = $closed_words.send("closed" ~ " copy") {
+            print("str closed err")
+        }
+    }
+
+    $pipe: Chan[Int] = channel()
+    $ack: Chan[Int] = channel()
+    hatch {
+        $v = $pipe.recv()
+        match $v {
+            Some($n) { $ack.send($n + 1) }
+            None     { $ack.send(-1) }
+        }
+    }
+    select {
+        $r = $pipe.send(41) {
+            print("rendezvous sent")
+        }
+    }
+    $got = $ack.recv()
+    match $got {
+        Some($n) { print("ack { $n }") }
+        None     { print("ack none") }
+    }
+    0
+}

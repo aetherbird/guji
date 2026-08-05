@@ -1,0 +1,8 @@
+# T3b: primitive matches need a wildcard or binding arm for exhaustiveness.
+sub main(): Int {
+    $n = 1
+    match $n {
+        0 { 0 }
+        1 { 1 }
+    }
+}

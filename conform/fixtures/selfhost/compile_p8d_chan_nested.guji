@@ -1,0 +1,28 @@
+# P8d-2c-3c-3: pin the nested channel payload ABI: List[List] channels keep the
+# guji_slice_t slot + guji_chan_drop_list, nested-value Map channels keep the
+# guji_map_t slot + guji_chan_drop_map, each drain loop resets its binder before
+# entry, receives once per iteration, releases before rebinding after the
+# closed-check, and adopts the carrier's .val; sends detach the key arrays via
+# the KIND-tagged guji_copy_arr.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, ", sizeof(guji_slice_t), guji_chan_drop_list);") == 1)
+            print(count_of($c, ", sizeof(guji_map_t), guji_chan_drop_map);") == 2)
+            print(count_of($c, " = (guji_slice_t)\{0};\n\tfor (;;) ") == 1)
+            print(count_of($c, " = (guji_map_t)\{0};\n\tfor (;;) ") == 2)
+            print(count_of($c, ".tag = guji_chan_recv(") == 3)
+            print(count_of($c, "\t\tbreak;\n\t}\n\tguji_release(") == 3)
+            print(count_of($c, ".val;") == 3)
+            print(count_of($c, ".keys = (const char**)guji_copy_arr((const void*)") >= 2)
+            0
+        }
+    }
+}

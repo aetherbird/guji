@@ -1,0 +1,10 @@
+# The Err arm returns from inside a value-position match. The generated branch
+# must release the read_file Result scrutinee and outer locals before returning.
+sub main(): Int {
+    $src = match read_file("selfhost/compile_corpus/read_file_match_return.absent") {
+        Ok($s) { $s }
+        Err($e) { note("read failed") return 3 }
+    }
+    print($src)
+    0
+}

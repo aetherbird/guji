@@ -1,0 +1,44 @@
+# Slice 6 P3b-2b-2c-4: `?` bind/reassign inside a nested `while` loop.
+# The inner loop must inherit the enclosing sub's return carrier; passing RUnit
+# there makes the `?` guard decline even though native accepts the construct.
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad tag") } else { Ok("<" ~ $s ~ ">") }
+}
+
+sub parse_grid($a: Str, $outer: Int, $inner: Int): Result[Int, Str] {
+    mut $acc = 0
+    mut $i = 0
+    while $i < $outer {
+        mut $j = 0
+        while $j < $inner {
+            $v = parse_int($a)?
+            $acc = $acc + $v
+            $j = $j + 1
+        }
+        $i = $i + 1
+    }
+    Ok($acc)
+}
+
+sub tag_grid($a: Str, $outer: Int, $inner: Int): Result[Str, Str] {
+    mut $out = ""
+    mut $i = 0
+    while $i < $outer {
+        mut $j = 0
+        while $j < $inner {
+            $s = tag($a)?
+            $out = $out ~ $s
+            $j = $j + 1
+        }
+        $i = $i + 1
+    }
+    Ok($out)
+}
+
+sub main(): Int {
+    match parse_grid("3", 2, 3) { Ok($v) { print("parse { $v }\n") } Err($e) { print("parse err { $e }\n") } }
+    match parse_grid("x", 2, 3) { Ok($v) { print("parse { $v }\n") } Err($e) { print("parse err { $e }\n") } }
+    match tag_grid("hi", 2, 2) { Ok($s) { print("tag { $s }\n") } Err($e) { print("tag err { $e }\n") } }
+    match tag_grid("bad", 2, 2) { Ok($s) { print("tag { $s }\n") } Err($e) { print("tag err { $e }\n") } }
+    64
+}

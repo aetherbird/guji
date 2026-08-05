@@ -1,0 +1,9 @@
+class Rec {
+    has %.scores: Map[Str, Int]
+    has $.id: Int
+}
+
+sub main(): Int {
+    $r = Rec(scores: {"a": 9, "b": 2}, id: 4)
+    if $r.scores.has_key("a") { $r.id } else { 0 }
+}

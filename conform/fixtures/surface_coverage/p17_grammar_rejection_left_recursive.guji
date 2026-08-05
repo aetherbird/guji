@@ -1,0 +1,5 @@
+# Spec 14.1 ordered PEG grammars reject unsupported direct left recursion.
+grammar Loop {
+    rule TOP { <TOP> 'x' | 'x' }
+}
+sub main(): Int { 0 }

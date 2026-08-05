@@ -1,0 +1,69 @@
+# P5b-2f: non-scalar (LIST) generic fields and payloads. A generic CLASS with a
+# `List[T]` field (`Bag[T] { has @.items: List[T] }`) and a generic ENUM with a
+# `List[T]` variant payload (`Shelf[T] { Items(@xs: List[T]) }`) monomorphize
+# from VALUE positions: the type param binds from the LIST argument's element
+# kind — a pre-scanned list local (`@nums`), a copy of one (`@copy = @nums`),
+# or an inline list literal (`Bag(items: [7, 8])`, `Items([1.5, 2.5])`). Class
+# spec names use native's field-flattened keys (Bag__List_Int / Bag__List_Str,
+# nm-identical); enum specs keep type-arg keys (Shelf__Int / Shelf__Str). The
+# cloned spec methods read the substituted list field/payload (count / first /
+# match-bound row), and the multi-owner variant `Items` disambiguates by the
+# argument's LIST element kind. Mirrors tests/compile/generic_list_fields_payloads.guji.
+
+class Bag[T] {
+    has @.items: List[T]
+
+    sub count($self): Int {
+        $self.items.count()
+    }
+
+    sub first($self): T {
+        $self.items[0]
+    }
+}
+
+enum Shelf[T] {
+    Items(@xs: List[T])
+
+    sub count($self): Int {
+        match $self {
+            Items(@ys) { @ys.count() }
+        }
+    }
+}
+
+sub main(): Int {
+    @nums = [2, 3, 5]
+    $bi = Bag(items: @nums)
+    print("{ $bi.count() }")
+    print("{ $bi.first() }")
+
+    @words = ["guji", "lang"]
+    $bs = Bag(items: @words)
+    print($bs.first())
+    print($bs.items.join("-"))
+
+    $si = Items(@nums)
+    print("{ $si.count() }")
+    match $si {
+        Items(@got_nums) { print("{ @got_nums.sum() }") }
+    }
+
+    $ss = Items(@words)
+    print("{ $ss.count() }")
+    match $ss {
+        Items(@got_words) { print(@got_words.join(":")) }
+    }
+
+    # Inline list-literal constructor args + a list-local copy: the literal's
+    # first element binds T; the copy resolves through the pre-scanned locals.
+    $bl = Bag(items: [7, 8])
+    print("{ $bl.first() }")
+    @copy = @nums
+    $bc = Bag(items: @copy)
+    print("{ $bc.count() }")
+    $sf = Items([1.5, 2.5])
+    print("{ $sf.count() }")
+
+    $bi.count() + $sf.count()
+}

@@ -1,0 +1,10 @@
+# P9-3: all three standard Handle values resolve as preinstalled bindings.
+sub main(): Int {
+    print(stdin.slurp())
+    stdout.write("out")
+    stderr.write("err")
+    for $line in stdin.lines() {
+        print($line)
+    }
+    0
+}

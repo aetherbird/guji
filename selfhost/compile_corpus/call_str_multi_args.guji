@@ -1,0 +1,8 @@
+# Multiple Str args are prepared left-to-right and released after the call.
+sub pair($a: Str, $b: Str): Str {
+    $a ~ $b
+}
+
+sub main(): Unit {
+    print(pair("a", "b"))
+}

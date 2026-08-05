@@ -1,0 +1,26 @@
+# P9-7b: Result[Match, Str] must own its Ok pointer across construction from a
+# borrowed Option[Match] binding, copies, reassignment, loop cleanup, and match.
+sub classify($text: Str): Result[Match, Str] {
+    match $text ~~ /(?<left>[a-z]+)-(?<right>[a-z]+)/ {
+        Some($m) { Ok($m) }
+        None { Err("none") }
+    }
+}
+
+sub main(): Int {
+    mut $current = classify("aa-bb")
+    print(match $current { Ok($m) { $m.text } Err($e) { $e } })
+    $current = classify("bad")
+    print(match $current { Ok($m) { $m.text } Err($e) { $e } })
+    $current = classify("xx-yy")
+    print(match $current { Ok($m) { $m.text } Err($e) { $e } })
+    mut $i = 0
+    while $i < 2 {
+        $loop = classify("also bad")
+        print(match $loop { Ok($m) { $m.text } Err($e) { $e } })
+        $i = $i + 1
+    }
+    classify("miss")
+    print("done")
+    0
+}

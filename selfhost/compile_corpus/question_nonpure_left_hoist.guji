@@ -1,0 +1,54 @@
+# Slice 6 P3b-2b-2c-4o: a right-operand `?` hoists even when the LEFT operand is
+# a non-pure (but side-effect-free) subexpression — a call (`id2(3)`), a `~` heap
+# concat (`$p ~ "!"`), or a Float call. Native hoists the `?` carrier guard to the
+# top of the statement and emits the residual (`guji_add(gf_id2(3), ok)`,
+# `guji_str_cat(left, ok)`) afterward, so left purity does not gate the hoist; the
+# selfhost purity predicate was over-conservative. Where the left has OBSERVABLE
+# side effects native's front-hoist genuinely differs from the interpreter's
+# left-to-right order (a native/interp divergence, not a three-way target), so this
+# corpus keeps every left operand side-effect-free: interp == native == selfhost.
+
+sub id2($n: Int): Int { $n * 2 }
+
+sub scale($f: Float): Float { $f * 3.0 }
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":t") }
+}
+
+sub half($s: Str): Result[Float, Str] {
+    if $s == "bad" { Err("nofloat") } else { Ok(1.25) }
+}
+
+# non-pure Int left (a call), right-operand `?`
+sub calc($t: Str): Result[Int, Str] {
+    Ok(id2(3) + parse_int($t)?)
+}
+
+# non-pure Str left (a `~` heap concat), right-operand `?` with a Str payload
+sub label($p: Str, $t: Str): Result[Str, Str] {
+    Ok(($p ~ "!") ~ tag($t)?)
+}
+
+# non-pure Float left (a call), right-operand `?` with a Float payload
+sub fcalc($t: Str): Result[Float, Str] {
+    Ok(scale(2.0) + half($t)?)
+}
+
+# multi-`?`: the outer `+`'s left is itself a non-pure-left + `?` subexpression,
+# then a second `?` on the right — both guards hoist in native left-to-right order.
+sub multi($a: Str, $b: Str): Result[Int, Str] {
+    Ok(id2(4) + parse_int($a)? + parse_int($b)?)
+}
+
+sub main(): Int {
+    match calc("5") { Ok($v1) { print("calc { $v1 }") } Err($e1) { print("calc err { $e1 }") } }
+    match calc("bad") { Ok($v2) { print("calc { $v2 }") } Err($e2) { print("calc err { $e2 }") } }
+    match label("hi", "x") { Ok($v3) { print("label { $v3 }") } Err($e3) { print("label err { $e3 }") } }
+    match label("hi", "bad") { Ok($v4) { print("label { $v4 }") } Err($e4) { print("label err { $e4 }") } }
+    match fcalc("2") { Ok($v5) { print("fcalc { $v5 }") } Err($e5) { print("fcalc err { $e5 }") } }
+    match fcalc("bad") { Ok($v6) { print("fcalc { $v6 }") } Err($e6) { print("fcalc err { $e6 }") } }
+    match multi("2", "3") { Ok($v7) { print("multi { $v7 }") } Err($e7) { print("multi err { $e7 }") } }
+    match multi("2", "bad") { Ok($v8) { print("multi { $v8 }") } Err($e8) { print("multi err { $e8 }") } }
+    0
+}

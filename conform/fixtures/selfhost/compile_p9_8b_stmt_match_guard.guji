@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P9-8b-1 statement-match pure guards.
+# Pins Option statement-position arms that fold a pure payload guard into the
+# same `tag && guard` if-head as value-position variant arms.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Guarded Some arm: tag test AND payload compare in one if-head.
+            print(has_text($c, ".tag == 1LL) && (("))
+            print(has_text($c, ") > (10LL) ? 1LL : 0LL)"))
+            # Fall-through unguarded Some after a failing guard.
+            print(has_text($c, "else if (("))
+            print(has_text($c, ".tag == 1LL))"))
+            # None arm still present on the statement-match chain.
+            print(has_text($c, ".tag == 0LL))"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

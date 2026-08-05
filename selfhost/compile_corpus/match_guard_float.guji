@@ -1,0 +1,9 @@
+sub f($x: Float): Int {
+    match $x {
+        $v if $v > 1.5 { 1 }
+        _ { 0 }
+    }
+}
+sub main(): Int {
+    f(2.0) + f(1.0)
+}

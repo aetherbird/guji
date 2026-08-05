@@ -1,0 +1,10 @@
+# List and map literals; list element access uses [], and map display sorts
+# keys in the driver output and env dump.
+sub main(): Int {
+    @xs = [10, 20, 30]
+    %m = {"b": 2, "a": 1}
+    print(@xs[0])
+    print(@xs[2])
+    print(%m)
+    0
+}

@@ -1,0 +1,10 @@
+unicode-word=true
+ascii-word=false
+greek=true
+alphabetic=true
+emoji=true
+cluster=true
+scalar-dot=false
+invalid-word=false
+named=é
+nonparticipating=none

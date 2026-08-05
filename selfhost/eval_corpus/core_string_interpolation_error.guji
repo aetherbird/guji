@@ -1,0 +1,11 @@
+# An error raised by a nested interpolation call must escape the string
+# evaluator unchanged; later literal text and statements are not evaluated.
+
+sub explode(): Int { 1 / 0 }
+
+sub main(): Int {
+    print("before")
+    print("value={ explode() } after")
+    print("unreachable")
+    0
+}

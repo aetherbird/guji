@@ -1,0 +1,35 @@
+# P5b-2b(nested-list-of-maps-index): `@m[i]` on a List[Map[Str,V]] retains
+# the indexed row's keys+vals into an owned guji_map_t (the map twin of
+# nested-list index). Bind-from-value then MOVEs those arrays into the
+# named two-array binding. Also pins empty-map list elements (`[{}]`, V defaults
+# to Int) and `%c = %m` map-binding copy (same from-value path).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # list-of-maps index: retain keys+vals (not an unowned shallow assignment)
+            print(has_text($c, "guji_retain((const void*)gmv6.keys);"))
+            print(has_text($c, "guji_retain(gmv6.vals);"))
+            # bounds check before retaining the row
+            print(has_text($c, "guji_panic(\"list index out of bounds\")"))
+            # bind-from-value MOVEs the owned arrays into the named binding
+            print(has_text($c, "_keys = gmv"))
+            print(has_text($c, ".keys = NULL;"))
+            # empty-map list element allocates a len-0 ARR_MAP list
+            print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_MAP, sizeof(guji_map_t), 1)"))
+            # map-binding copy (%c = %m) retains the same-heap arrays
+            print(has_text($c, "guji_retain(gmv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

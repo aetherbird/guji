@@ -1,0 +1,35 @@
+# Spec 15.3: splitting, line rules, trimming, case conversion, replacement,
+# matching, Unicode scalar behavior, empty inputs, and parse-int failure state.
+sub main(): Int {
+    @split = "--a--b--".split("--")
+    @scalars = "aλ".split("")
+    @lines = "a\n\nb\n".lines()
+    @empty_lines = "".lines()
+    @one_empty_line = "\n".lines()
+    $trimmed = " \tλ \n".trim()
+    $lowered = "AbC".lower()
+    $uppered = "xYz".upper()
+    $unicode_upper = "é".upper()
+    $unicode_lower = "Λ".lower()
+    $replaced = "ab-12".replace(/(?<word>[a-z]+)-(\d+)/, '$<word>:$2:$$')
+    $computed = "a1b2".replace_with(/\d/, sub($m) { "[" ~ $m[0].unwrap() ~ "]" })
+    $matched = ("abc" ~~ /^a/).is_some()
+    $parsed = "-42".parse_int().unwrap_or(0)
+    print("split=@split")
+    print("scalars=@scalars")
+    print("lines=@lines")
+    print("empty-lines=@empty_lines")
+    print("one-empty-line=@one_empty_line")
+    print("trim=[$trimmed]")
+    print("case=$lowered/$uppered")
+    print("unicode-case=$unicode_upper/$unicode_lower")
+    print("replace=$replaced")
+    print("replace-with=$computed")
+    print("match=$matched")
+    print("parse=$parsed")
+    match "4x".parse_int() {
+        Ok($n) { print("parse-fail=unexpected:$n") }
+        Err($e) { print("parse-fail=$e") }
+    }
+    0
+}

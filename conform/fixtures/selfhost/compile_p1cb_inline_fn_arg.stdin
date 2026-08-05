@@ -1,0 +1,8 @@
+sub apply($f, $x: Int): Int { $f($x) }
+
+sub main(): Int {
+    $base = 4
+    $a = apply(sub($n: Int): Int { $n + $base }, 6)
+    $b = apply(sub($n: Int): Int { $n * 3 }, 7)
+    $a + $b
+}

@@ -1,0 +1,16 @@
+# gujiconform -- Phase 2 (Platform IO pass): read_file($path) reads a whole file
+# VERBATIM and returns Result[Str, Str] (Section 15.4). Reading /dev/null (always
+# present, no working-directory dependence) yields Ok("") -- empty content; reading
+# a path that does not exist yields Err("cannot read file: <path>"), a fixed,
+# OS-reason-free message so both engines agree byte-for-byte. The expected output
+# is derived from the spec, never captured from native.
+sub main() {
+    match read_file("/dev/null") {
+        Ok($s)  { print("devnull:[$s]") }
+        Err($e) { print("devnull-err:$e") }
+    }
+    match read_file("conform-no-such-file-9f3a.txt") {
+        Ok($s)  { print("missing-ok:$s") }
+        Err($e) { print($e) }
+    }
+}

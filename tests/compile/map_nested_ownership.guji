@@ -1,0 +1,31 @@
+# RC1.3b-ii nested map/list ownership: returned Map[Str,List],
+# returned Map[Str,Map], values() -> List[Map], and set replacement all keep
+# immutable snapshots while native RC releases their counted backing arrays.
+sub make_lists(): Map[Str, List[Int]] {
+    {"a": [1, 2], "b": [3]}
+}
+
+sub make_maps(): Map[Str, Map[Str, Str]] {
+    {"a": {"x": "one", "y": "two"}, "b": {"z": "zed"}}
+}
+
+sub main(): Int {
+    %lists = make_lists()
+    %lists2 = %lists.set("a", [4, 5])
+    print(%lists{"a"}.sum())
+    print(%lists2{"a"}.sum())
+    @rows = %lists2.values()
+    print(@rows[0][1])
+
+    %maps = make_maps()
+    %maps2 = %maps.set("a", {"x": "ONE"})
+    print(%maps{"a"}{"y"})
+    print(%maps2{"a"}{"x"})
+    @map_rows = %maps.values()
+    print(@map_rows[1]{"z"})
+
+    @lm2 = @map_rows.reverse()
+    print(@lm2[0]{"z"})
+    print(@map_rows[0]{"x"})
+    0
+}

@@ -1,0 +1,32 @@
+# gujiconform - EB-1b cross-type recursive layout fixture (CLASS-field box).
+# A class declared FIRST whose field names a later type that reaches back to the class
+# closes a by-value cycle; the class boxes that edge. Here `class TypeRef` (declared
+# first) has `args: TypeList`, and the enum `TypeList` embeds `TypeRef` by value, so
+# TypeRef stores `struct TypeList* f1` (a counted box). Pins the box ctype (struct-tag
+# forward pointer so it resolves before the later enum typedef), the wrapped enum's
+# runtime kind + drop entry, the box allocation, the pointer retain/release in the
+# class fields helper, and the dereferenced read of the boxed field.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "struct TypeList* f1;"))
+            print(has_text($c, "#define GUJI_KIND_TypeList 13"))
+            print(has_text($c, "guji_alloc(GUJI_KIND_TypeList, 0, sizeof(TypeList))"))
+            print(has_text($c, "guji_release((const void*)p->f1);"))
+            print(has_text($c, "guji_drop_TypeList, /* GUJI_KIND_TypeList */"))
+            print(has_text($c, "(*(gp0.f1))"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

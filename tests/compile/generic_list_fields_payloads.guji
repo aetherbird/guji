@@ -1,0 +1,47 @@
+class Bag[T] {
+    has @.items: List[T]
+
+    sub count($self): Int {
+        $self.items.count()
+    }
+
+    sub first($self): T {
+        $self.items[0]
+    }
+}
+
+enum Shelf[T] {
+    Items(@xs: List[T])
+
+    sub count($self): Int {
+        match $self {
+            Items(@ys) { @ys.count() }
+        }
+    }
+}
+
+sub main(): Int {
+    @nums = [2, 3, 5]
+    $bi = Bag(items: @nums)
+    print("{ $bi.count() }")
+    print("{ $bi.first() }")
+
+    @words = ["guji", "lang"]
+    $bs = Bag(items: @words)
+    print($bs.first())
+    print($bs.items.join("-"))
+
+    $si = Items(@nums)
+    print("{ $si.count() }")
+    match $si {
+        Items(@got_nums) { print("{ @got_nums.sum() }") }
+    }
+
+    $ss = Items(@words)
+    print("{ $ss.count() }")
+    match $ss {
+        Items(@got_words) { print(@got_words.join(":")) }
+    }
+
+    0
+}

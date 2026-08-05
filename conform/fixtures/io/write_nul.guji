@@ -1,0 +1,14 @@
+# gujiconform -- D1 follow-up: the WRITE path (stdout.write / $h.write) preserves
+# embedded NUL bytes, identically in both engines. stdin holds "a\0b\nc\0d" (two
+# interior NUL bytes). We slurp it and write the raw bytes verbatim to stdout via
+# stdout.write (NO added newline), then write a literal tail and an end marker.
+# Before the fix, native guji_write used fputs (strlen-based) and truncated at the
+# first \0; the interpreter writes a length-counted string. Expected output is the
+# spec answer (every byte preserved), not captured from native.
+sub main(): Int {
+    $s = stdin.slurp()
+    stdout.write($s)
+    stdout.write("|tail")
+    print("|END")
+    0
+}

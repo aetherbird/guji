@@ -1,0 +1,19 @@
+enum Val {
+    VNum($n: Int)
+    VText($t: Str)
+}
+
+sub lookup($k: Int): Option[Val] {
+    if $k == 0 { Some(VText("found-text")) } else { None }
+}
+
+sub use_it($k: Int): Int {
+    match lookup($k) {
+        Some($v) { match $v { VText($t) { print($t) 12 } VNum($n) { $n } } }
+        None { 99 }
+    }
+}
+
+sub main(): Int {
+    return use_it(0)
+}

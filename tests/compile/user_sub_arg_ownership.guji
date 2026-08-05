@@ -1,0 +1,49 @@
+# RC1.6d-ii: per-parameter escape summaries. Arguments bound to user-sub
+# params that provably never reach an uncounted sink stay releasable in the
+# caller (mut rebinds free the old value — LSan-clean under the leak census),
+# while an argument that reaches an enum constructor keeps the conservative
+# escape marking: the stored payload must remain readable after the source
+# rebinds. The native/interpreter diff is the semantic oracle here; the
+# sanitizer gate is the memory oracle.
+enum Wrap {
+    Tag($text: Str)
+    Empty
+}
+
+sub shout($w: Str): Str { $w.upper() }
+sub pass($w: Str): Str { $w }
+sub chain($s: Str): Str { pass($s) }
+sub into_list($s: Str): List[Str] { [$s, "safe"] }
+sub into_opt($s: Str): Option[Str] { Some($s) }
+sub into_enum($s: Str): Wrap { Tag($s) }
+
+sub main(): Unit {
+    # Self-arg rebind chain through safe params, incl. the data-first form.
+    mut $a = "left".upper()
+    $a = shout($a)
+    $a = $a.pass()
+    $a = chain($a)
+    print($a)
+
+    # Rebind after the callee stored counted COPIES of the old value.
+    mut $b = "mid".upper()
+    @l = into_list($b)
+    $o = into_opt($b)
+    $b = "next".upper()
+    print(@l[0])
+    match $o {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+
+    # Unsafe param: the enum payload aliases $c, so $c's rebind must NOT
+    # release it — the stored text is read afterwards.
+    mut $c = "deep".upper()
+    $e = into_enum($c)
+    $c = "after".upper()
+    match $e {
+        Tag($t) { print($t) }
+        Empty { print("empty") }
+    }
+    print("{ $b } { $c }")
+}

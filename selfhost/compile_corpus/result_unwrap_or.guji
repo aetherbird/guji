@@ -1,0 +1,58 @@
+# §15.5 Result `unwrap_or`, function form `unwrap_or($r, $d)` and method form
+# `$r.unwrap_or($d)`, over bound `Result[T,E]` locals for every scalar/Str Ok
+# payload kind. Native lowers scalar payloads to `(res.tag == 0 ? res.ok :
+# <default>)`; the selfhost Str path retains the selected pointer into its owned
+# temp and releases the eagerly-lowered default. Exit code is 77 iff Ok chooses
+# `.ok`, Err chooses the default, and Bool false is not confused with Err.
+
+sub oki($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+sub erri($s: Str): Result[Int, Str] {
+    Err($s)
+}
+sub okf($n: Int): Result[Float, Str] {
+    if $n > 0 { Ok(2.5) } else { Err("float") }
+}
+sub okb($n: Int): Result[Bool, Str] {
+    if $n > 0 { Ok(false) } else { Err("bool") }
+}
+sub oks($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("pay" ~ "load" ~ "{ $n }") } else { Err("str") }
+}
+
+sub main(): Int {
+    $si: Result[Int, Str] = oki(7)
+    $ei: Result[Int, Str] = erri("bad")
+    $sf: Result[Float, Str] = okf(1)
+    $ef: Result[Float, Str] = okf(-1)
+    $sb: Result[Bool, Str] = okb(1)
+    $eb: Result[Bool, Str] = okb(-1)
+    $ss: Result[Str, Str] = oks(3)
+    $es: Result[Str, Str] = oks(-1)
+    $pi: Result[Int, Str] = parse_int("25")
+    $pe: Result[Int, Str] = parse_int("xx")
+
+    mut $code = 0
+
+    if $si.unwrap_or(0) == 7 { $code = $code + 1 }
+    if unwrap_or($ei, 9) == 9 { $code = $code + 2 }
+    print("{ $si.unwrap_or(0) },{ unwrap_or($ei, 41) }")
+
+    print("{ $sf.unwrap_or(9.5) }|{ unwrap_or($ef, 0.75) + 0.25 }")
+
+    if $sb.unwrap_or(true) { $code = $code + 1000 }
+    if unwrap_or($eb, true) { $code = $code + 4 }
+
+    $dflt = "de" ~ "fault"
+    print($ss.unwrap_or($dflt))
+    print(unwrap_or($es, $dflt))
+    print("{ $es.unwrap_or('lit') }!")
+    print(unwrap_or($ss, 'x') ~ "-tail")
+
+    if $pi.unwrap_or(0) == 25 { $code = $code + 8 }
+    if unwrap_or($pe, 30) == 30 { $code = $code + 16 }
+
+    # Return-arithmetic position closes the exit code: 31 + 7 + 39 = 77.
+    $code + $si.unwrap_or(0) + unwrap_or($ei, 39)
+}

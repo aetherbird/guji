@@ -1,0 +1,18 @@
+# Captured closures must allocate a fresh env each time the lambda expression
+# is evaluated. The same lambda AST runs twice in the loop and both closures
+# are called after the loop; static capture slots collapse this to 21/21.
+sub main(): Int {
+    mut $first = sub($n: Int): Int { $n }
+    mut $second = sub($n: Int): Int { $n }
+    for $base in [10, 20] {
+        $made = sub($n: Int): Int { $base + $n }
+        if $base == 10 {
+            $first = $made
+        } else {
+            $second = $made
+        }
+    }
+    print($first(1))
+    print($second(1))
+    0
+}

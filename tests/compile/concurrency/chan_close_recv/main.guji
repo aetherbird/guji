@@ -1,0 +1,11 @@
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $ch.close()
+    $opt = $ch.recv()
+    if $opt.is_some() {
+        print($opt.unwrap())
+    } else {
+        print("closed")
+    }
+    0
+}

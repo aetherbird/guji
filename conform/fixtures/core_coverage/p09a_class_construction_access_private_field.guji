@@ -1,0 +1,11 @@
+# A private field may be initialized but cannot be read outside its class body.
+class Token {
+    has $!secret: Str
+    has $.text: Str
+}
+
+sub main(): Int {
+    $token = Token(secret: "hidden", text: "shown")
+    print($token.secret)
+    0
+}

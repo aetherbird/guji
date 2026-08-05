@@ -1,0 +1,11 @@
+# gujiconform — Phase 1 (Platform IO pass): a duplicate top-level `sub` name is a
+# compile-time error (§16.2, no overloading). The interpreter and the native
+# compiler must reject it IDENTICALLY (same stderr, exit 1) — closing the prior
+# divergence where interp took last-wins and native emitted a raw C redefinition.
+sub greet(): Str { "first" }
+
+sub greet(): Str { "second" }
+
+sub main() {
+    print(greet())
+}

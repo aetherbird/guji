@@ -1,0 +1,10 @@
+enum N { A($v: Int), B }
+
+sub main(): Int {
+    $x = A(7)
+    print("bound-inferred")
+    match $x {
+        A($v) { $v }
+        B { 0 }
+    }
+}

@@ -1,0 +1,46 @@
+# Section 17 native channel send/recv for nested List-payload enums.
+#
+# Rows proves List[List[Int]] payloads are recursively detached into channel
+# messages. Words proves List[List[Str]] copies nested element strings. Maps is
+# left buffered and undelivered so LeakSanitizer proves the per-enum channel drop
+# releases a List[Map[Str, Str]] payload through the ARR_MAP cascade.
+enum Msg {
+    Rows($xs: List[List[Int]])
+    Words($ws: List[List[Str]])
+    Maps($ms: List[Map[Str, Str]])
+    Done
+}
+
+sub show($m: Msg): Str {
+    match $m {
+        Rows($xs) {
+            mut $sum = 0
+            for @row in $xs {
+                for $n in @row {
+                    $sum = $sum + $n
+                }
+            }
+            "sum={ $sum }"
+        }
+        Words($ws) {
+            @a = $ws[0]
+            @b = $ws[1]
+            @a[0] ~ "/" ~ @b[0]
+        }
+        Maps($ms) {
+            %m = $ms[0]
+            %m{"k"}
+        }
+        Done { "done" }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Msg] = channel(3)
+    $ch.send(Rows([[1, 2, 3], [4, 5]]))
+    $ch.send(Words([["red", "green"], ["blue"]]))
+    $ch.send(Maps([{"k": "held"}, {"z": "drop"}]))
+
+    print(show($ch.recv().unwrap()))
+    print(show($ch.recv().unwrap()))
+}

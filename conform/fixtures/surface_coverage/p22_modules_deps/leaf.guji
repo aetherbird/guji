@@ -1,0 +1,2 @@
+pub sub value(): Int { 41 }
+sub private_value(): Int { 99 }

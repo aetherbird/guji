@@ -1,0 +1,6 @@
+sub main(): Unit {
+    $s = "left" ~ " right"
+    $t = $s
+    print($s)
+    print($t)
+}

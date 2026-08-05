@@ -1,0 +1,32 @@
+# §15.6: run is shell-free but may explicitly invoke a shell. This row pins
+# empty and escaped argv entries, inherited stdin, separate byte-exact captures,
+# a nonzero child as Ok(Proc), UFCS, and the fixed spawn-failure Result.
+sub main(): Int {
+    @child_args = [
+        "-c",
+        "IFS= read -r line; printf \"<\%s><\%s><\%s>:\%s\" \"\$1\" \"\$2\" \"\$3\" \"\$line\"; printf \"warn:\%s\" \"\$2\" >&2; exit 7",
+        "guji-child",
+        "",
+        "a|b",
+        "100%"
+    ]
+    match run("sh", @child_args) {
+        Ok($p) {
+            print("exit={ $p.exit_code }")
+            print("out={ $p.stdout }")
+            print("err={ $p.stderr }")
+        }
+        Err($e) { print("unexpected: $e") }
+    }
+
+    match "printf".run(["ufcs-\%s", "ok"]) {
+        Ok($p) { print("ufcs={ $p.stdout }") }
+        Err($e) { print("unexpected ufcs: $e") }
+    }
+
+    match run("guji-run-definitely-absent-command-0000021", []) {
+        Ok($p) { print("unexpected missing ok") }
+        Err($e) { print($e) }
+    }
+    0
+}

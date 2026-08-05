@@ -1,0 +1,13 @@
+# Method call arguments exclude the implicit receiver and remain type checked.
+class Counter {
+    has $.value: Int
+    sub bumped($self, $amount: Int): Counter {
+        Counter(value: $self.value + $amount)
+    }
+}
+
+sub main(): Int {
+    $counter = Counter(value: 1)
+    print($counter.bumped("two"))
+    0
+}

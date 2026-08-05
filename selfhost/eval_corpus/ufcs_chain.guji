@@ -1,0 +1,9 @@
+# §7.2 UFCS: `$x.f(a)` desugars to `f($x, a)`, so a UFCS chain equals its
+# plain-call form. Uses user-defined subs only (no prelude methods).
+sub inc($x: Int): Int { $x + 1 }
+sub dbl($x: Int): Int { $x * 2 }
+sub main(): Int {
+    print(3.inc().dbl())
+    print(dbl(inc(3)))
+    0
+}

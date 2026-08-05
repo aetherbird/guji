@@ -1,0 +1,8 @@
+sub main(): Unit {
+    mut %m = {"a": 1, "b": 2, "c": 3, "d": 4}.set("a", 1)
+    mut @xs = %m.values()
+    @ys = @xs
+    @xs = @xs.map({ $_ + 10 })
+    @xs = @xs.filter({ $_ % 2 == 0 })
+    print("{ @xs.sum() } { @ys.sum() }")
+}

@@ -1,0 +1,46 @@
+# P5b-2b(carrier-higher-order): UNANNOTATED binds of §15.5 Option `map` (method
+# and function form) and `filter` must infer their carrier kind — the receiver's
+# payload T through the same g6_option_map_payload boundary the lowering uses,
+# and map's result payload U probed from the lambda body (so cross-kind maps
+# like Int->Str infer Option[Str], and untyped-param lambdas `sub($x) { .. }`
+# infer too). The annotated forms were already covered; the
+# tests/compile/carrier_higher_order.guji parity GAP was exactly this inference.
+# Str payloads exercise the Some-slot ownership (map moves an owned fresh Str;
+# filter co-owns via retain) under the consuming bind's single release.
+sub some_int($x: Int): Option[Int] { Some($x) }
+sub none_int(): Option[Int] { None }
+sub some_str($s: Str): Option[Str] { Some($s) }
+
+sub main(): Int {
+    $s = some_int(5)
+    $n = none_int()
+    $t = some_str("he" ~ "ap")
+
+    # map: typed and untyped lambdas, method and function form; None propagates.
+    $m1 = $s.map(sub($v: Int): Int { $v * 2 })
+    $m2 = $s.map(sub($x) { $x + 1 })
+    $m3 = map($n, sub($v: Int): Int { $v * 3 })
+    print("{ $m1.unwrap_or(0) } { $m2.unwrap_or(0) } { $m3.unwrap_or(99) }")
+
+    # Cross-kind maps must infer the LAMBDA body's kind, not the source's.
+    $m4 = $s.map(sub($v: Int): Str { "n={ $v }" })
+    $m5 = $t.map(sub($w: Str): Int { 42 })
+    $m6 = $t.map(sub($w) { $w ~ "!" })
+    $m4v = $m4.unwrap_or("x")
+    $m6v = $m6.unwrap_or("y")
+    print("{ $m4v } { $m5.unwrap_or(0) } { $m6v }")
+
+    # filter keeps the receiver kind; keep and drop polarities, both param styles.
+    $f1 = $s.filter(sub($v: Int): Bool { $v > 3 })
+    $f2 = $s.filter(sub($v) { $v > 9 })
+    $f3 = $t.filter(sub($w) { $w == "heap" })
+    $f3v = $f3.unwrap_or("z")
+    print("{ $f1.unwrap_or(0) } { $f2.unwrap_or(-1) } { $f3v }")
+
+    # An inferred mapped Option is itself a mappable/filterable bound local.
+    $m7 = $m1.map(sub($v) { $v - 3 })
+    $f4 = $m7.filter(sub($v) { $v == 7 })
+    print("{ $f4.unwrap_or(0) }")
+
+    $f1.unwrap_or(0) + $m2.unwrap_or(0) + $m5.unwrap_or(0)
+}

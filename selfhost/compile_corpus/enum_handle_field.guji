@@ -1,0 +1,28 @@
+# I8d bootstrap boundary: a user enum may own a real Handle in a mixed payload
+# slot. Construction/call/match copies retain it; final drop closes file handles.
+enum FileValue {
+    Empty
+    Text($text: Str)
+    Opened($handle: Handle)
+}
+
+sub read_wrapped($value: FileValue): Str {
+    match $value {
+        Empty { "empty" }
+        Text($text) { $text }
+        Opened($reader) { $reader.slurp() }
+    }
+}
+
+sub main(): Int {
+    $path = "/tmp/guji-i8d-enum-handle.generated"
+    write_file($path, "one\ntwo").unwrap()
+    $handle: Handle = open($path).unwrap()
+    $input: FileValue = Opened($handle)
+    print(read_wrapped($input))
+
+    # Leave another open file in an enum so LSan proves final teardown.
+    $handle2: Handle = open($path).unwrap()
+    $unused: FileValue = Opened($handle2)
+    0
+}

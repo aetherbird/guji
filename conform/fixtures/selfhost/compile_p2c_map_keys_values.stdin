@@ -1,0 +1,12 @@
+sub main(): Int {
+    %m: Map[Str, Int] = {"c": 3, "a": 1, "b": 2}
+    @ks = keys(%m)
+    @vs = %m.values()
+    print(@ks.join(","))
+    print("{ @vs.sum() }")
+
+    %words: Map[Str, Str] = {"b": "bee", "a": "aye"}
+    @wvs = values(%words)
+    print(@wvs.join(":"))
+    0
+}

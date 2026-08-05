@@ -1,0 +1,14 @@
+sub opt_int($x: Int): Option[Int] { if $x > 0 { Some($x) } else { None } }
+sub double_opt($n: Int): Option[Int] { Some($n * 2) }
+sub res_int($x: Int): Result[Int, Str] { if $x > 0 { Ok($x) } else { Err("bad") } }
+sub ok99(): Result[Int, Str] { Ok(99) }
+sub main(): Int {
+    $a: Option[Int] = opt_int(3).and_then(sub($n: Int): Option[Int] { double_opt($n) })
+    print($a.unwrap_or(-1))
+    print(opt_int(3).and_then(sub($m: Int): Option[Int] { double_opt($m) }).unwrap_or(-1))
+    match res_int(-1).or_else(sub($e: Str): Result[Int, Str] { ok99() }) {
+        Ok($v) { print("ok $v") }
+        Err($m) { print("err $m") }
+    }
+    0
+}

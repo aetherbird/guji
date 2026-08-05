@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 5 EB-3 compiler codegen fixture.
+# String escapes must lower exactly like the Go lexer's `interpolate` (eval.go):
+# the backslash is KEPT for any escape that is not \n \t \\ \" \$ \@ \% \{, and the
+# only brace special-case is `\{` -> `{` (so `\}` stays backslash+`}`). Before the
+# decode_escape / g3 fix, `\r` collapsed to a bare `r` (its C/JSON-escaper carriage-
+# return branch then went live on the self-compile) and `\}` dropped its backslash.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # `\r` kept (backslash+r), `\{` -> `{`, `\}` kept (backslash+brace).
+            print(has_text($c, 'a\\rb {lit\\}'))
+            # unknown escape `\q` keeps its backslash.
+            print(has_text($c, 'z\\qz'))
+            # the OLD bug dropped `\r`'s backslash, yielding `arb`.
+            print(has_text($c, 'arb'))
+            # the OLD bug dropped `\}`'s backslash, yielding `lit}`.
+            print(has_text($c, 'lit}'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,49 @@
+# §9/§10 (I3c): non-generic enum construction and matching in native D.
+# Isolates nullary and payload variants, recursively nested patterns, guarded
+# fallthrough, and enum values crossing tail/explicit-return call boundaries.
+enum Atom {
+    Number($n: Int)
+    Word($s: Str)
+    Empty
+}
+
+enum Tree {
+    Tip($atom: Atom)
+    Fork($left: Tree, $right: Tree)
+    Absent
+}
+
+sub relay($tree: Tree): Tree {
+    $tree
+}
+
+sub built($n: Int): Tree {
+    return Fork(Tip(Number($n)), Tip(Empty))
+}
+
+sub describe($tree: Tree): Str {
+    match $tree {
+        Fork(Tip(Number($a)), Tip(Number($b))) if $a > $b { "descending" }
+        Fork(Tip(Number($a)), Tip(Number($b))) { "pair:{ $a + $b }" }
+        Fork(Tip(Word($word)), _) if $word == "go" { "guarded word" }
+        Fork($left, $right) { "fork { describe($left) } + { describe($right) }" }
+        Tip(Number($n)) if $n < 0 { "negative:$n" }
+        Tip(Number($n)) { "number:$n" }
+        Tip(Word($word)) { "word:$word" }
+        Tip(Empty) { "empty" }
+        Absent { "absent" }
+    }
+}
+
+sub main(): Int {
+    print(describe(Absent))
+    print(describe(Tip(Empty)))
+    print(describe(Tip(Number(0 - 4))))
+    print(describe(Tip(Word("hi"))))
+    print(describe(Fork(Tip(Number(9)), Tip(Number(2)))))
+    print(describe(Fork(Tip(Number(2)), Tip(Number(9)))))
+    print(describe(Fork(Tip(Word("go")), Absent)))
+    print(describe(relay(Fork(Tip(Word("x")), Tip(Number(1))))))
+    print(describe(built(3)))
+    0
+}

@@ -1,0 +1,29 @@
+# §6.3 map iteration borrows collection-valued rows from both named and
+# by-value Map[Str, V] iterators. Map-row operations exercise the borrowed
+# guji_map_t storage view; fresh Str leaves make row lifetime mistakes
+# sanitizer-visible.
+sub make_lists(): Map[Str, List[Str]] {
+    {"c": ["g" ~ "amma"]}
+}
+
+sub main(): Int {
+    %lists = {"b": [3, 4], "a": [1, 2]}
+    mut $total = 0
+    for $key, @row in %lists {
+        print("$key:{ @row.sum() }")
+        $total = $total + @row[0]
+    }
+
+    for $key2, @words in make_lists() {
+        print("$key2:{ @words.join('-') }")
+        $total = $total + @words.count()
+    }
+
+    %maps = {"right": {"z": 5}, "left": {"x": 6, "y": 7}}
+    for $outer, %row in %maps {
+        @values = %row.values()
+        print("$outer:{ %row }")
+        $total = $total + @values.sum()
+    }
+    $total
+}

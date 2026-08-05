@@ -1,0 +1,18 @@
+sub make_some($s: Str): Option[Str] {
+    Some($s)
+}
+
+sub fail($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub main(): Unit {
+    make_some("drop" ~ "!")
+    fail("gone" ~ "!")
+    @words = ["red", "blue", "green"]
+    $w = @words.get(1)
+    print($w.unwrap())
+    @nums = [10, 20, 30]
+    $n = @nums.get(2)
+    print("{ $n.unwrap() }")
+}

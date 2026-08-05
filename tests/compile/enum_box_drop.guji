@@ -1,0 +1,25 @@
+# RC1.4e regression: a mut rebind that drops the LAST reference to a boxed
+# recursive-enum payload must dispatch the box's generated drop entry. RC1.4d
+# left drop-table slot 9 (GUJI_KIND_BUSH) as a comment, so generated enum kinds
+# (numbered from 10) sat one slot below their kind id: releasing the old Node
+# box here read past the end of guji_drop_table (ASan global-buffer-overflow)
+# while the interpreter printed fine. No fixture dropped a box to rc 0 — the
+# enum_box_ownership fixture keeps aliases alive — so the gate never saw it.
+enum Tree {
+    Leaf($value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+sub sum_tree($t: Tree): Int {
+    match $t {
+        Leaf($v) { $v }
+        Node($l, $r) { sum_tree($l) + sum_tree($r) }
+    }
+}
+
+sub main(): Int {
+    mut $a = Node(Leaf(1), Leaf(2))
+    $a = Leaf(9)
+    print("after rebind: { sum_tree($a) }")
+    0
+}

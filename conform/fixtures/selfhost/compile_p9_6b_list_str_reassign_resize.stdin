@@ -1,0 +1,7 @@
+sub main(): Unit {
+    mut @xs = ["red", "blue"]
+    @xs = ["green"]
+    print(@xs[0])
+    @xs = ["a", "b", "c"]
+    print(@xs[2])
+}

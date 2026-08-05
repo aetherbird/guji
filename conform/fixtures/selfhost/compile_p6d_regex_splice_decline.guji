@@ -1,0 +1,24 @@
+import lexer
+
+# P6d/P6e: splice consumers. After P6e-match, `~~` and `.is_some()` over a
+# spliced literal COMPILE (host-provided parts), including replace_with after
+# P6e-replace-c and first-class Regex VALUE binds. An ESCAPED `\<` never opens a
+# splice (`/a\<{2}/` compiles). Regex values also preserve named-capture metadata
+# when matched, so runtime `$m<name>` access remains available after a bind.
+sub check($src: Str): Str {
+    match lexer::compile_program_c($src) {
+        Ok($c) { "compiled" }
+        Err($e) { "declined" }
+    }
+}
+
+sub main(): Int {
+    print(check('sub main(): Int { $n = "a" match "aa" ~~ /<{ $n }>/ { Some($m) { print($m.text) } None { print("none") } } 0 }'))
+    print(check('sub main(): Int { $n = "a" if ("aa" ~~ /<{ $n }>/).is_some() { print("y") } 0 }'))
+    print(check('sub main(): Int { $n = "a" print("aa".replace_with(/<{ $n }>/, sub($m: Match): Str { "x" })) 0 }'))
+    print(check('sub main(): Int { $n = "a" $re = /<{ $n }>b/ match "ab" ~~ $re { Some($m) { print($m.text) } None { print("none") } } 0 }'))
+    print(check('sub main(): Int { match "a<<" ~~ /a\<{2}/ { Some($m) { print($m.text) } None { print("none") } } 0 }'))
+    print(check('sub main(): Int { $re = /(?<u>a)-x/ match "a-x" ~~ $re { Some($m) { print($m<u>.unwrap_or("?")) } None { print("none") } } 0 }'))
+    print(check('sub main(): Int { match "a-x" ~~ /(?<u>a)-x/ { Some($m) { print($m<u>.unwrap_or("?")) } None { print("none") } } 0 }'))
+    0
+}

@@ -1,0 +1,25 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P5b-2b(carrier-eq scalar): scalar/Str Option and Result equality lowers
+# structurally: compare tags first, then the active payload slot, using
+# guji_str_equal for Str payloads instead of C pointer equality.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "&& ((gv0.tag == 0LL) || ((gv0.val == gv1.val)))"))
+            print(has_text($c, "guji_str_equal("))
+            print(has_text($c, ".tag == 0LL) ? (("))
+            print(has_text($c, ".err)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

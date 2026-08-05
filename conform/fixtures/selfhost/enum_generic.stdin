@@ -1,0 +1,4 @@
+enum Tree[T] {
+    Leaf($value: T)
+    Node($left: Tree, $right: Tree)
+}

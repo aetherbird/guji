@@ -1,0 +1,8 @@
+# T5: calls must pass arguments compatible with annotated parameters.
+sub need_str($s: Str): Int {
+    0
+}
+
+sub main(): Int {
+    need_str(1)
+}

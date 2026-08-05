@@ -1,0 +1,11 @@
+sub main(): Int {
+    %m: Map[Str, Int] = {}
+    print(%m)
+    print(%m.has_key("x"))
+    @ks = %m.keys()
+    print(@ks.count())
+    %n = %m.set("a", 7)
+    print(%m)
+    print(%n{"a"})
+    0
+}

@@ -1,0 +1,54 @@
+# gujiconform - selfhost slice 6 P2c-risk regression fixture (UPDATED under
+# P5b-2b(nested-list-of-maps)).
+#
+# ORIGINAL intent: a map value inside a list literal (`@maps = [%m]`) must not be
+# accepted by the CgStr element-kind probe via map DISPLAY — i.e. it must never be
+# mis-inferred as a `List[Str]` and rendered through `guji_map_str`.
+#
+# P5b-2b now adds LEGITIMATE `List[Map[Str, V]]` codegen (ARR_MAP backing of
+# guji_map_t, each element map materialized to an owned value and moved into the
+# slot). So this program is now COVERED — native accepts it and the self-hosted
+# compiler matches three-way (exit 1 = the returned count, ASan/UBSan/LSan-clean).
+# The guard is therefore STRENGTHENED, not weakened: it asserts the construct now
+# compiles as a proper List[Map] (ARR_MAP) AND — the original anti-misfire
+# invariant — is STILL never lowered as a displayed Str (`guji_map_str` absent).
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    $src = stdin.slurp()
+    match lexer::typecheck_verdict($src) {
+        TcAccept {
+            match lexer::compile_program_c($src) {
+                Ok($c) {
+                    print("codegen-ok")
+                    # the outer list is an ARR_MAP backing of guji_map_t
+                    print(has_text($c, "guji_arr_alloc(GUJI_KIND_ARR_MAP, sizeof(guji_map_t), 1);"))
+                    # the map binding is copied into a value and MOVED into the slot
+                    print(has_text($c, "((guji_map_t*)gl2.data)[0] = gmv3;"))
+                    # the from-var copy retains each key it owns
+                    print(has_text($c, "guji_retain(gmv3.keys["))
+                    # ANTI-MISFIRE (the original guard): the map element is never
+                    # rendered as a display Str via guji_map_str
+                    print(has_text($c, "guji_map_str("))
+                    0
+                }
+                Err($e) {
+                    note($e)
+                    1
+                }
+            }
+        }
+        TcRejectType($m) {
+            note($m)
+            1
+        }
+        TcRejectParse($m) {
+            note($m)
+            1
+        }
+    }
+}

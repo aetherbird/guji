@@ -1,0 +1,9 @@
+# Returning a borrowed Str param must retain it before the caller releases its arg.
+sub ident($s: Str): Str {
+    $s
+}
+
+sub main(): Unit {
+    $t = ident("keep")
+    print($t)
+}

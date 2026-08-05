@@ -1,0 +1,29 @@
+# gujiconform - EB-5f compiler codegen fixture.
+# A direct self-recursive enum field is boxed. Releasing a deep linked list by
+# recursively dropping each box overflows the C stack at bootstrap scale, so the
+# generated box drop helper must walk unique self tails iteratively.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static void guji_drop_Link(void* p)"))
+            print(has_text($c, "Link* cur = (Link*)p;"))
+            print(has_text($c, "while (cur)"))
+            print(has_text($c, "Link* next = (Link*)p->f1;"))
+            print(has_text($c, "GUJI_HDR(next)->rc == 1"))
+            print(has_text($c, "guji_release((const void*)next);"))
+            print(has_text($c, "guji_release_Link_fields((Link*)p);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

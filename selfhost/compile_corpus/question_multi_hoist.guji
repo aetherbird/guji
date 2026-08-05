@@ -1,0 +1,47 @@
+# Slice 6 P3b-2b-2c-4 (first piece): MULTIPLE `?` in one call/expression.
+# `g5_question_hoist_all` iterates the single-`?` hoist to a fixpoint: each pass
+# lifts the leftmost order-safe `?` into a synthetic scalar bind (guard
+# early-returns None/Err first) and leaves a pure `?qN` name behind, so the next
+# pass's left-pure rules admit the NEXT `?`. Guards land in exactly native's
+# left-to-right evaluation order: two-`?` call arguments, two-`?` binary
+# operands (direct and call-produced carriers), a three-term left-spine chain,
+# and a non-final bind RHS with two `?`.
+sub lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n * 2) } else { None }
+}
+sub add($a: Int, $b: Int): Int { $a + $b }
+
+# Some(f(o?, p?)) — two `?` arguments in ONE call.
+sub sum_opts($o: Option[Int], $p: Option[Int]): Option[Int] { Some(add($o?, $p?)) }
+
+# Ok(parse_int(s)? - parse_int(t)?) — binary with a `?` in BOTH operands; the
+# left guard (and its early Err return) must fire before the right operand runs.
+sub diff_parse($s: Str, $t: Str): Result[Int, Str] { Ok(parse_int($s)? - parse_int($t)?) }
+
+# Some(o? + p? + 1) — left-spine chain of two `?` plus a literal.
+sub chain3($o: Option[Int], $p: Option[Int]): Option[Int] { Some($o? + $p? + 1) }
+
+# Non-final bind RHS with two `?` (the SBind hoist path iterates too).
+sub bind2($o: Option[Int], $p: Option[Int]): Option[Int] {
+    $x = $o? + $p?
+    Some($x * 10)
+}
+
+# Two call-produced carriers, each with `?`, in one binary.
+sub call2($a: Int, $b: Int): Option[Int] { Some(lookup($a)? + lookup($b)?) }
+
+sub main(): Int {
+    match sum_opts(Some(3), Some(4)) { Some($v) { print("so { $v }") } None { print("so none") } }
+    match sum_opts(None, Some(4)) { Some($v) { print("so { $v }") } None { print("so none") } }
+    match sum_opts(Some(3), None) { Some($v) { print("so { $v }") } None { print("so none") } }
+    match diff_parse("9", "4") { Ok($v) { print("dp { $v }") } Err($e) { print("dp { $e }") } }
+    match diff_parse("z", "4") { Ok($v) { print("dp { $v }") } Err($e) { print("dp { $e }") } }
+    match diff_parse("9", "w") { Ok($v) { print("dp { $v }") } Err($e) { print("dp { $e }") } }
+    match chain3(Some(5), Some(6)) { Some($v) { print("c3 { $v }") } None { print("c3 none") } }
+    match chain3(None, Some(6)) { Some($v) { print("c3 { $v }") } None { print("c3 none") } }
+    match bind2(Some(2), Some(3)) { Some($v) { print("b2 { $v }") } None { print("b2 none") } }
+    match bind2(Some(2), None) { Some($v) { print("b2 { $v }") } None { print("b2 none") } }
+    match call2(4, 5) { Some($v) { print("cl { $v }") } None { print("cl none") } }
+    match call2(0, 5) { Some($v) { print("cl { $v }") } None { print("cl none") } }
+    48
+}

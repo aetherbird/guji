@@ -1,0 +1,11 @@
+# O4c: main and child wait on channels that have no senders. This is a stable
+# global channel deadlock, independent of task start order.
+sub main(): Int {
+    $left: Chan[Int] = channel()
+    $right: Chan[Int] = channel()
+    hatch {
+        $left.recv()
+    }
+    $right.recv()
+    0
+}

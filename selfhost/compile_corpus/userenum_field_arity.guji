@@ -1,0 +1,14 @@
+enum Item {
+    One($x: Int)
+    Pair($x: Int, $y: Int)
+    Empty
+}
+
+sub main(): Int {
+    $i: Item = One(8)
+    match $i {
+        One($x) { $x }
+        Pair($x, $y) { $x + $y }
+        Empty { 0 }
+    }
+}

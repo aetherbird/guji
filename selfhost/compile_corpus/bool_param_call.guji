@@ -1,0 +1,12 @@
+# E5d-7c-2d-4: Bool parameters are lowered as int64_t C parameters.
+sub pick($flag: Bool): Int {
+    if $flag { 11 } else { 5 }
+}
+
+sub main(): Int {
+    if pick(true) == 11 && pick(false) == 5 {
+        0
+    } else {
+        9
+    }
+}

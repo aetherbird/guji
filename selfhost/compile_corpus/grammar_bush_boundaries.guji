@@ -1,0 +1,63 @@
+# P7c-2b-2b: Bush values across sub/binding boundaries (§14.2).
+# Covers Option[Bush] pass/return (fresh local + borrowed param), bare Bush
+# params/returns, unwrap/expect into owned locals, and mutable bare-Bush rebinds.
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub parse_pair($s: Str): Option[Bush] {
+    Pair.parse($s)
+}
+
+sub parse_local($s: Str): Option[Bush] {
+    $opt = Pair.parse($s)
+    $opt
+}
+
+sub pass($o: Option[Bush]): Option[Bush] {
+    $o
+}
+
+sub left_text($b: Bush): Str {
+    $b.text
+}
+
+sub id_bush($b: Bush): Bush {
+    $b
+}
+
+sub main(): Int {
+    $opt = parse_pair("aa-bb")
+    match $opt {
+        Some($b) { print(left_text($b)) }
+        None { print("?") }
+    }
+    match $opt {
+        Some($b) { print($b.text) }
+        None { print("?") }
+    }
+    $kept = pass(parse_local("m-n"))
+    match $kept {
+        Some($b) { print($b.text) }
+        None { print("?") }
+    }
+    match Pair.parse("ee-ff") {
+        Some($b) {
+            $c = id_bush($b)
+            print($c.text)
+        }
+        None { print("?") }
+    }
+    $o = Pair.parse("gg-hh")
+    $bare = $o.unwrap()
+    print($bare.text)
+    $from_expect = $o.expect("need-bush")
+    print($from_expect.text)
+    mut $cur = Pair.parse("p-q").unwrap()
+    print($cur.text)
+    $cur = Pair.parse("r-s").unwrap()
+    print($cur.text)
+    0
+}

@@ -1,0 +1,47 @@
+# G2b slice: DATA-FIRST uniform calls to generic subs (§7.2). `$recv.id()` is
+# exactly `id($recv)`; the receiver is the implicit first argument. The checker
+# leaves these uniform calls Unknown, so codegen derives each instantiation from
+# the receiver/argument types itself (genericSubSpecForMethodCall).
+sub id[T]($x: T): T {
+    $x
+}
+
+sub pick_first[T]($a: T, $b: T): T {
+    $a
+}
+
+sub double_up[T]($x: T): List[T] {
+    [$x, $x]
+}
+
+sub main(): Unit {
+    # Single-argument method-style generic call at three scalar instantiations.
+    $n = 7
+    $r1 = $n.id()
+    print("{ $r1 }")
+
+    $s = "hello"
+    $r2 = $s.id()
+    print($r2)
+
+    $f = 1.5
+    $r3 = $f.id()
+    print("{ $r3 }")
+
+    # Two-argument: the receiver is the first param, the explicit arg the second.
+    $r4 = $n.pick_first(99)
+    print("{ $r4 }")
+
+    $r5 = $s.pick_first("world")
+    print($r5)
+
+    # Chained method-style calls (each link is its own data-first generic call).
+    $r6 = $n.id().id()
+    print("{ $r6 }")
+
+    # Generic sub returning a List[T] called method-style.
+    $xs = $n.double_up()
+    print("{ $xs.count() }")
+    print("{ $xs[0] }")
+    print("{ $xs[1] }")
+}

@@ -1,0 +1,6 @@
+sub main(): Int {
+    $prefix = "gu"
+    @words: List[Str] = [$prefix ~ "ji", "ok"]
+    print(@words[0])
+    9
+}

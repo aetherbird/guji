@@ -1,0 +1,27 @@
+# gujiconform - selfhost slice 6 P3b-2b-2a compiler codegen fixture.
+# Pins final `Some(carrier?)` / `Ok(carrier?)` lowering: direct final
+# constructors unwrap the operand once, return early on None/Err, and rebuild
+# the enclosing carrier on success.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "return (guji_opt_int)\{0LL, 0LL};"))
+            print(has_text($c, "return (guji_opt_int)\{1LL, go"))
+            print(has_text($c, "return gr"))
+            print(has_text($c, "guji_retain(gr"))
+            print(has_text($c, "return (guji_res_int_str)\{0LL, gr"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

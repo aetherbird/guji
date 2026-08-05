@@ -1,0 +1,57 @@
+# §8.3/§7.5/§9/§7.2 (I3b): instance and associated method dispatch.
+# Covers nullary-variant receivers (`Red.label()`), bound enum methods and
+# chaining, enum associated functions, class associated + temp-receiver
+# chains, and data-first UFCS on a class instance. Leave payload-heavy and
+# generic-carrier cases to I3c/I3d.
+enum Color {
+    Red
+    Blue
+
+    sub label($self): Str {
+        match $self {
+            Red { "red" }
+            Blue { "blue" }
+        }
+    }
+
+    sub flip($self): Color {
+        match $self {
+            Red { Blue }
+            Blue { Red }
+        }
+    }
+
+    sub same_label($self, $other: Color): Bool {
+        $self.label() == $other.label()
+    }
+
+    sub from_code($code: Int): Color {
+        if $code == 0 { Red } else { Blue }
+    }
+}
+
+class Counter {
+    has $.n: Int
+
+    sub from_n($n: Int): Counter { Counter(n: $n) }
+    sub bumped($self): Counter { Counter(n: $self.n + 1) }
+    sub value($self): Int { $self.n }
+}
+
+sub doubled($c: Counter): Int { $c.n * 2 }
+
+sub main(): Int {
+    # Nullary-variant receiver method (§9).
+    print(Red.label())
+    # Bound receiver, flip chain, and associated construction.
+    $c = Blue
+    print($c.label())
+    print($c.flip().label())
+    print(Color.from_code(0).label())
+    print($c.same_label(Blue))
+    print($c.same_label(Red))
+    # Class associated + constructor-temp / method-temp chain + data-first.
+    print(Counter.from_n(5).bumped().value())
+    print(Counter(n: 7).doubled())
+    0
+}

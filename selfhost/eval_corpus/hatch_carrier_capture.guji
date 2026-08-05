@@ -1,0 +1,114 @@
+# I10g2: immutable hatch capture of Option/Result without shallow-copying
+# counted arms. Heap Str payloads are detached into the task env; parent locals
+# remain independently owned after spawn. The ownership-shape gate pins active
+# arm copies/releases independently of scheduler timing; LSan checks execution.
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub pick($flag: Bool): Option[Str] {
+    if $flag { Some("he" ~ "ap") } else { None }
+}
+
+sub classify($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("ok" ~ "-val") } else { Err("er" ~ "r") }
+}
+
+sub match_error($error: Match): Result[Int, Match] {
+    Err($error)
+}
+
+sub bush_error($error: Bush): Result[Int, Bush] {
+    Err($error)
+}
+
+sub match_success($value: Match): Result[Match, Int] {
+    Ok($value)
+}
+
+sub bush_success($value: Bush): Result[Bush, Int] {
+    Ok($value)
+}
+
+sub main(): Int {
+    $done: Chan[Str] = channel()
+    $o = pick(true)
+    $r = classify(1)
+    hatch {
+        $os = match $o {
+            Some($s) { $s }
+            None { "none" }
+        }
+        $rs = match $r {
+            Ok($s) { $s }
+            Err($e) { $e }
+        }
+        $done.send($os ~ "|" ~ $rs)
+    }
+    print($done.recv().unwrap())
+    print($o.unwrap())
+    print($r.unwrap())
+
+    # Scalar Option capture (by-value) plus a None arm.
+    $done2: Chan[Int] = channel()
+    $n: Option[Int] = Some(9)
+    $z: Option[Int] = None
+    hatch {
+        $a = match $n { Some($v) { $v } None { 0 } }
+        $b = match $z { Some($v) { $v } None { -1 } }
+        $done2.send($a + $b)
+    }
+    print($done2.recv().unwrap())
+
+    # Counted Result error arms must also be owned by the task frame. The
+    # capture copier detaches each graph; task exit releases that copy while
+    # the parent-side Result remains independently usable.
+    $match_source = ('er-ror' ~~ /(?<left>\w+)-(?<right>\w+)/).unwrap()
+    $match_result: Result[Int, Match] = match_error($match_source)
+    $bush_source = Pair.parse("bu-sh").unwrap()
+    $bush_result: Result[Int, Bush] = bush_error($bush_source)
+    $match_ok_source = ('ok-match' ~~ /(?<left>\w+)-(?<right>\w+)/).unwrap()
+    $match_ok_result: Result[Match, Int] = match_success($match_ok_source)
+    $bush_ok_source = Pair.parse("ok-bush").unwrap()
+    $bush_ok_result: Result[Bush, Int] = bush_success($bush_ok_source)
+    $done3: Chan[Str] = channel()
+    hatch {
+        $match_text = match $match_result {
+            Ok($n) { "wrong-match-ok" }
+            Err($m) { $m.text }
+        }
+        $bush_text = match $bush_result {
+            Ok($n) { "wrong-bush-ok" }
+            Err($b) { $b.text }
+        }
+        $match_ok_text = match $match_ok_result {
+            Ok($m) { $m.text }
+            Err($n) { "wrong-match-err" }
+        }
+        $bush_ok_text = match $bush_ok_result {
+            Ok($b) { $b.text }
+            Err($n) { "wrong-bush-err" }
+        }
+        $done3.send($match_text ~ "|" ~ $bush_text ~ "|" ~ $match_ok_text ~ "|" ~ $bush_ok_text)
+    }
+    print($done3.recv().unwrap())
+    print(match $match_result {
+        Ok($n) { "wrong-parent-match-ok" }
+        Err($m) { $m.text }
+    })
+    print(match $bush_result {
+        Ok($n) { "wrong-parent-bush-ok" }
+        Err($b) { $b.text }
+    })
+    print(match $match_ok_result {
+        Ok($m) { $m.text }
+        Err($n) { "wrong-parent-match-err" }
+    })
+    print(match $bush_ok_result {
+        Ok($b) { $b.text }
+        Err($n) { "wrong-parent-bush-err" }
+    })
+    0
+}

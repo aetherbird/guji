@@ -1,0 +1,7 @@
+# Omitting a wildcard leaves an Int match non-exhaustive.
+sub main(): Int {
+    match 1 {
+        0 { 0 }
+        1 { 1 }
+    }
+}

@@ -1,0 +1,56 @@
+# §15 list `contains` on a DYNAMIC (bound-var) receiver, P2c slice: membership
+# test in both the function form `contains(@xs, $x)` and the data-first method
+# form `@xs.contains($x)`, over Int, Str, Float, and Bool element lists. Native
+# lowers this to a needle temp + flag temp + linear scan (`==` for scalars,
+# `strcmp == 0` for Str) with an early break; the previous selfhost coverage only
+# handled a LITERAL Str-list receiver. Exercised in an `if` condition, an
+# interpolation display, and an arithmetic-derived exit code; an empty receiver
+# (`take(@xs, 0)`) pins the never-found path.
+sub main(): Int {
+    @xs = [3, 5, 8]
+    $n = 8
+    if @xs.contains(5) {
+        print("has-five")
+    }
+    if contains(@xs, $n) {
+        print("has-n")
+    }
+    if @xs.contains(99) {
+        print("bad-99")
+    } else {
+        print("no-99")
+    }
+
+    @ws = ["ant", "bee", "cow"]
+    $w = "bee"
+    if @ws.contains($w) {
+        print("has-bee")
+    }
+    if contains(@ws, "owl") {
+        print("bad-owl")
+    } else {
+        print("no-owl")
+    }
+    # a needle built at runtime (heap Str), so the owned-needle release is real
+    $made = "c" ~ "ow"
+    print("{ @ws.contains($made) }")
+
+    @fs = [1.5, 2.5]
+    print("{ @fs.contains(2.5) }")
+    print("{ contains(@fs, 9.0) }")
+
+    @bs = [false, false, true]
+    print("{ @bs.contains(true) }")
+
+    # empty receiver: the scan never runs, flag stays 0
+    @none = take(@xs, 0)
+    if contains(@none, 3) {
+        print("bad-empty")
+    } else {
+        print("empty-none")
+    }
+
+    $a = if @xs.contains(3) { 40 } else { 1 }
+    $b = if contains(@ws, "elk") { 2 } else { 5 }
+    $a + $b
+}

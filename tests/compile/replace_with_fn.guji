@@ -1,0 +1,24 @@
+# spec 13 / 15.3: replace_with with FUNCTION-VALUED callbacks (not inline lambdas).
+# Covers: a bound lambda callback (named + positional captures through a lifted
+# function), a top-level user sub as the callback, and an alias binding.
+sub shout($m: Match): Str {
+    '<' ~ $m.text ~ '>'
+}
+
+sub main(): Int {
+    $f = sub($m: Match): Str {
+        '[' ~ $m<word>.unwrap() ~ ':' ~ $m[1].unwrap() ~ ']'
+    }
+    $r1 = 'one two'.replace_with(/(?<word>\w+)/, $f)
+    print($r1)
+
+    $r2 = replace_with('a1b2', /\d/, shout)
+    print($r2)
+
+    # alias: copying a callback binding keeps its signature
+    $g = $f
+    $r3 = 'hi'.replace_with(/(?<word>h)/, $g)
+    print($r3)
+
+    0
+}

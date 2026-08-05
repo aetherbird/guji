@@ -1,0 +1,5 @@
+bare 7/1.5/ada/false
+expr=12 call=15 bool=true unit=()
+escaped $n @items %ages {literal} lone $ @ %
+unknown \r stays; braces {x} and backslash \
+raw $n { add_one($n) }

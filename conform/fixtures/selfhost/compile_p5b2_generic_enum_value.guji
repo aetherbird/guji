@@ -1,0 +1,38 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Generic enum VALUE inference materializes one concrete spec per
+            # scalar instantiation — from unannotated constructor binds
+            # (Wrap(42), Wrap("guji"), Wrap(true)) and an annotated bind
+            # (Box[Float]) with no signature mention.
+            print(has_text($c, "typedef struct Box__Int Box__Int;"))
+            print(has_text($c, "struct Box__Str"))
+            print(has_text($c, "struct Box__Float"))
+            print(has_text($c, "struct Box__Bool"))
+            # Constructor args pick the right spec by kind: the Int literal,
+            # Str temp, Float literal, and Bool literal each land in their
+            # own compound literal...
+            print(has_text($c, "(Box__Int)\{0LL, 42LL}"))
+            print(has_text($c, "(Box__Str)\{0LL, "))
+            print(has_text($c, "(Box__Float)\{0LL, 2.5}"))
+            print(has_text($c, "(Box__Bool)\{0LL, 1LL}"))
+            # ...and a bound-NAME arg (Wrap($k), $k: Int) disambiguates to the
+            # Int spec through the same kind matching.
+            print(has_text($c, "(Box__Int)\{0LL, gv"))
+            # Owned enum locals release per-spec at scope exit.
+            print(has_text($c, "guji_release_Box__Bool_fields(&"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

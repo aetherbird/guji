@@ -1,0 +1,5 @@
+# DECLINE-AUDIT control: plain Int arithmetic, returned from main (exit code).
+# Trivially in subset — COVERED. Anchors the harness's "covered" classification.
+sub main(): Int {
+    (2 + 3) * 4 - 1
+}

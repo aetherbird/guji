@@ -1,0 +1,17 @@
+# §15.2 map `has_key`, P2c slice: bound map locals support both ordinary
+# data-first `has_key(%m, key)` and method-style `%m.has_key(key)` calls.
+
+sub key($s: Str): Str {
+    "pre" ~ $s
+}
+
+sub main(): Int {
+    %m: Map[Str, Int] = {"prea": 1, "b": 2}
+    mut $score = 0
+    if %m.has_key("prea") { $score = $score + 1 } else { $score = $score + 0 }
+    if %m.has_key("z") { $score = $score + 0 } else { $score = $score + 2 }
+    if has_key(%m, "b") { $score = $score + 4 } else { $score = $score + 0 }
+    if has_key(%m, key("a")) { $score = $score + 8 } else { $score = $score + 0 }
+    print("{ $score }")
+    $score
+}

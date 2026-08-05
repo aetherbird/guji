@@ -1,0 +1,26 @@
+# P8d-2c-3d-2a: List receive-carrier extraction — `$ch.recv().unwrap()` for
+# List[Int|Str] (method form; native rejects List `expect` / function-form
+# unwrap binds — oracle-limit) and bound `$opt.unwrap()` on Option[List].
+# Fresh carriers retain `.data` out and release the carrier slot; bound carriers
+# retain into the result while the Option local keeps scope-exit ownership.
+sub main(): Int {
+    $ints: Chan[List[Int]] = channel(2)
+    $ints.send([1, 2, 3])
+    $ints.send([10, 20])
+    @a = $ints.recv().unwrap()
+    @b = $ints.recv().unwrap()
+    print(@a[0] + @a[2] + @b[1])
+
+    $words: Chan[List[Str]] = channel(1)
+    $words.send(["al" ~ "pha", "beta"])
+    @ws = $words.recv().unwrap()
+    print(@ws[0] ~ "-" ~ @ws[1])
+
+    $more: Chan[List[Int]] = channel(1)
+    $more.send([7, 8])
+    $opt = $more.recv()
+    @ys = $opt.unwrap()
+    print(@ys[0] + @ys[1])
+
+    0
+}

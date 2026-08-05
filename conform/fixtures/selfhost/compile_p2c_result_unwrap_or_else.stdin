@@ -1,0 +1,16 @@
+sub ok_ii($n: Int): Result[Int, Int] { Ok($n) }
+sub err_ii($n: Int): Result[Int, Int] { Err($n) }
+sub ok_str($s: Str): Result[Str, Str] { Ok($s) }
+sub err_str($s: Str): Result[Str, Str] { Err($s) }
+
+sub main(): Int {
+    $r: Result[Int, Int] = err_ii(40)
+    $s: Result[Str, Str] = ok_str("a" ~ "b")
+    if $r.unwrap_or_else(sub($err_i: Int): Int { $err_i + 2 }) == 42 {
+        print("int-ok")
+    } else {
+        print("int-bad")
+    }
+    print(unwrap_or_else($s, sub($err_s: Str): Str { $err_s ~ "!" }))
+    0
+}

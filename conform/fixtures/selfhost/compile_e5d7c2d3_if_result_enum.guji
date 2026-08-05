@@ -1,0 +1,30 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-3 compiler codegen fixture.
+# An expression-position `if` that RETURNS a Result[enum] carrier — the shape of the
+# real `lex(...): Result[TokenList, Str]` final statement. Native rejects Result[enum]
+# carriers, so this pins the generated-C if-value shape while
+# selfhost/result_class_diff.sh (if_enum_carrier.guji) covers end-to-end interp-oracle
+# behavior. The proof: BOTH if-branches assign a carrier struct literal into the shared
+# result temp, with the inactive user-enum slot zeroed `(Piece){0}` and the active slot
+# carrying the lowered payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_res_Piece_str;"))
+            print(has_text($c, "guji_res_Piece_str gf_mk(int64_t gp0)"))
+            print(has_text($c, "(guji_res_Piece_str)\{1LL, (Piece)\{0}, "))
+            print(has_text($c, "(guji_res_Piece_str)\{0LL, (Piece)\{0LL, \{.s = "))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

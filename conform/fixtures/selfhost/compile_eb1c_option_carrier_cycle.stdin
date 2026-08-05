@@ -1,0 +1,51 @@
+class Node {
+    has $.next: Option[Node]
+    has $.value: Int
+}
+
+enum Expr {
+    EIf($els: Option[StmtList])
+}
+
+enum Stmt {
+    SExpr($expr: Expr)
+}
+
+enum StmtList {
+    StmtNil
+    StmtCons($head: Stmt, $tail: StmtList)
+}
+
+sub sum($n: Node): Int {
+    match $n.next {
+        Some($rest) { $n.value + sum($rest) }
+        None { $n.value }
+    }
+}
+
+sub count_expr($e: Expr): Int {
+    match $e {
+        EIf(Some($ss)) { count_list($ss) }
+        EIf(None) { 0 }
+    }
+}
+
+sub count_stmt($s: Stmt): Int {
+    match $s {
+        SExpr($e) { count_expr($e) }
+    }
+}
+
+sub count_list($xs: StmtList): Int {
+    match $xs {
+        StmtNil { 0 }
+        StmtCons($h, $t) { 1 + count_stmt($h) + count_list($t) }
+    }
+}
+
+sub main(): Int {
+    $tail = Node(next: None, value: 2)
+    $head = Node(next: Some($tail), value: 5)
+    $s = StmtCons(SExpr(EIf(None)), StmtNil)
+    sum($head) + count_expr(EIf(Some($s)))
+}

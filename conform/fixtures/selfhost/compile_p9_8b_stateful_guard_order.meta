@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost matched-flag ordering for later stateful match guards

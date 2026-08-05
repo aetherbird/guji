@@ -1,0 +1,42 @@
+# G3b-2 slice: methods on generic classes/enums can RETURN the owner's generic
+# type (`Box[T]` on `Box[T]`), both as `$self` and as a fresh construction.
+class Box[T] {
+    has $.value: T
+
+    sub same($self): Box[T] {
+        $self
+    }
+
+    sub rebox($self): Box[T] {
+        Box(value: $self.value)
+    }
+
+    sub get($self): T {
+        $self.value
+    }
+}
+
+enum Holder[T] {
+    Keep($v: T)
+
+    sub itself($self): Holder[T] {
+        $self
+    }
+}
+
+sub main(): Int {
+    $bi = Box(value: 42)
+    $c = $bi.same().rebox()
+    print("{ $c.get() }")
+
+    $bs = Box(value: "guji")
+    print("{ $bs.rebox().get() }")
+
+    $h = Keep(7)
+    $h2 = $h.itself()
+    match $h2 {
+        Keep($n) { print("{ $n }") }
+    }
+
+    0
+}

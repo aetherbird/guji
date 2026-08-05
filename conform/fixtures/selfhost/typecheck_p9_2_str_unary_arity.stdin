@@ -1,0 +1,7 @@
+# P9-2: unary Str prelude methods take no explicit arguments.
+sub main(): Int {
+    $s = "abc"
+    $t = $s.upper("x")
+    print($t)
+    0
+}

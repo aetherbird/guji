@@ -1,0 +1,87 @@
+# Result[List[List[scalar]], Str] NESTED value construct + match-binding + RC
+# ownership (H4c-rest). A nested counted List in the Ok arm still reduces to ONE
+# counted ARR_SLICE storage pointer (`.ok.data`) plus a possible Err(Str): Ok(@grid)
+# materializes a fresh owned outer slice that retains each inner row, a
+# binding/sub-return transfers that +1, a match BORROWS it (reads via nested
+# iteration and double indexing), and a discarded or rebound carrier releases both
+# the Ok storage (the outer ARR_SLICE drop cascades into every inner row, and a Str
+# row cascades into each element) and the Err Str. The sanitizer gate (LSan/ASan)
+# is the memory oracle; the interpreter is the semantic oracle.
+
+sub sum_grid(@g: List[List[Int]]): Int {
+    mut $t = 0
+    for @row in @g {
+        $t = $t + @row.sum()
+    }
+    $t
+}
+
+sub count_rows(@g: List[List[Str]]): Int {
+    @g.count()
+}
+
+sub grid($ok: Bool): Result[List[List[Int]], Str] {
+    if $ok { Ok([[1, 2], [3, 4], [5]]) } else { Err("no-grid") }
+}
+
+sub words($ok: Bool): Result[List[List[Str]], Str] {
+    if $ok { Ok([["alpha", "beta"], ["gamma"]]) } else { Err("no-words") }
+}
+
+sub wrap_grid(@g: List[List[Int]]): Result[List[List[Int]], Str] {
+    Ok(@g)
+}
+
+sub main(): Unit {
+    @local = [[10, 20], [30]]
+
+    # Construct Ok(nested) inside a sub, match-borrow, read via nested iteration.
+    print(match wrap_grid(@local) {
+        Ok(@rows) { sum_grid(@rows) }
+        Err($e) { 0 }
+    })
+
+    # Sub-returned Ok(nested): the owned payload transfers to the caller. Matched
+    # twice — borrows never consume it; the second reads via double-indexing.
+    $g = grid(true)
+    print(match $g {
+        Ok(@rows) { sum_grid(@rows) }
+        Err($e) { -1 }
+    })
+    print(match $g {
+        Ok(@rows) { @rows[1][0] }
+        Err($e) { -1 }
+    })
+
+    # Sub-returned Err(Str): the Ok slot is NULL; the Err Str is bound and printed.
+    match grid(false) {
+        Ok(@rows) { print(sum_grid(@rows)) }
+        Err($e) { print($e) }
+    }
+
+    # Str inner elements: the fresh outer ARR_SLICE retains each inner ARR_STR row,
+    # and releasing the carrier cascades through both levels.
+    print(match words(true) {
+        Ok(@rows) { count_rows(@rows) }
+        Err($e) { 0 }
+    })
+
+    match words(false) {
+        Ok(@rows) { print(count_rows(@rows)) }
+        Err($e) { print($e) }
+    }
+
+    # Discarded carrier results: their fresh nested Ok storage / Err Str must be freed.
+    wrap_grid(@local)
+    grid(false)
+
+    # mut rebind a carrier local across Ok and Err arms: each old nested payload is
+    # released before the new one is stored (self/alias rebinds cannot double-free).
+    mut $cur = grid(true)
+    $cur = grid(false)
+    $cur = wrap_grid(@local)
+    print(match $cur {
+        Ok(@rows) { sum_grid(@rows) }
+        Err($e) { -2 }
+    })
+}

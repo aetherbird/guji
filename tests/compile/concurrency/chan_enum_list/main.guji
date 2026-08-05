@@ -1,0 +1,50 @@
+# Section 17 native channel send/recv for List-payload enums (H4c-rest slice).
+#
+# A variant carrying List[Int] or List[Str] must be deep-copied into the channel
+# message: hatchCopyEnum now replaces each active List field with a fresh
+# hatchCopyList deep copy, so the receiver shares no list-storage (and, for
+# List[Str], no element-string) pointers with the sender's per-task heap. The
+# second buffered message (a List[Str] variant) is left undelivered so
+# LeakSanitizer proves the per-enum channel drop (guji_chan_drop_<E> ->
+# guji_release_<E>_fields -> guji_drop_arr_str) releases the undelivered copy.
+enum Msg {
+    Nums($xs: List[Int])
+    Words($ws: List[Str])
+    Done
+}
+
+sub show($m: Msg): Str {
+    match $m {
+        Nums($xs) {
+            mut $sum = 0
+            for $n in $xs {
+                $sum = $sum + $n
+            }
+            "sum={ $sum }"
+        }
+        Words($ws) {
+            mut $joined = ""
+            for $w in $ws {
+                $joined = $joined ~ $w
+            }
+            $joined
+        }
+        Done { "done" }
+    }
+}
+
+sub main(): Unit {
+    $ch: Chan[Msg] = channel(2)
+    @nums = [10, 20, 30]
+    @words = ["left", "right"]
+    $first = Nums(@nums)
+    $drop = Words(@words)
+
+    hatch {
+        $ch.send($first)
+        $ch.send($drop)
+    }
+
+    $got = $ch.recv().unwrap()
+    print(show($got))
+}

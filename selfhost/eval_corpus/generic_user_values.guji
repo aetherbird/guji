@@ -1,0 +1,119 @@
+# §3.3/§8/§9 (I3d): type-instantiated class/enum values in native D.
+# Covers scalar and two-param generic classes, generic enums, values crossing
+# ordinary params and both tail/explicit returns, recursive nested payloads,
+# and declared-enum values nested inside generic enum carriers. Deliberately
+# excludes whole-instance display/equality (I3e), List/Map prelude (I5), and
+# Option/Result methods (I6).
+
+class Box[T] {
+    has $.value: T
+}
+
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+}
+
+enum Color {
+    Red($n: Int)
+    Blue($name: Str)
+}
+
+enum Wrap[T] {
+    Hold($v: T)
+    Empty
+}
+
+enum Chain[T] {
+    Cons($head: T, $tail: Chain[T])
+    Nil
+}
+
+enum PairColor[T] {
+    Both($value: T, $color: Color)
+}
+
+sub relay_box($b: Box[Int]): Box[Int] { $b }
+sub built_box($s: Str): Box[Str] { return Box(value: $s) }
+sub relay_pair($p: Pair[Int, Str]): Pair[Int, Str] { $p }
+sub built_pair($a: Int, $b: Str): Pair[Int, Str] {
+    return Pair(first: $a, second: $b)
+}
+
+sub unwrap_or($w: Wrap[Int], $fallback: Int): Int {
+    match $w {
+        Hold($v) { $v }
+        Empty { $fallback }
+    }
+}
+
+sub color_text($c: Color): Str {
+    match $c {
+        Red($n) { "red:$n" }
+        Blue($name) { "blue:$name" }
+    }
+}
+
+sub sum_chain($xs: Chain[Int]): Int {
+    match $xs {
+        Cons($h, $t) { $h + sum_chain($t) }
+        Nil { 0 }
+    }
+}
+
+sub make_chain(): Chain[Int] {
+    Cons(10, Cons(20, Cons(30, Nil)))
+}
+
+# The mutable cursor is the sole owner of the returned recursive enum. Advancing
+# it must materialize the borrowed tail before releasing the current node.
+sub sum_chain_iterative(): Int {
+    mut $cursor = make_chain()
+    mut $total = 0
+    mut $walking = true
+    while $walking {
+        match $cursor {
+            Cons($head, $tail) {
+                $total = $total + $head
+                $cursor = $tail
+            }
+            Nil { $walking = false }
+        }
+    }
+    $total
+}
+
+sub both_label($p: PairColor[Str]): Str {
+    match $p {
+        Both($s, $c) { "$s/{ color_text($c) }" }
+    }
+}
+
+sub main(): Int {
+    print("{ Box(value: 42).value }")
+    print(Box(value: "hi").value)
+
+    print("{ relay_box(Box(value: 7)).value }")
+    print(built_box("built").value)
+    $p = built_pair(3, "days")
+    print("{ relay_pair($p).first }")
+    print(relay_pair($p).second)
+
+    $q = Pair(first: true, second: 1.5)
+    print("{ $q.first }")
+    print("{ $q.second }")
+
+    print("{ unwrap_or(Hold(9), 0) }")
+    print("{ unwrap_or(Empty, 0 - 1) }")
+
+    print("{ sum_chain(Cons(1, Cons(2, Cons(3, Nil)))) }")
+    print("{ sum_chain_iterative() }")
+
+    $wc = Hold(Red(4))
+    match $wc {
+        Hold($c) { print(color_text($c)) }
+        Empty { print("empty") }
+    }
+    print(both_label(Both("tag", Blue("sky"))))
+    0
+}

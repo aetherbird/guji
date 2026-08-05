@@ -1,0 +1,4 @@
+sub main(): Int {
+    @flags: List[Bool] = [true, false, true]
+    if @flags[0] && !@flags[1] { 9 } else { 2 }
+}

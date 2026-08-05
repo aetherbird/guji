@@ -1,0 +1,21 @@
+# §7.4/I4e: functions are opaque values. Their display never exposes code or
+# captures, and equality never exposes identity: even an alias compares unequal.
+# Fresh returned closures also exercise temporary-environment release under LSan.
+sub make_adder($base: Int) {
+    sub($n: Int): Int { $base + $n }
+}
+
+sub main(): Int {
+    $f = sub($n: Int): Int { $n + 1 }
+    $alias = $f
+    $g = sub($n: Int): Int { $n + 2 }
+
+    print($f)
+    print("value=$f")
+    print($f == $alias)
+    print($f != $alias)
+    print($f == $g)
+    print(make_adder(10))
+    print(make_adder(1) == make_adder(2))
+    0
+}

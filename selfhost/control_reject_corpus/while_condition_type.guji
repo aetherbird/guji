@@ -1,0 +1,7 @@
+# §6.3: a while condition must be Bool; Str is rejected before execution.
+sub main(): Int {
+    while "again" {
+        print("unreachable")
+    }
+    0
+}

@@ -1,0 +1,45 @@
+# C3 conform: a `match` over a fresh Regex.compile carrier whose Err arm
+# early-returns. Pins the behavior both engines must agree on; the native
+# ownership leak/UAF this guards (Ok Regex never released; Ok value aliasing its
+# argument) is caught under ASan by the native acceptance sweep.
+sub count_matches($pattern: Str, $text: Str): Int {
+    $re = match Regex.compile("(?a)" ~ $pattern) {
+        Ok($r)  { $r }
+        Err($e) { return 0 - 1 }
+    }
+    mut $n = 0
+    for $line in $text.lines() {
+        match $line ~~ /<{ $re }>/ {
+            Some($m) { $n = $n + 1 }
+            None { }
+        }
+    }
+    $n
+}
+
+sub main(): Int {
+    $text = "aaa\nbbb\naXa\ncccaaa\n"
+
+    # ALIAS-argument compile: Ok must own an independent copy, not the argument.
+    $pat = "a+"
+    $alias_re = match Regex.compile($pat) {
+        Ok($r)  { $r }
+        Err($e) { print("alias bad: $e"); return 2 }
+    }
+    mut $alias_hits = 0
+    for $line in $text.lines() {
+        match $line ~~ /<{ $alias_re }>/ {
+            Some($m) { $alias_hits = $alias_hits + 1 }
+            None { }
+        }
+    }
+
+    $a_hits = count_matches("a+", $text)
+    $b_hits = count_matches("b+", $text)
+    $bad_hits = count_matches("(", $text)
+    print("a+ -> { $a_hits }")
+    print("b+ -> { $b_hits }")
+    print("alias a+ -> { $alias_hits }")
+    print("bad -> { $bad_hits }")
+    0
+}

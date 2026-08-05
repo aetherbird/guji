@@ -1,0 +1,24 @@
+# gujiconform - selfhost slice 5 E5d-7c-2b-3 compiler codegen fixture.
+# Pins read_file's Result[Str,Str] lowering plus an Err arm that early-returns
+# from a value-position match used as a Str binding.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_read_file("))
+            print(has_text($c, ".tag = 0LL"))
+            print(has_text($c, "return 3LL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

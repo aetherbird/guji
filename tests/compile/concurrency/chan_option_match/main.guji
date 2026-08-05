@@ -1,0 +1,43 @@
+# Chan[Option[Match]] -- the first COUNTED POINTER carrier payload over a channel
+# (H4c-rest, sec 17). Match is a heap graph (text + capture-group Strs), so send
+# is copy-on-send: the Some match is deep-copied (guji_match_copy) into a detached
+# message owning storage disjoint from the sender's per-task heap. recv adopts the
+# channel's private copy (rc==1) into the Option[Match] take-on-bind machinery.
+# The 4th message is left buffered and never received, so channel release must drop
+# the undelivered Some(match) via guji_chan_drop_opt_match -- exercising the
+# elem_drop (and its text/groups cascade) under LeakSanitizer.
+# Expected output: aa-bb / none / cc-dd.
+sub main(): Int {
+    $ch: Chan[Option[Match]] = channel(4)
+    $m1 = 'aa-bb' ~~ /(?<a>\w+)-(?<b>\w+)/
+    $m2 = 'zz' ~~ /q-x/
+    $m3 = 'cc-dd' ~~ /(?<x>\w+)-(?<y>\w+)/
+    $m4 = 'ee-ff' ~~ /(?<a>\w+)-(?<b>\w+)/
+
+    $ch.send($m1)
+    $ch.send($m2)
+    $ch.send($m3)
+    $ch.send($m4)
+
+    # recv() yields Option[Option[Match]]: outer Some = a message arrived, inner is
+    # the sent Option[Match]. unwrap() peels the outer presence wrapper.
+    $first = $ch.recv().unwrap()
+    print(match $first {
+        Some($m) { $m.text }
+        None { "none" }
+    })
+
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Some($m) { $m.text }
+        None { "none" }
+    })
+
+    $third = $ch.recv().unwrap()
+    print(match $third {
+        Some($m) { $m.text }
+        None { "none" }
+    })
+
+    0
+}

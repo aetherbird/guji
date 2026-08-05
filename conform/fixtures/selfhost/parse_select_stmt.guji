@@ -1,0 +1,9 @@
+# gujiconform — selfhost slice 6 P8c select parser fixture (§17.5, §20).
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) { print($ast) 0 }
+        Err($e) { note($e) 1 }
+    }
+}

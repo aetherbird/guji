@@ -1,0 +1,29 @@
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+# P7c-2b-1: grammar declarations emit forward-declared native PEG matchers.
+# Pin matching atoms, rule whitespace, ordered-choice rollback, capture adoption,
+# and both ownership cleanups before Grammar.parse makes the functions callable.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(count_of($c, "static int64_t gp_Pick_") == 6)
+            print(count_of($c, "guji_peg_ws(s, p)") == 2)
+            print(count_of($c, "guji_peg_regex(\"[0-9]+\", s, p)") == 2)
+            print(count_of($c, "guji_release(caps[gi - 1])") == 2)
+            print(count_of($c, "guji_release(caps[gi])") == 3)
+            print(count_of($c, "guji_bush_new(\"TOP\"") == 1)
+            print(count_of($c, "cap_names[ncaps] = \"yes\"") == 1)
+            print(count_of($c, "const char* cap_names[3]") == 1)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

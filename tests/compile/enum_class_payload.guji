@@ -1,0 +1,78 @@
+# Enum variants carrying a class value BY VALUE as a payload (uncounted-field
+# classes). The class struct is embedded in the enum's tagged union slot, exactly
+# like a by-value declared-enum payload: construction copies the struct in, and a
+# match arm binds it as a borrowed by-value view whose fields read directly. An
+# uncounted-field class owns no heap storage, so no retain/release is needed.
+#
+# Covered shapes:
+#   - a single-class enum (Point at slot 0, reused across two variants)
+#   - a separate single-class enum (Color at slot 0)
+#   - a two-payload variant placing two DIFFERENT classes at distinct slots
+#   - bare (payload-less) variants alongside class-payload variants
+#   - an enum-with-class-payload value as a flat List element
+#   - an alias class payload (a previously-bound class value reused in a variant)
+
+class Point {
+    has $.x: Int
+    has $.y: Int
+}
+
+class Color {
+    has $.r: Int
+    has $.g: Int
+    has $.b: Int
+}
+
+enum Shape {
+    Dot($pt: Point)
+    Filled($pt: Point)
+    Empty
+}
+
+enum Swatch {
+    Tint($c: Color)
+    Blank
+}
+
+enum Pair {
+    Both($pt: Point, $c: Color)
+    Neither
+}
+
+sub describe($s: Shape): Str {
+    match $s {
+        Dot($p) { "dot {$p.x},{$p.y}" }
+        Filled($p) { "filled {$p.x + $p.y}" }
+        Empty { "empty" }
+    }
+}
+
+sub paint($w: Swatch): Str {
+    match $w {
+        Tint($c) { "rgb {$c.r}/{$c.g}/{$c.b}" }
+        Blank { "blank" }
+    }
+}
+
+sub combo($p: Pair): Str {
+    match $p {
+        Both($pt, $c) { "at {$pt.x},{$pt.y} color {$c.r}" }
+        Neither { "none" }
+    }
+}
+
+sub main(): Int {
+    $p = Point(x: 3, y: 4)
+    print(describe(Dot($p)))
+    print(describe(Filled(Point(x: 1, y: 2))))
+    print(describe(Empty))
+    print(paint(Tint(Color(r: 255, g: 0, b: 128))))
+    print(paint(Blank))
+    print(combo(Both(Point(x: 9, y: 8), Color(r: 7, g: 6, b: 5))))
+    print(combo(Neither))
+    @shapes = [Dot(Point(x: 7, y: 8)), Empty, Filled($p)]
+    for $s in @shapes {
+        print(describe($s))
+    }
+    0
+}

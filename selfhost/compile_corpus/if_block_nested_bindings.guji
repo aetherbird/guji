@@ -1,0 +1,10 @@
+sub main(): Int {
+    if true {
+        $a = 3
+        $b = $a * 2
+        $c = $b + 1
+        $c
+    } else {
+        0
+    }
+}

@@ -1,0 +1,6 @@
+# T3b: Option matches must cover None unless a wildcard/binding arm catches it.
+sub main(): Int {
+    match Some(1) {
+        Some($n) { $n }
+    }
+}

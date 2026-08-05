@@ -1,0 +1,11 @@
+# T2: if/else-if branches with compatible values synthesize a common type.
+sub main(): Int {
+    if true {
+        $x = 1
+        $x
+    } else if false {
+        2
+    } else {
+        3
+    }
+}

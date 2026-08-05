@@ -1,0 +1,8 @@
+sub pick(@words: List[Str]): Str {
+    @words[1]
+}
+
+sub main(): Int {
+    print(pick(["left", "right"]))
+    0
+}

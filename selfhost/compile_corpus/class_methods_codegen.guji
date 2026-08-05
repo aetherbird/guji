@@ -1,0 +1,14 @@
+# P4c-1: bound class instance methods in codegen.
+class Counter {
+    has $.n: Int
+
+    sub bumped($self): Counter { Counter(n: $self.n + 1) }
+    sub value($self): Int { $self.n }
+}
+
+sub main(): Int {
+    $c = Counter(n: 41)
+    $d = $c.bumped()
+    print("{ $d.value() }")
+    $d.value()
+}

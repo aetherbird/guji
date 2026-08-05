@@ -1,0 +1,64 @@
+# RC1.5b-ii probe: callee stores a borrowed parameter into a constructed
+# value that outlives the call (list / map / carrier / enum box / closure env).
+enum Wrap {
+    Tag($text: Str)
+    Empty
+}
+
+sub into_list($s: Str): List[Str] {
+    [$s, "fixed"]
+}
+
+sub into_map($s: Str): Map[Str, Str] {
+    {"k": $s}
+}
+
+sub into_opt($s: Str): Option[Str] {
+    Some($s)
+}
+
+sub into_enum($s: Str): Wrap {
+    Tag($s)
+}
+
+sub into_env($s: Str) {
+    sub($x: Str): Str { $s ~ $x }
+}
+
+sub main(): Unit {
+    $v = "live".upper()
+
+    @l = into_list($v)
+    print("{ @l[0] } { $v }")
+
+    %m = into_map($v)
+    $got = %m{"k"}
+    print("{ $got } { $v }")
+
+    $o = into_opt($v)
+    match $o {
+        Some($x) { print("{ $x } { $v }") }
+        None { print("none") }
+    }
+
+    $e = into_enum($v)
+    match $e {
+        Tag($x) { print("{ $x } { $v }") }
+        Empty { print("empty") }
+    }
+
+    $f = into_env($v)
+    print($f("!"))
+    print($v)
+
+    # mut source: rebind after the stores; stored copies must stay readable.
+    mut $w = "first".upper()
+    @l2 = into_list($w)
+    $o2 = into_opt($w)
+    $w = "second".upper()
+    print("{ @l2[0] } { $w }")
+    match $o2 {
+        Some($x) { print($x) }
+        None { print("none") }
+    }
+}

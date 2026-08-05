@@ -1,0 +1,93 @@
+# P8d-2c-3c-14 (c-rec): recursive self-box enum channel elements.
+# Send deep-clones via guji_clone_<E>_value/_box so the receiver shares no
+# boxed-child or Str/List/Map storage with the sender. Source stays live
+# after send; held/bound unwrap and undelivered drops exercise ownership.
+enum Tree {
+    Leaf($name: Str, $value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+enum Chain {
+    End
+    Link(@vals: List[Int], %tags: Map[Str, Str], $next: Chain)
+}
+
+sub sum($t: Tree): Int {
+    match $t {
+        Leaf(_, $v) { $v }
+        Node($l, $r) { sum($l) + sum($r) }
+    }
+}
+
+sub names($t: Tree): Str {
+    match $t {
+        Leaf($n, _) { $n }
+        Node($l, $r) { names($l) ~ names($r) }
+    }
+}
+
+sub total($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link(@v, _, $n) {
+            mut $s = 0
+            for $x in @v {
+                $s = $s + $x
+            }
+            $s + total($n)
+        }
+    }
+}
+
+sub tags($c: Chain): Str {
+    match $c {
+        End { "" }
+        Link(_, %t, $n) {
+            $head = %t{"k"}
+            $head ~ tags($n)
+        }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Tree] = channel(4)
+    mut $t = Node(Leaf("a" ~ "-x", 1), Node(Leaf("b" ~ "-y", 2), Leaf("c" ~ "-z", 3)))
+    $ch.send($t)
+    $t = Leaf("z" ~ "-w", 99)
+
+    $got = $ch.recv().unwrap()
+    print("{ sum($got) }")
+    print(names($got))
+    print("{ sum($t) }")
+    print(names($t))
+
+    $ch.send(Node(Leaf("d", 4), Leaf("e", 5)))
+    $held = $ch.recv()
+    $bound = $held.unwrap()
+    print("{ sum($bound) }")
+    print(names($bound))
+
+    $ch.send(Leaf("f", 6))
+    $fn = unwrap($ch.recv())
+    print("{ sum($fn) }")
+    print(names($fn))
+
+    # Undelivered buffered Node exercises guji_chan_drop_Tree after clone;
+    # rejected send after close detaches then drops the same way.
+    $late: Chan[Tree] = channel(1)
+    $late.send(Node(Leaf("u" ~ "-nd", 7), Leaf("v", 8)))
+    $late.close()
+    $late.send(Leaf("rej", 9))
+
+    $rows: Chan[Chain] = channel(2)
+    mut $c = Link([1, 2], {"k": "x" ~ "-a"}, Link([3, 4], {"k": "y" ~ "-b"}, End))
+    $rows.send($c)
+    $c = End
+    $cgot = $rows.recv().unwrap()
+    print("{ total($cgot) }")
+    print(tags($cgot))
+    print("{ total($c) }")
+    # Leave one Link buffered for Chain's drop hook.
+    $rows.send(Link([9], {"k": "z"}, End))
+    0
+}

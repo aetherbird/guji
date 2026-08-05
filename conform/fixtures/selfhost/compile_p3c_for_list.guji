@@ -1,0 +1,26 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# selfhost slice 6 P3c-b: list `for` lowers to an owned iterator `guji_slice_t`,
+# an index loop, a borrowed loop-variable binding loaded from the slice, ordinary
+# statement-body lowering, and a release of the iterator slice after the loop.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "for (gi"))
+            print(has_text($c, " < gl"))
+            print(has_text($c, " = ((int64_t*)gl"))
+            print(has_text($c, "gv0 = guji_add(gv0, gi"))
+            print(has_text($c, "guji_release((const void*)gl"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

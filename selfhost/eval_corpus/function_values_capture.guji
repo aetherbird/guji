@@ -1,0 +1,41 @@
+# §7.4/I4b: immutable lexical capture for parameterized lambdas.
+# Pin scalar Int/Bool/Float/Str captures, child-scope shadowing of an outer
+# immutable, and the legal mut-snapshot pattern (`$t = $total` then capture $t).
+# Mut capture itself remains a typecheck reject (conform typecheck_lambda_capture_mut).
+# Class/enum capture is pinned separately by function_values_user_capture.guji.
+sub main(): Int {
+    $base = 10
+    $step = 3
+    $flag = true
+    $prefix = "cou" ~ "nt"
+    $rate = 1.5
+
+    $f = sub($n: Int): Int {
+        if $flag {
+            if $prefix == "count" { $n + $base + $step } else { $n }
+        } else {
+            0
+        }
+    }
+    print($f(5))
+    print($f(100))
+
+    $scale = sub($n: Float): Float { $n * $rate }
+    print($scale(2.0))
+
+    $x = 1
+    $outer = sub($n: Int): Int { $n + $x }
+    if true {
+        $x = 7
+        $inner = sub($n: Int): Int { $n + $x }
+        print($inner(3))
+        print($outer(3))
+    }
+
+    mut $total = 0
+    $total = 40
+    $t = $total
+    $add = sub($n: Int): Int { $n + $t }
+    print($add(2))
+    0
+}

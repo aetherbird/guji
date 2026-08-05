@@ -1,0 +1,11 @@
+# O4: abrupt completion of an earlier operand skips every later operand.
+sub later(): Int {
+    print("late")
+    1
+}
+
+sub main(): Int {
+    $zero = 0
+    print((10 / $zero) + later())
+    0
+}

@@ -1,0 +1,31 @@
+# Spec 17.5: ready, multi-ready membership, closed, else, blocking wake, and
+# bound operation results. No output depends on unspecified arm priority.
+sub main(): Int {
+    $single: Chan[Int] = channel(1)
+    $single.send(7)
+    select { $got = $single.recv() { print("single={ $got.unwrap() }") } }
+
+    $left: Chan[Int] = channel(1)
+    $right: Chan[Int] = channel(1)
+    $left.send(1)
+    $right.send(2)
+    mut $allowed = false
+    select {
+        $got = $left.recv() { $allowed = $got.unwrap() == 1 }
+        $got = $right.recv() { $allowed = $got.unwrap() == 2 }
+    }
+    print("multiple-allowed=$allowed")
+
+    $closed: Chan[Int] = channel()
+    $closed.close()
+    select { $got = $closed.recv() { print("closed-recv={ $got.is_none() }") } }
+    select { $closed.send(9) { print("closed-send=true") } }
+
+    $idle: Chan[Int] = channel()
+    select { $got = $idle.recv() { print("idle=false") } else { print("idle=true") } }
+
+    $wake: Chan[Str] = channel()
+    hatch { $wake.send("awake") }
+    select { $got = $wake.recv() { print("wake=" ~ $got.unwrap()) } }
+    0
+}

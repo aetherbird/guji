@@ -1,0 +1,20 @@
+# §17.5 native `select` recv arm over Chan[Option[Str]] with an UNBOUND ready arm:
+# the message is discarded but a fresh (rc==1) Str was still adopted, so the arm
+# must release it BEFORE the body so a discarded ready carrier cannot leak
+# (LSan verifies the unbound release path at runtime).
+sub main(): Int {
+    $a: Chan[Option[Str]] = channel(1)
+    $b: Chan[Option[Str]] = channel(1)
+    $some: Option[Str] = Some("x" ~ "y")
+    $a.send($some)
+    select {
+        $a.recv() {
+            print("a delivered")
+        }
+        $w = $b.recv() {
+            print("b")
+        }
+        else { print("idle") }
+    }
+    0
+}

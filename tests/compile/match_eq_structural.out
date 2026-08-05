@@ -1,0 +1,4 @@
+equal: true
+neq: false
+named-vs-unnamed: false
+none-vs-empty: false

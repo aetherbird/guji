@@ -1,0 +1,10 @@
+option continued 4
+Some(5)
+None
+Some(10)
+None
+result continued 7
+Ok(10)
+Err(invalid integer: bad)
+Ok(12)
+Err(invalid integer: no)

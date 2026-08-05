@@ -1,0 +1,49 @@
+# Chan[Option[Bush]] -- counted parse-tree carrier payload over a channel
+# (H4c-rest, sec 17). Bush is a heap graph (node text + child captures), so send
+# is copy-on-send: the Some tree is deep-copied (guji_bush_copy) into a detached
+# message owning storage disjoint from the sender's per-task heap. recv adopts the
+# channel's private copy (rc==1) into the Option[Bush] take-on-bind machinery.
+# The 4th message is left buffered and never received, so channel release must drop
+# the undelivered Some(bush) via guji_chan_drop_opt_bush -- exercising the elem_drop
+# and recursive child/text cascade under LeakSanitizer.
+# Expected output: aa-bb / none / cc-dd.
+grammar Pair {
+    rule  TOP   { <left> '-' <right> }
+    token left  { \w+ }
+    token right { \w+ }
+}
+
+sub main(): Int {
+    $ch: Chan[Option[Bush]] = channel(4)
+    $b1 = Pair.parse('aa-bb')
+    $b2 = Pair.parse('zz!')
+    $b3 = Pair.parse('cc-dd')
+    $b4 = Pair.parse('ee-ff')
+
+    $ch.send($b1)
+    $ch.send($b2)
+    $ch.send($b3)
+    $ch.send($b4)
+
+    # recv() yields Option[Option[Bush]]: outer Some = a message arrived, inner is
+    # the sent Option[Bush]. unwrap() peels the outer presence wrapper.
+    $first = $ch.recv().unwrap()
+    print(match $first {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+
+    $second = $ch.recv().unwrap()
+    print(match $second {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+
+    $third = $ch.recv().unwrap()
+    print(match $third {
+        Some($b) { $b.text }
+        None { "none" }
+    })
+
+    0
+}

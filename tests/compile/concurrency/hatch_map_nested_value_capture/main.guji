@@ -1,0 +1,47 @@
+# Section 17 hatch capture of Map[Str, List[scalar/Str]] and
+# Map[Str, Map[Str, scalar/Str]].
+#
+# A map with nested counted values crossing a hatch boundary needs recursive
+# deep copies: the child task owns fresh outer key/value arrays and fresh nested
+# list/map storage. Retaining nested handles would share parent-heap data across
+# non-atomic per-task heaps, which §17 forbids.
+#
+# Deterministic: each hatch sends exactly one value over an unbuffered channel,
+# and the parent receives in a fixed order.
+sub main(): Int {
+    %scores = {"evens": [2, 4], "odds": [1, 3]}
+    %names = {"primary": ["ada", "grace"], "backup": ["lin"]}
+    %points = {"left": {"x": 10, "y": 20}, "right": {"x": 5}}
+    %words = {"one": {"a": "red"}, "two": {"b": "blue"}}
+
+    $sumCh: Chan[Int] = channel(0)
+    $wordCh: Chan[Str] = channel(0)
+    $pointCh: Chan[Int] = channel(0)
+    $labelCh: Chan[Str] = channel(0)
+
+    hatch {
+        $total = %scores{"evens"}[0] + %scores{"evens"}[1] + %scores{"odds"}[1]
+        $sumCh.send($total)
+    }
+
+    hatch {
+        $msg = %names{"primary"}[0] ~ "/" ~ %names{"backup"}[0]
+        $wordCh.send($msg)
+    }
+
+    hatch {
+        $n = %points{"left"}{"x"} + %points{"left"}{"y"} + %points{"right"}{"x"}
+        $pointCh.send($n)
+    }
+
+    hatch {
+        $label = %words{"one"}{"a"} ~ "/" ~ %words{"two"}{"b"}
+        $labelCh.send($label)
+    }
+
+    print($sumCh.recv().unwrap())
+    print($wordCh.recv().unwrap())
+    print($pointCh.recv().unwrap())
+    print($labelCh.recv().unwrap())
+    0
+}

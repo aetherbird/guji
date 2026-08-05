@@ -1,0 +1,8 @@
+sub main(): Int {
+    $o: Option[Int] = Some(5)
+    match $o {
+        Some($v) if $v > 3 { 11 }
+        Some($v) { $v }
+        None { 0 }
+    }
+}

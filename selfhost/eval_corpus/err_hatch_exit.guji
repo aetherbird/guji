@@ -1,0 +1,10 @@
+# I10d2: exit inside a hatch terminates the process with the guest status and
+# empty stderr (§15.4/§17.1). Main blocks so the task is not abandoned.
+sub main(): Int {
+    hatch {
+        exit(3)
+    }
+    $hold: Chan[Int] = channel(0)
+    $hold.recv()
+    0
+}

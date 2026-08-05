@@ -1,0 +1,6 @@
+# §16: an unresolved import reports the stable path-only IO diagnostic.
+import reject_modules::absent_module
+
+sub main(): Int {
+    0
+}

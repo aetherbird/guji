@@ -1,0 +1,8 @@
+# Two Str-arg calls combined (both pure — no side effects — so operand order is
+# unobservable and all three engines agree).
+sub score($s: Str): Int {
+    if $s == "ok" { 7 } else { 3 }
+}
+sub main(): Int {
+    score("ok") * 2 + score("no")
+}

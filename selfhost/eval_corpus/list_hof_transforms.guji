@@ -1,0 +1,31 @@
+# I5e/I5e2: §15.1 List higher-order transforms. Pins free and method
+# spellings, topic and parameterized lambdas, immutable capture, empty inputs,
+# each side-effect order, and find's first-match short circuit.
+sub main(): Int {
+    @xs = [1, 2, 3, 4]
+    print(@xs.map({ $_ * 2 }))
+    print(map(@xs, { $_ + 1 }))
+    print(@xs.map(sub($n: Int): Int { $n * $n }))
+
+    $t = 10
+    print(@xs.map({ $_ + $t }))
+
+    @empty: List[Int] = []
+    print(@empty.map({ $_ * 2 }))
+
+    print(@xs.filter({ $_ % 2 == 0 }))
+    $floor = 2
+    print(filter(@xs, sub($n: Int): Bool { $n > $floor }))
+    print(@empty.filter({ $_ > 0 }))
+
+    @xs.each({ print("each $_") })
+    each(["a", "b"], sub($s: Str) { print("word $s") })
+    @empty.each({ print("unreachable") })
+
+    # Reaching 4 would divide by zero, so success proves find stops at 3.
+    $first: Option[Int] = @xs.find(sub($n: Int): Bool { 4 / (4 - $n) > 0 && $n > 2 })
+    print(match $first { Some($n) { "found $n" } None { "missing" } })
+    print(match find(@xs, { $_ > 9 }) { Some($n) { "found $n" } None { "missing" } })
+    print(match @empty.find({ true }) { Some($n) { "found $n" } None { "empty" } })
+    0
+}

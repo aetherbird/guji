@@ -1,0 +1,15 @@
+# E5d-7c-2b-4: NON-final statement-position `match` over an enum, value discarded.
+# Mirrors the driver's verdict match: two reject arms `note($m); return N`, an accept
+# arm yielding a discarded `0`. Here the accept arm is taken, so the match falls
+# through and execution continues. Three-way (interp == native == selfhost).
+enum Verdict { VAccept VRejectP($m: Str) VRejectT($m: Str) }
+
+sub main(): Int {
+    match VAccept {
+        VRejectP($m) { note($m) return 1 }
+        VRejectT($m) { note($m) return 1 }
+        VAccept { 0 }
+    }
+    print("accepted")
+    0
+}

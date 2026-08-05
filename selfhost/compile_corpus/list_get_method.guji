@@ -1,0 +1,42 @@
+# §15.1 list `get` method form, P2c: `@xs.get(i)` lowers to Option[T] just
+# like the older in-subset ordinary `get(@xs, i)` form. Covers a produced
+# List[Str] receiver (`split(...).get(0)`) and bound List[Str]/List[Int] params.
+
+sub first_char_method($w: Str): Str {
+    match split($w, "").get(0) {
+        Some($c) { $c }
+        None { "" }
+    }
+}
+
+sub at_str_method(@chars: List[Str], $i: Int): Str {
+    match @chars.get($i) {
+        Some($c) { $c }
+        None { "?" }
+    }
+}
+
+sub at_int_method(@xs: List[Int], $i: Int): Int {
+    match @xs.get($i) {
+        Some($n) { $n }
+        None { 0 - 1 }
+    }
+}
+
+sub main(): Int {
+    $a = first_char_method("hi")
+    $b = first_char_method("")
+    $c1 = at_str_method(split("abc", ""), 1)
+    $c2 = at_str_method(split("abc", ""), 9)
+    $c3 = at_str_method(split("abc", ""), 1 + 1)
+    $n1 = at_int_method([10, 20, 30], 1)
+    $n2 = at_int_method([10, 20, 30], 9)
+
+    mut $code = 0
+    if $a == "h" { $code = $code + 1 } else { $code = $code + 0 }
+    if $b == "" { $code = $code + 2 } else { $code = $code + 0 }
+    if $c1 == "b" { $code = $code + 4 } else { $code = $code + 0 }
+    if $c2 == "?" { $code = $code + 8 } else { $code = $code + 0 }
+    if $c3 == "c" { $code = $code + 16 } else { $code = $code + 0 }
+    $code + $n1 + $n2
+}

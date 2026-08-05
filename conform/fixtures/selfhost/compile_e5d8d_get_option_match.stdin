@@ -1,0 +1,11 @@
+sub first_char($w: Str): Str {
+    match get(split($w, ""), 0) {
+        Some($c) { $c }
+        None { "" }
+    }
+}
+
+sub main(): Int {
+    print(first_char("hi"))
+    0
+}

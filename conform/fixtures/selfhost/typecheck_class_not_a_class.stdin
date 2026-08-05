@@ -1,0 +1,7 @@
+# E3: named-arg construction whose callee names an enum (not a class) errors.
+enum E { A B }
+
+sub main(): Int {
+    $t = E(kind: "id")
+    0
+}

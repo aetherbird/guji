@@ -1,0 +1,14 @@
+enum Suit {
+    Hearts
+    Diamonds
+    Clubs
+    Spades
+}
+
+sub main(): Int {
+    $s: Suit = Clubs
+    match $s {
+        Hearts { 1 }
+        _ { 99 }
+    }
+}

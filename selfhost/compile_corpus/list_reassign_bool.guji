@@ -1,0 +1,5 @@
+sub main(): Int {
+    mut @flags: List[Bool] = [true, false]
+    @flags = [false, true]
+    if !@flags[0] && @flags[1] { 8 } else { 3 }
+}

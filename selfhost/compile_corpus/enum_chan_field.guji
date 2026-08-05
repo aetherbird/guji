@@ -1,0 +1,37 @@
+# I8c2 bootstrap boundary: a user enum may carry a real Chan[Str] in a mixed
+# payload slot. Construction/call/match copies retain the handle; the final drop
+# releases it and any queued owned Str messages.
+enum StreamValue {
+    Idle
+    Text($text: Str)
+    Active($ch: Chan[Str])
+}
+
+sub wrap($ch: Chan[Str]): StreamValue {
+    Active($ch)
+}
+
+sub take($value: StreamValue): Str {
+    match $value {
+        Idle { "idle" }
+        Text($text) { $text }
+        Active($ch) {
+            $next = $ch.recv()
+            $next.unwrap_or("closed")
+        }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Str] = channel(2)
+    $ch.send("one")
+    $value = wrap($ch)
+    $ch.close()
+    print(take($value))
+
+    # Leave one counted message buffered: enum/channel teardown must drop it.
+    $pending: Chan[Str] = channel(1)
+    $pending.send("owned" ~ "-message")
+    $unused: StreamValue = Active($pending)
+    0
+}

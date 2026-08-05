@@ -1,0 +1,57 @@
+# RC2.1b: uniqueness-based in-place map update also works for maps whose
+# values are counted handles (List and Map). Fresh nested value temps must
+# transfer into the updated slot without later loop cleanup releasing them, and
+# aliases must still force the copy fallback.
+sub list_rows(): Map[Str, List[Int]] {
+    mut %rows = {"seed": [0]}.set("seed", [0])
+    mut $i = 1
+    while $i <= 3 {
+        %rows = %rows.set("r{ $i }", [$i, $i * 10])
+        $i = $i + 1
+    }
+    %rows = %rows.set("r2", [99])
+    %rows = %rows.remove("r1")
+    %rows
+}
+
+sub map_rows(): Map[Str, Map[Str, Str]] {
+    mut %rows = {"seed": {"v": "zero"}}.set("seed", {"v": "zero"})
+    mut $i = 1
+    while $i <= 2 {
+        %rows = %rows.set("m{ $i }", {"v": "val{ $i }"})
+        $i = $i + 1
+    }
+    %rows = %rows.set("m1", {"v": "ONE"})
+    %rows = %rows.remove("seed")
+    %rows
+}
+
+sub main(): Unit {
+    %lists = list_rows()
+    print(%lists.has_key("r1"))
+    print(%lists{"r2"}.sum())
+    print(%lists{"r3"}[1])
+
+    %maps = map_rows()
+    print(%maps.has_key("seed"))
+    print(%maps{"m1"}{"v"})
+    print(%maps{"m2"}{"v"})
+
+    mut %aliased_lists = {"a": [1]}.set("a", [1])
+    %list_alias = %aliased_lists
+    %aliased_lists = %aliased_lists.set("a", [9])
+    %aliased_lists = %aliased_lists.set("b", [2])
+    print(%list_alias{"a"}.sum())
+    print(%list_alias.has_key("b"))
+    print(%aliased_lists{"a"}.sum())
+    print(%aliased_lists{"b"}.sum())
+
+    mut %aliased_maps = {"a": {"x": "old"}}.set("a", {"x": "old"})
+    %map_alias = %aliased_maps
+    %aliased_maps = %aliased_maps.set("a", {"x": "new"})
+    %aliased_maps = %aliased_maps.set("b", {"x": "extra"})
+    print(%map_alias{"a"}{"x"})
+    print(%map_alias.has_key("b"))
+    print(%aliased_maps{"a"}{"x"})
+    print(%aliased_maps{"b"}{"x"})
+}

@@ -1,0 +1,8 @@
+# I8c: writing a read-only Handle is a runtime panic. stdin is readable only;
+# C and D must agree on stdout "before", stderr panic text, and exit 1.
+sub main(): Int {
+    print("before")
+    stdin.write("x")
+    print("unreachable")
+    0
+}

@@ -1,0 +1,21 @@
+# P9-11b-2b: pin Chan[Option[Bush]] ABI — opt_bush / opt_opt_bush carriers,
+# guji_bush_copy on send, and guji_chan_drop_opt_bush for undelivered Some.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "} guji_opt_bush;") >= 1)
+            print(count_of($c, "} guji_opt_opt_bush;") >= 1)
+            print(count_of($c, "static void guji_chan_drop_opt_bush") == 1)
+            print(count_of($c, "= guji_bush_copy(") >= 1)
+            print(count_of($c, "sizeof(guji_opt_bush), guji_chan_drop_opt_bush)") == 1)
+            0
+        }
+    }
+}

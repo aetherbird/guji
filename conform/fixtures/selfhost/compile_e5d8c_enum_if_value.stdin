@@ -1,0 +1,25 @@
+enum WordKind {
+    KBool
+    KKeyword
+    KUpper
+    KIdent
+}
+
+sub classify($w: Str): WordKind {
+    if $w == "true" || $w == "false" {
+        KBool
+    } else if $w == "sub" {
+        KKeyword
+    } else if $w == "Type" {
+        KUpper
+    } else {
+        KIdent
+    }
+}
+
+sub main(): Int {
+    match classify("name") {
+        KIdent { 0 }
+        _ { 1 }
+    }
+}

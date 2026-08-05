@@ -1,0 +1,11 @@
+sub main(): Int {
+    @nested = [[1, 2], [3]]
+    for @row in @nested {
+        print("{ @row.sum() }")
+    }
+    @rows = [{"words": "a"}]
+    for %row in @rows {
+        print("{ %row{'words'} }")
+    }
+    0
+}

@@ -1,0 +1,23 @@
+# §16.1 direct module loading: a multi-segment path binds its final segment as
+# the alias, and qualified public functions/types cross into the caller.
+import eval_modules::module_values
+
+# A caller-local collision must not replace the imported module's private bump.
+sub bump($n: Int): Int {
+    $n + 100
+}
+
+sub main(): Int {
+    print(module_values::add(3, 4))
+    print(module_values::labels(9).join("|"))
+
+    $p = module_values::Point(x: 6, y: 2)
+    print($p.shifted(4))
+
+    $choice = module_values::Choice.pick(0)
+    print(match $choice {
+        Hot { "hot" }
+        Cold { "cold" }
+    })
+    0
+}

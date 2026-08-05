@@ -1,0 +1,23 @@
+# P4b-1: method signatures strip $self at the call site and associated
+# functions are called on the class type.
+class Counter {
+    has $.n: Int
+
+    sub make($n: Int): Counter {
+        Counter(n: $n)
+    }
+
+    sub bumped($self, $delta: Int): Counter {
+        Counter(n: $self.n + $delta)
+    }
+
+    sub value($self): Int {
+        $self.n
+    }
+}
+
+sub main(): Int {
+    $c = Counter.make(40)
+    $d = $c.bumped(2)
+    $d.value()
+}

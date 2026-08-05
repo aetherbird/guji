@@ -1,0 +1,5 @@
+# T5: arithmetic operators require matching numeric operand types.
+sub main(): Int {
+    "a" + 1
+    0
+}

@@ -1,0 +1,39 @@
+# P2b-3c-4: §15 higher-order list methods over a List[List[Int]] receiver, plus
+# `.map` PRODUCING a List[List[Int]]. Native accepts every shape below and matches
+# the interpreter; the self-hosted compiler now lowers them against its nested-list
+# (GUJI_KIND_ARR_SLICE) value representation (P2b-3c-3). `.find` -> Option[List[Int]]
+# is the remaining nested higher-order shape (needs an Option-of-list carrier) and
+# is tracked separately. Three-way exit 19.
+sub main(): Int {
+    @xs = [[1, 2], [3, 4, 5], [6]]
+
+    # .each over a nested-list element (binder is List[Int]), side effect only.
+    @xs.each(sub($row: List[Int]) { print("each { count($row) }") })
+
+    # .map reading each nested element, producing a SCALAR list (List[Int]).
+    @lens = @xs.map(sub($row: List[Int]): Int { count($row) })
+    print("lens { @lens[0] },{ @lens[1] },{ @lens[2] }")
+
+    # data-first .map, same scalar-return shape.
+    @firsts = map(@xs, sub($row: List[Int]): Int { $row[0] })
+    print("firsts { @firsts[0] },{ @firsts[1] },{ @firsts[2] }")
+
+    # .filter keeping whole nested elements (result stays List[List[Int]]).
+    @big = @xs.filter(sub($row: List[Int]): Bool { count($row) > 1 })
+    print("big { count(@big) }/{ @big[1][2] }")
+
+    # .reduce folding nested elements into a scalar accumulator.
+    $total = reduce(@xs, 0, sub($acc: Int, $row: List[Int]): Int { $acc + count($row) })
+    print("total { $total }")
+
+    # .map PRODUCING a nested list (List[Int] source -> List[List[Int]] result),
+    # method form; index twice into the produced rows.
+    @doubled = @lens.map(sub($n: Int): List[Int] { [$n, $n * 10] })
+    print("doubled { @doubled[0][0] },{ @doubled[0][1] } | { @doubled[1][0] },{ @doubled[1][1] }")
+
+    # data-first .map producing a nested list, then read a deep slot.
+    @pairs = map(@lens, sub($n: Int): List[Int] { [$n, $n, $n] })
+    print("pairs { count(@pairs) }/{ @pairs[2][2] }")
+
+    $total + count(@doubled) + @doubled[2][1]
+}

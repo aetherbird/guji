@@ -1,0 +1,8 @@
+sub choose($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("up") } else { Err("down") }
+}
+
+sub main(): Int {
+    $r: Result[Str, Str] = if 2 > 1 { choose(1) } else { choose(0) }
+    match $r { Ok($s) { print($s) 4 } Err($e) { print($e) 5 } }
+}

@@ -1,0 +1,15 @@
+sub take[T](@xs: List[T]): Int {
+    @xs.count()
+}
+
+sub main(): Int {
+    @ei: List[Int] = []
+    @es: List[Str] = []
+    @ef: List[Float] = []
+    @eb: List[Bool] = []
+    print("{ @ei.count() }")
+    print("{ @es.count() }")
+    print("{ @ef.count() }")
+    print("{ @eb.count() }")
+    take(@ei)
+}

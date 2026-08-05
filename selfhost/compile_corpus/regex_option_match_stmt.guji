@@ -1,0 +1,18 @@
+# P9-0: statement-position match over Option[Regex] must keep the Regex
+# display mark on Some($x) so print($x) emits /pattern/, not the bare
+# pattern. Value-position match (regex_option_match.guji) already covered
+# the expression path; the statement path previously skipped
+# g6_match_payload_env and dropped the slash wrap.
+sub main(): Int {
+    $o: Option[Regex] = Some(Regex.literal("a.b"))
+    match $o {
+        Some($x) { print($x) }
+        None { print("none") }
+    }
+    $n: Option[Regex] = None
+    match $n {
+        Some($x) { print($x) }
+        None { print("none") }
+    }
+    0
+}

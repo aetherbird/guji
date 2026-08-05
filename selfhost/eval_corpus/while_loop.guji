@@ -1,0 +1,50 @@
+# §6.3 while: mutable-index accumulation, nested loops, and early `return` from
+# inside a loop agree in the canonical interpreter and compiler. The loop value
+# is Unit; reassignments to outer `mut`
+# bindings persist across iterations; a `return` short-circuits the whole loop.
+sub triangle($n: Int): Int {
+    mut $i = 0
+    mut $sum = 0
+    while $i < $n {
+        $sum = $sum + $i
+        $i = $i + 1
+    }
+    $sum
+}
+
+sub first_multiple($n: Int, $limit: Int): Int {
+    mut $i = 1
+    while $i < $limit {
+        if $i % $n == 0 {
+            return $i
+        }
+        $i = $i + 1
+    }
+    0 - 1
+}
+
+sub count_pairs($n: Int): Int {
+    mut $i = 0
+    mut $total = 0
+    while $i < $n {
+        mut $j = 0
+        while $j < $i {
+            $total = $total + 1
+            $j = $j + 1
+        }
+        $i = $i + 1
+    }
+    $total
+}
+
+sub main(): Int {
+    print(triangle(5))
+    print(triangle(0))
+    print(first_multiple(7, 100))
+    print(first_multiple(13, 10))
+    print(count_pairs(4))
+    # A recursive evaluator loop consumed one native C frame per iteration and
+    # reliably hit SIGSEGV at the ordinary 8 MiB stack before 10,000.
+    print(triangle(10000))
+    0
+}

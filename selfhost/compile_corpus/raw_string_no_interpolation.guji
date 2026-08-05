@@ -1,0 +1,7 @@
+# EB-3b: single-quoted raw strings are not §12 interpolating strings. Braces
+# and unknown backslash escapes must survive literally.
+sub main(): Int {
+    $n = 5
+    print('raw { $n } \{lit\} z\q')
+    0
+}

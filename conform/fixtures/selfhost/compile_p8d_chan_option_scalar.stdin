@@ -1,0 +1,20 @@
+sub main(): Int {
+    $ints: Chan[Option[Int]] = channel(1)
+    $iv: Option[Int] = Some(7)
+    $ints.send($iv)
+    $a = $ints.recv().unwrap()
+    print($a.unwrap())
+
+    $bools: Chan[Option[Bool]] = channel(1)
+    $bv: Option[Bool] = None
+    $bools.send($bv)
+    $b = $bools.recv().unwrap()
+    print(match $b { Some($x) { $x } None { false } })
+
+    $floats: Chan[Option[Float]] = channel(1)
+    $fv: Option[Float] = Some(2.5)
+    $floats.send($fv)
+    $c = $floats.recv().unwrap()
+    print($c.unwrap())
+    0
+}

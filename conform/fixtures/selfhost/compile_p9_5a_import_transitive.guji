@@ -1,0 +1,39 @@
+# gujiconform - selfhost slice 6 P9-5a compiler codegen fixture.
+# Pins TRANSITIVE import emission: main imports `a`, `a` imports `b`, and `a`'s
+# body calls `b::base()`. Codegen must emit `b` before `a` (nested C names
+# `gf_imp_b_base` / `gf_imp_a_value`) without re-exporting `b::` into main.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    $b = "pub sub base(): Int \{ 41 }\n"
+    $a = "import b\n\npub sub value(): Int \{\n    b::base() + 1\n}\n"
+    # Sibling modules must be named <alias>.guji beside the synthetic main path
+    # so import_source_path resolves `import a` / `import b` correctly.
+    match write_file("/tmp/b.guji", $b) {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match write_file("/tmp/a.guji", $a) {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match lexer::compile_program_c_at("/tmp/guji_compile_p95a_main.guji", stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static int64_t gf_imp_b_base(void);"))
+            print(has_text($c, "static int64_t gf_imp_a_value(void);"))
+            # a's body must call the nested import's C name
+            print(has_text($c, "guji_add(gf_imp_b_base(), 1LL)"))
+            print(has_text($c, "gf_imp_a_value()"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

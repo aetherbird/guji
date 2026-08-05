@@ -1,0 +1,15 @@
+sub main(): Int {
+    match "42".parse_int() {
+        Ok($v)  { print("ok: $v") }
+        Err($e) { print("err: $e") }
+    }
+    match parse_int("  -7  ") {
+        Ok($v)  { print("ok: $v") }
+        Err($e) { print("err: $e") }
+    }
+    match parse_int("not a number") {
+        Ok($v)  { print("ok: $v") }
+        Err($e) { print("err: $e") }
+    }
+    0
+}

@@ -1,0 +1,20 @@
+# gujiconform — selfhost slice 4 G6b user-enum type checker.
+# The stdin source omits one declared enum variant in a match.
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

@@ -1,0 +1,34 @@
+# E5d-8p: the unary Str->Str string prelude calls `lower`/`upper`/`trim`, used in a
+# scalar binding (`$lc = lower($c)`, the real `hex_digit_val` shape) and method-style
+# (`$s.lower()`, `$s.trim()`). Native lowers all three through one `strUnaryCall`
+# helper, so this is a normal three-way case (interp == native == selfhost).
+
+sub hex_digit_val($c: Str): Int {
+    $lc = lower($c)
+    if $lc == "a" {
+        10
+    } else if $lc == "f" {
+        15
+    } else {
+        0
+    }
+}
+
+sub classify($c: Str): Int {
+    mut $n = 0
+    if upper($c) == "X" { $n = $n + 1 } else { $n = $n + 0 }
+    if trim($c) == $c { $n = $n + 2 } else { $n = $n + 0 }
+    if $c.lower() == $c { $n = $n + 4 } else { $n = $n + 0 }
+    $n
+}
+
+sub main(): Int {
+    mut $score = 0
+    $score = $score + hex_digit_val("A")
+    $score = $score + hex_digit_val("F")
+    $score = $score + hex_digit_val("z")
+    if classify("X") == 3 { $score = $score + 20 } else { $score = $score + 0 }
+    if classify("x") == 7 { $score = $score + 40 } else { $score = $score + 0 }
+    if ("  hi  ".trim() ~ "!").upper() == "HI!" { $score = $score + 8 } else { $score = $score + 0 }
+    $score
+}

@@ -1,0 +1,8 @@
+# gujiconform — P7a. Grammar production bodies are emitted as one raw token
+# (§14.1), including regex metacharacters and braces that do not close the body.
+import lexer
+
+sub main(): Int {
+    print(lexer::lex_to_string(stdin.slurp()))
+    0
+}

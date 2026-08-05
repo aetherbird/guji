@@ -1,0 +1,33 @@
+# I11a: enum payload annotations supply Chan[T] context for direct channel(cap)
+# arguments (Lists(channel(1))). Opaque <chan> display plus handle identity;
+# leave detached heap payloads buffered so final teardown is LSan-visible.
+enum Notice {
+    Quiet
+    Text($value: Str)
+}
+
+enum PayloadChannels {
+    Empty
+    Lists($ch: Chan[List[Int]])
+    Maps($ch: Chan[Map[Str, Str]])
+    Enums($ch: Chan[Notice])
+}
+
+sub main(): Int {
+    $lists: Chan[List[Int]] = channel(1)
+    $lists.send([1, 2, 3])
+    $maps: Chan[Map[Str, Str]] = channel(1)
+    $maps.send({"kind": "map" ~ "-payload"})
+    $enums: Chan[Notice] = channel(1)
+    $enums.send(Text("enum" ~ "-payload"))
+
+    $list_box = Lists($lists)
+    $map_box = Maps($maps)
+    $enum_box = Enums($enums)
+    print($list_box)
+    print($map_box)
+    print($enum_box)
+    print($list_box == Lists($lists))
+    print($list_box == Lists(channel(1)))
+    0
+}

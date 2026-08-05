@@ -1,0 +1,22 @@
+# gujiconform - selfhost slice 5 E5d-7c-2b-1 compiler codegen fixture.
+# Pins statement-position `note(<Str expr>)` lowering to the runtime stderr sink.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_note("))
+            print(has_text($c, "guji_release("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

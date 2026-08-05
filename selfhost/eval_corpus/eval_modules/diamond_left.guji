@@ -1,0 +1,6 @@
+# Left parent of the I8b2 diamond.
+import diamond_leaf
+
+pub sub value(): Int {
+    diamond_leaf::base() + 1
+}

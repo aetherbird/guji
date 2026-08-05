@@ -1,0 +1,10 @@
+# Phase 2 (Platform IO): `stdin` is the always-open standard-input handle
+# (§15.4). `stdin.slurp()` reads ALL of stdin VERBATIM (terminators intact, no
+# chomp). The gate pipes io_stdin.stdin to BOTH engines. A second slurp sees the
+# stream already consumed and yields "" — `stdin` references share one stream,
+# matching the interpreter, which reads from a single input source.
+sub main(): Int {
+    print("first:[" ~ stdin.slurp() ~ "]")
+    print("second:[" ~ stdin.slurp() ~ "]")
+    0
+}

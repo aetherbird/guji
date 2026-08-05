@@ -1,0 +1,10 @@
+# §4 reassigning an immutable binding in the same frame is a runtime error.
+sub bump($n: Int): Int {
+    $n = $n + 1
+    $n
+}
+sub main(): Int {
+    print(1)
+    print(bump(5))
+    0
+}

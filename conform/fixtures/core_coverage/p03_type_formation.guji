@@ -1,0 +1,19 @@
+# P03: explicit annotations, local inference, and generic substitution.
+sub choose[T]($left: T, $right: T, $take_left: Bool): T {
+    if $take_left { $left } else { $right }
+}
+
+sub main(): Int {
+    $annotated: Int = 4
+    $inferred = $annotated + 3
+    @words: List[Str] = ["alpha", "beta"]
+    %counts: Map[Str, Int] = {"x": 2}
+    $number: Int = choose(8, 9, true)
+    $word: Str = choose("left", "right", false)
+    print($inferred)
+    print(@words)
+    print(%counts)
+    print($number)
+    print($word)
+    0
+}

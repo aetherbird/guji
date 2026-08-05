@@ -1,0 +1,33 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4d compiler codegen fixture.
+# Pins final `if` value branches whose carrier constructor argument contains a
+# hoistable `?`: each branch emits the carrier guard before rebuilding the
+# branch value and assigning the shared if-result temp.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Result branch hoist: carrier temp guard and early Err return.
+            print(has_text($c, "if (gr"))
+            print(has_text($c, ".tag != 0LL)"))
+            print(has_text($c, "return (guji_res_int_str)"))
+            # Rebuilt branch carrier assigns into the shared if-result temp.
+            print(has_text($c, ' = (guji_res_int_str){0LL, guji_add('))
+            # Option branch hoist: None early-return from inside a branch.
+            print(has_text($c, 'return (guji_opt_int){0LL, 0LL};'))
+            # Str payload branch hoist retains the synthetic Str local for concat.
+            print(has_text($c, " = guji_retain(gv"))
+            print(has_text($c, ' = (guji_res_str_str){0LL, gt'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

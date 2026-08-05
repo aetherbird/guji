@@ -1,0 +1,11 @@
+# P6e-replace-b: Str + Regex splices in .replace (host parts). replace_with
+# splices stay declined (P6e-replace-c) so this stays under the 45m sc-gate.
+sub main(): Int {
+    $needle = "a.b"
+    $a = "a.b aab".replace(/<{ $needle }>/, "[$0]")
+    $b = replace("a.b xy", /<{ $needle }>/, "<$0>")
+    $r = Regex.compile("ab|cd").unwrap()
+    $c = "ab cd ax".replace(/<{ $r }>/, "[$0]")
+    print("$a|$b|$c")
+    0
+}

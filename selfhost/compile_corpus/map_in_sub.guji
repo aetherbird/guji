@@ -1,0 +1,8 @@
+sub show(): Int {
+  %m: Map[Str, Str] = {"a": "x", "b": "y"}
+  print(%m)
+  0
+}
+sub main(): Int {
+  show()
+}

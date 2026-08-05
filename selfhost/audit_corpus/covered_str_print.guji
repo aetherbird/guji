@@ -1,0 +1,6 @@
+# DECLINE-AUDIT control: print a Str literal then return an Int. COVERED — anchors
+# the harness's "covered" classification on the stdout path as well as the exit path.
+sub main(): Int {
+    print("hi")
+    0
+}

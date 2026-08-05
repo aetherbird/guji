@@ -1,0 +1,3 @@
+sub run($xs: List[Int]): Int {
+    $xs.map($f).count()
+}

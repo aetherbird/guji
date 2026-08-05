@@ -1,0 +1,24 @@
+# DECLINE-AUDIT (P8e-7): hatch capture of an enum whose variant carries a
+# by-value scalar class payload. Native accepts (plain struct copy into the
+# hatch env); prior selfhost reused the channel enum predicate and declined.
+# A regression of g5_hatch_enum_fields_supported back to
+# g11_chan_enum_fields_supported would surface here as a GAP.
+class Payload {
+    has $.v: Int
+}
+enum Box {
+    Full($p: Payload)
+    Empty
+}
+sub main(): Int {
+    $b = Full(Payload(v: 8))
+    $ch: Chan[Int] = channel(0)
+    hatch {
+        match $b {
+            Full($p) { $ch.send($p.v) }
+            Empty { $ch.send(0) }
+        }
+    }
+    print($ch.recv().unwrap())
+    0
+}

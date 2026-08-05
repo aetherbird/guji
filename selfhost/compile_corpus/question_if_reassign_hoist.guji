@@ -1,0 +1,105 @@
+# Slice 6 P3b-2b-2c-4: existing mutable scalar/Str bindings reassigned from
+# if-values whose branch-final expressions contain hoistable `?` operations.
+# This reuses the retkind-aware if-value branch lowerer, then assigns the shared
+# if temp into the existing local. Covers all four scalar kinds, Err early
+# returns, else arms, and an owned-Str old-value release before assignment.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok("<" ~ $s ~ ">") }
+}
+
+sub half($s: Str): Result[Float, Str] {
+    if $s == "bad" { Err("bad float") } else { Ok(3.0) }
+}
+
+sub pick($b: Bool): Result[Bool, Str] {
+    if $b { Ok(true) } else { Err("nope") }
+}
+
+sub if_reassign_int($take: Bool, $s: Str): Result[Int, Str] {
+    mut $x = 1
+    $x = if $take {
+        parse_int($s)? + 5
+    } else {
+        70
+    }
+    Ok($x + 1)
+}
+
+sub if_reassign_str($take: Bool, $s: Str): Result[Str, Str] {
+    mut $x = "start"
+    $x = if $take {
+        tag($s)? ~ "!"
+    } else {
+        "idle"
+    }
+    Ok($x ~ " done")
+}
+
+sub if_reassign_float($take: Bool, $s: Str): Result[Float, Str] {
+    mut $x = 1.0
+    $x = if $take {
+        half($s)? + 1.5
+    } else {
+        2.0
+    }
+    Ok($x)
+}
+
+sub if_reassign_bool($take: Bool, $b: Bool): Result[Bool, Str] {
+    mut $x = false
+    $x = if $take {
+        pick($b)?
+    } else {
+        true
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    match if_reassign_int(true, "4") {
+        Ok($a) { print("int ok { $a }") }
+        Err($e1) { print("int err { $e1 }") }
+    }
+    match if_reassign_int(false, "bad") {
+        Ok($b) { print("int else { $b }") }
+        Err($e2) { print("int else err { $e2 }") }
+    }
+    match if_reassign_int(true, "bad") {
+        Ok($c) { print("int bad { $c }") }
+        Err($e3) { print("int err { $e3 }") }
+    }
+    match if_reassign_str(true, "go") {
+        Ok($d) { print("str ok { $d }") }
+        Err($e4) { print("str err { $e4 }") }
+    }
+    match if_reassign_str(false, "bad") {
+        Ok($f) { print("str else { $f }") }
+        Err($e5) { print("str else err { $e5 }") }
+    }
+    match if_reassign_str(true, "bad") {
+        Ok($g) { print("str bad { $g }") }
+        Err($e6) { print("str err { $e6 }") }
+    }
+    match if_reassign_float(true, "ok") {
+        Ok($h) { print("float ok { $h }") }
+        Err($e7) { print("float err { $e7 }") }
+    }
+    match if_reassign_float(true, "bad") {
+        Ok($i) { print("float bad { $i }") }
+        Err($e8) { print("float err { $e8 }") }
+    }
+    match if_reassign_bool(true, true) {
+        Ok($j) { print("bool ok { $j }") }
+        Err($e9) { print("bool err { $e9 }") }
+    }
+    match if_reassign_bool(false, false) {
+        Ok($k) { print("bool else { $k }") }
+        Err($e10) { print("bool else err { $e10 }") }
+    }
+    match if_reassign_bool(true, false) {
+        Ok($l) { print("bool bad { $l }") }
+        Err($e11) { print("bool err { $e11 }") }
+    }
+    67
+}

@@ -1,0 +1,32 @@
+# P8d-2c-3c-3: nested channel payloads — Chan[List[List[Int]]] rides the
+# guji_slice_t/drop_list ABI; Map[Str, List[Str]] and Map[Str, Map[Str, Int]]
+# ride the guji_map_t/drop_map ABI. One drain loop per channel; distinct
+# binder names (native C-local redefinition limit).
+sub main(): Int {
+    $ll: Chan[List[List[Int]]] = channel(1)
+    $ll.send([[1, 2], [3]])
+    $ll.close()
+    mut $n = 0
+    for $rows in $ll {
+        $n = $n + $rows[0][1]
+    }
+    print($n)
+
+    %src: Map[Str, List[Str]] = {"k": ["a" ~ "x", "b"]}
+    $ml: Chan[Map[Str, List[Str]]] = channel(1)
+    $ml.send(%src)
+    $ml.close()
+    for %row in $ml {
+        $v = %row{"k"}
+        print($v[0])
+    }
+
+    %mm: Map[Str, Map[Str, Int]] = {"x": {"i": 7}}
+    $dm: Chan[Map[Str, Map[Str, Int]]] = channel(1)
+    $dm.send(%mm)
+    $dm.close()
+    for %mrow in $dm {
+        print(%mrow)
+    }
+    0
+}

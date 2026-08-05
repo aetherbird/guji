@@ -1,0 +1,27 @@
+# I8b3 §16.1: cross-module class/enum values whose source names collide must
+# keep distinct identity through construction, methods, and display. A local
+# Point with the same name must also stay distinct from both imports.
+import eval_modules::ident_left
+import eval_modules::ident_right
+
+class Point {
+    has $.x: Int
+    sub label($self): Str { "local-{ $self.x }" }
+}
+
+sub main(): Int {
+    $l = ident_left::Point(x: 1)
+    $r = ident_right::Point(x: 2)
+    $p = Point(x: 3)
+    print($l.label())
+    print($r.label())
+    print($p.label())
+    $lt = ident_left::Tag.pick(1)
+    $rt = ident_right::Tag.pick(0)
+    print($lt.mark())
+    print($rt.mark())
+    print($l)
+    print($r)
+    print($p)
+    0
+}

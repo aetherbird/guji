@@ -1,0 +1,32 @@
+# selfhost slice 6 MAP-INDEX-PARSE: postfix `%m{key}` map indexing now parses in
+# every expression position — call argument, binary operand, if-branch block —
+# not only as the sole RHS of a binding (the previous parser dropped `{...}` after
+# a receiver, treating a `print(%m{"k"})` brace as an argument-list error and a
+# statement-position brace as a topic block). Disambiguated from control-flow
+# block braces by before-block suppression mirroring native's stopAtBlockBrace.
+# The map-index EIndex reads reuse the existing g7_lower_map_index lowering.
+sub lookup(%m: Map[Str, Int], $k: Str): Int {
+    if %m.has_key($k) { %m{$k} } else { -1 }
+}
+
+sub main(): Int {
+    %scores = {"ada": 10, "grace": 20, "linus": 30}
+    # map index directly as a call argument (was a parse error before)
+    print(%scores{"ada"})
+    # map index in a binary operand position
+    print(%scores{"grace"} + %scores{"linus"})
+    # map index as the sole RHS of a bind (already worked)
+    $g = %scores{"grace"}
+    print($g)
+    # map index inside an if-branch block, guarded by a before-block condition
+    print(lookup(%scores, "linus"))
+    print(lookup(%scores, "missing"))
+
+    %names = {"first": "ada", "last": "lovelace"}
+    # Str-valued map index as a call argument, then as a bind RHS
+    print(%names{"first"})
+    $ln = %names{"last"}
+    print($ln)
+
+    %scores{"ada"} + %scores{"grace"}
+}

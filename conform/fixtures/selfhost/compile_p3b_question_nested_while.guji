@@ -1,0 +1,31 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4 compiler codegen fixture.
+# Pins a `?` bind inside a nested `while`: the inner loop must recurse through
+# the retkind-aware loop walker instead of the Unit-only statement lowerer.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # The source has nested loops and both lower to C while shells.
+            print(has_text($c, "while (1) \{\n\t\tif (!(((gv1) < (gp1)"))
+            print(has_text($c, "while (1) \{\n\t\tif (!(((gv2) < (gp2)"))
+            # Result[Int] `?` lowers inside the inner loop, not as RUnit.
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr6.err};"))
+            print(has_text($c, "gv7 = gr6.ok;"))
+            # Result[Str] early return from the inner loop releases the outer
+            # accumulated string, and successful payloads release per iteration.
+            print(has_text($c, "guji_release(gv1);\n\t\treturn (guji_res_str_str)\{1LL, GUJI_EMPTY_STR, gr6.err};"))
+            print(has_text($c, "guji_release(gv7);\n\t}"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

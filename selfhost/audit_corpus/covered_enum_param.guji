@@ -1,0 +1,17 @@
+# DECLINE-AUDIT control: match-over-enum where the scrutinee is a sub PARAMETER —
+# the ONLY enum-match position the selfhost compiler already covers. The audit
+# must classify this as COVERED (proves the harness does not over-report).
+enum Color { Red, Green, Blue }
+
+sub label($c: Color): Int {
+    match $c {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}
+
+sub main(): Int {
+    $c: Color = Green
+    label($c)
+}

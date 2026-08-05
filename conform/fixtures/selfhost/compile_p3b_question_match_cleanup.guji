@@ -1,0 +1,35 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4f compiler codegen fixture.
+# Pins `?` binds/reassignments inside statement-match arms whose scrutinee is a
+# fresh owned enum value: the `?` early-return path must release the scrutinee
+# temp before returning, while successful fall-through keeps the existing
+# after-match cleanup.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Owned enum scrutinee cleanup is emitted before an in-arm `?` return.
+            print(has_text($c, "guji_release_Item_fields(&ge3);\n\t\treturn (guji_res_int_str)"))
+            # Direct in-arm bind adopts the parsed Result Ok payload.
+            print(has_text($c, "gv8 = gr7.ok;"))
+            # Hoisted bind inside the arm rebuilds the RHS from the synthetic payload.
+            print(has_text($c, "gv9 = guji_add(gv8, 1LL);"))
+            # Existing-name reassignment inside the arm lowers through reassign.
+            print(has_text($c, "gv0 = guji_add(gv8, 2LL);"))
+            # Owned Str `?` payload in the arm is released on branch fall-through.
+            print(has_text($c, "guji_release(gv7);"))
+            # Successful/fall-through match cleanup remains after the arm chain.
+            print(has_text($c, "guji_release_Item_fields(&ge3);\n\treturn (guji_res_int_str)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

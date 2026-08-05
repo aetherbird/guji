@@ -1,0 +1,18 @@
+sub make_chan(): Chan[Int] {
+    channel(1)
+}
+
+sub alias_out($ch: Chan[Int]): Chan[Int] {
+    $alias = $ch
+    $alias
+}
+
+sub main(): Int {
+    $ch = make_chan()
+    $ch.send(1);
+    $ch2 = alias_out($ch)
+    $got = $ch2.recv()
+    print($got.unwrap())
+    $ch2.close()
+    0
+}

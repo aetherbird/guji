@@ -1,0 +1,7 @@
+# T3b: match guards are conditions and must be Bool.
+sub main(): Int {
+    match Some(1) {
+        Some($n) if 1 { $n }
+        None { 0 }
+    }
+}

@@ -1,0 +1,6 @@
+# G7-c-2b-ii-b: Bool-value map reassignment (scalar value array).
+sub main() {
+    mut %m: Map[Str, Bool] = {"a": true}
+    %m = {"b": false, "c": true}
+    print(%m)
+}

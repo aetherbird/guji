@@ -1,0 +1,37 @@
+# P8d-2c-3c-8: Option[Str] channel elements — the first COUNTED Option payload.
+# The channel owns a DETACHED deep copy of the Some payload (guji_str_copy on
+# send, guji_chan_drop_opt_str for undelivered/rejected copies), the recv
+# carrier preserves delivered-None vs closed/drained, and fresh outer unwrap
+# retains the payload out then releases the carrier slot. Payloads are
+# HEAP-allocated (`~` concat), NOT immortal literals, so every retain/release
+# must balance exactly. Function-form unwrap($ch.recv()) is native-accepted for
+# this element shape (unlike List/Map binds) and is exercised too.
+sub main(): Int {
+    $ch: Chan[Option[Str]] = channel(3)
+    $s1: Option[Str] = Some("al" ~ "pha")
+    $s2: Option[Str] = None
+    $s3: Option[Str] = Some("be" ~ "ta")
+    $ch.send($s1)
+    $ch.send($s2)
+    $ch.send($s3)
+    $a = $ch.recv().unwrap()
+    $b = $ch.recv().unwrap()
+    $c = unwrap($ch.recv())
+    print($a.unwrap())
+    print(match $b { Some($s) { $s } None { "inner-none" } })
+    print(match $c { Some($t) { $t } None { "inner-none" } })
+
+    # The sent-from local still owns its payload after the deep-copy send.
+    print($s1.unwrap())
+
+    # A held recv carrier binding is released (payload included) at scope exit.
+    $hold: Chan[Option[Str]] = channel(2)
+    $h1: Option[Str] = Some("ga" ~ "mma")
+    $hold.send($h1)
+    $hold.send($h1)
+    $held = $hold.recv()
+
+    # One message stays UNDELIVERED: the channel's own release must drop the
+    # detached copy through guji_chan_drop_opt_str.
+    12
+}

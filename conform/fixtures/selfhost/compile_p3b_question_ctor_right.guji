@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c compiler codegen fixture.
+# Pins final carrier constructors whose argument contains a RIGHT-operand `?`
+# after a pure left expression, e.g. `Ok(100 - parse_int($s)?)` and
+# `Some($base + $o?)`. The guard is hoisted into a synthetic scalar bind, then
+# the rebuilt constructor lowers through the ordinary carrier value path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gv4 = gr3.ok;"))
+            print(has_text($c, "return (guji_res_int_str)\{0LL, guji_sub(100LL, gv"))
+            print(has_text($c, "return (guji_res_int_str)\{1LL, 0LL, gr"))
+            print(has_text($c, "gv1 = go0.val;"))
+            print(has_text($c, "return (guji_opt_int)\{1LL, guji_add(gp0, gv"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

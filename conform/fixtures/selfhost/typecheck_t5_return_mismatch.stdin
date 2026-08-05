@@ -1,0 +1,4 @@
+# T5: an explicit return must satisfy the annotated sub return type.
+sub main(): Int {
+    return "bad"
+}

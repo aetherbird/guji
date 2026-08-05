@@ -1,0 +1,19 @@
+# P9-10b-3a: an ALL-return (Never-valued) scalar match over an OWNED Str
+# scrutinee. Every arm returns, so the match temp and the $out binder are dead;
+# native defaults both to int64_t. Each return arm releases the owned scrutinee
+# temp before its C `return` (g5_guard_body_extra cleanup) — native omits that
+# release in this exact shape (a dead-path leak), so this fixture also guards
+# the LSan-cleaner selfhost ordering.
+sub probe($s: Str): Int {
+    $out = match $s ~ "!" {
+        "a!" { return 1 }
+        $m { return 2 }
+    }
+    $out
+}
+
+sub main(): Int {
+    print(probe("a"))
+    print(probe("z"))
+    0
+}

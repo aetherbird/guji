@@ -1,0 +1,26 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P5b-2b(carrier-eq collections): Option[Map[Str, Int]] uses native's
+# `guji_opt_map` carrier, owns both map arrays under Some, and compares map
+# payloads with insertion-order-independent `guji_map_equal`.
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "} guji_opt_map;"))
+            print(has_text($c, "guji_map_t val;"))
+            print(has_text($c, "guji_map_equal((const char**)"))
+            print(has_text($c, "GUJI_LEAF_INT"))
+            print(has_text($c, ".val.keys"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

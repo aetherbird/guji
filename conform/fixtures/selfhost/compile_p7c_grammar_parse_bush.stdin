@@ -1,0 +1,23 @@
+grammar Pair {
+    rule TOP { <left> ':' <right> }
+    token left { [a-z]+ }
+    token right { [a-z]+ }
+}
+
+sub main(): Int {
+    match Pair.parse("a:b") {
+        Some($b) {
+            print($b.text)
+            match $b<left> {
+                Some($l) { print($l.text) }
+                None { print("none") }
+            }
+        }
+        None { print("invalid") }
+    }
+    match Pair.parse("a:b!") {
+        Some($b) { print("prefix") }
+        None { print("partial") }
+    }
+    0
+}

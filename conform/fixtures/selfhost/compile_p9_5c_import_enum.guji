@@ -1,0 +1,38 @@
+# gujiconform - selfhost slice 6 P9-5c compiler codegen fixture.
+# Pins an alias-qualified imported enum associated call and its imported method
+# C symbol. The generated enum value must use the ordinary Choice carrier.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    @tokens_lines = [
+        "pub enum Choice \{",
+        "    Hot",
+        "    Cold",
+        "",
+        "    sub pick(\$n: Int): Choice \{",
+        "        if \$n > 0 \{ Hot } else \{ Cold }",
+        "    }",
+        "}"
+    ]
+    match write_file("/tmp/tokens.guji", @tokens_lines.join("\n") ~ "\n") {
+        Ok($u) { $u }
+        Err($e) { print($e) return 3 }
+    }
+    match lexer::compile_program_c_at("/tmp/guji_compile_p95c_main.guji", stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "static Choice gf_imp_tokens_Choice_pick(int64_t gp0);"))
+            print(has_text($c, "gf_imp_tokens_Choice_pick(1LL)"))
+            print(has_text($c, "guji_release_Choice_fields(&gv1);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

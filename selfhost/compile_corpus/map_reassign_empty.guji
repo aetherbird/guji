@@ -1,0 +1,7 @@
+# G7-c-2b-ii-b: reassign a non-empty map to the empty literal {}. The annotation
+# fixes the value type, so {} reallocates length-0 keys/vals arrays.
+sub main() {
+    mut %m: Map[Str, Int] = {"a": 1, "b": 2}
+    %m = {}
+    print(%m)
+}

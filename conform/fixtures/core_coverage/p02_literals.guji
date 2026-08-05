@@ -1,0 +1,15 @@
+# P02: numeric bases and separators plus the two string-literal forms.
+sub main(): Int {
+    $decimal = 1_000_000
+    $hex = 0xFF
+    $binary = 0b1010
+    $float = 6.022e2
+    print($decimal)
+    print($hex)
+    print($binary)
+    print($float)
+    print("quote=\" slash=\\ dollar=\$ brace=\{")
+    print("tab\tend")
+    print('literal \n dollar $ brace {')
+    0
+}

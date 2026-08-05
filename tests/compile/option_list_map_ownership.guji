@@ -1,0 +1,93 @@
+# Option[List[Map[Str, scalar|Str]]] value construct + match-binding + RC
+# ownership (H4c-rest). A List[Map] carrier payload still reduces to ONE counted
+# storage pointer (`.val.data`): Some(@rows) materializes a fresh owned outer
+# ARR_MAP that retains each row map's keys/vals arrays, a binding/sub-return
+# transfers that +1, a match BORROWS it (reads per-row map values via iteration
+# and row indexing), and a discarded or rebound carrier releases it — the outer
+# ARR_MAP drop cascades into every row map (releasing both its keys and vals
+# arrays, and, for Str-valued maps, each Str element). The sanitizer gate
+# (LSan/ASan) is the memory oracle; the interpreter is the semantic oracle.
+
+sub sum_maps(@ms: List[Map[Str, Int]]): Int {
+    mut $t = 0
+    for %row in @ms {
+        $t = $t + %row.values().sum()
+    }
+    $t
+}
+
+sub count_maps(@ms: List[Map[Str, Str]]): Int {
+    @ms.count()
+}
+
+sub wrap_maps(@ms: List[Map[Str, Int]]): Option[List[Map[Str, Int]]] {
+    Some(@ms)
+}
+
+sub wrap_words(@ms: List[Map[Str, Str]]): Option[List[Map[Str, Str]]] {
+    Some(@ms)
+}
+
+sub empty_maps(): Option[List[Map[Str, Int]]] {
+    None
+}
+
+sub main(): Unit {
+    # Construct from a local, match-borrow, read via per-row iteration.
+    @grid = [{"a": 1, "b": 2}, {"c": 3}]
+    $a: Option[List[Map[Str, Int]]] = Some(@grid)
+    print(match $a {
+        Some(@rows) { sum_maps(@rows) }
+        None { 0 }
+    })
+
+    # Row indexing + map key read through the borrowed view (the same carrier,
+    # matched again — borrows never consume the payload).
+    print(match $a {
+        Some(@rows) { @rows[0]{"b"} }
+        None { -1 }
+    })
+
+    # Str-valued rows: the fresh outer ARR_MAP retains each row map's Str vals
+    # array, and releasing the carrier cascades through both levels.
+    @words = [{"x": "alpha", "y": "beta"}, {"z": "gamma"}]
+    $w: Option[List[Map[Str, Str]]] = Some(@words)
+    print(match $w {
+        Some(@rows) { count_maps(@rows) }
+        None { 0 }
+    })
+
+    # None arm: NULL payload, no storage owned.
+    $none: Option[List[Map[Str, Int]]] = None
+    print(match $none {
+        Some(@rows) { sum_maps(@rows) }
+        None { -1 }
+    })
+
+    # Sub-return transfers the owned List[Map] payload to the caller.
+    @more = [{"d": 10, "e": 20}, {"f": 30}]
+    $r = wrap_maps(@more)
+    print(match $r {
+        Some(@rows) { sum_maps(@rows) }
+        None { 0 }
+    })
+
+    $rw = wrap_words(@words)
+    print(match $rw {
+        Some(@rows) { count_maps(@rows) }
+        None { 0 }
+    })
+
+    # Discarded carrier result: its fresh List[Map] payload must be freed.
+    wrap_maps(@grid)
+
+    # mut rebind: the old payload is released before the new one is stored,
+    # including a None hop in between.
+    mut $cur: Option[List[Map[Str, Int]]] = wrap_maps(@grid)
+    $cur = empty_maps()
+    $cur = wrap_maps(@more)
+    print(match $cur {
+        Some(@rows) { sum_maps(@rows) }
+        None { 0 }
+    })
+}

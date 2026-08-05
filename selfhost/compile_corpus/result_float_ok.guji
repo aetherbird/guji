@@ -1,0 +1,10 @@
+sub mk($f: Int): Result[Float, Int] {
+    if $f > 0 { Ok(2.5) } else { Err(9) }
+}
+sub main(): Int {
+    match mk(1) {
+        Ok($v) if $v > 2.0 { 7 }
+        Ok($v) { 1 }
+        Err($e) { $e }
+    }
+}

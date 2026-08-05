@@ -1,0 +1,9 @@
+# gujiconform — selfhost slice 5 E5d-1. Pins regex literal tokenization
+# (§13): escaped slash, slash inside a bracket class, and a slash inside a
+# `<{ ... }>` splice expression all stay inside one REGEX token.
+import lexer
+
+sub main(): Int {
+    print(lexer::lex_to_string(stdin.slurp()))
+    0
+}

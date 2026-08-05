@@ -1,0 +1,29 @@
+# gujiconform — selfhost slice 5 E5d-7c-2d-5 compiler codegen fixture.
+# Pins the per-class Option[<class>] carrier in generated C: the `guji_opt_<Class>`
+# tagged typedef, the wrapping class member, the Some/None constructor literals, and
+# the tag-guarded transitive retain/release into the wrapped class's fields helper.
+# Needles are single-quoted RAW strings so literal braces are not interpolation.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, '} guji_opt_TypeRef;'))
+            print(has_text($c, 'guji_opt_TypeRef f0;'))
+            print(has_text($c, '(guji_opt_TypeRef){1LL, (TypeRef){'))
+            print(has_text($c, '(guji_opt_TypeRef){0LL, (TypeRef){0}}'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_release_TypeRef_fields(&p->f0.val); }'))
+            print(has_text($c, 'if (p->f0.tag != 0LL) { guji_retain_TypeRef_fields(&p->f0.val); }'))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

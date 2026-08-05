@@ -1,0 +1,24 @@
+# §17.5 native `select` over a HEAP-element (Str) recv arm. The ready buffered
+# arm delivers a FRESH (heap, rc==1) Str — concatenation, not an immortal literal —
+# so the arm binding adopts and must release it exactly once (LSan-clean).
+sub main(): Int {
+    $a: Chan[Str] = channel(1)
+    $b: Chan[Str] = channel(1)
+    $a.send("x" ~ "y")
+    select {
+        $v = $a.recv() {
+            match $v {
+                Some($s) { print("a " ~ $s) }
+                None { print("a closed") }
+            }
+        }
+        $w = $b.recv() {
+            match $w {
+                Some($s) { print("b " ~ $s) }
+                None { print("b closed") }
+            }
+        }
+        else { print("idle") }
+    }
+    0
+}

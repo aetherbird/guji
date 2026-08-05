@@ -1,0 +1,43 @@
+# selfhost/eval_driver.guji -- canonical guji-written interpreter.
+# Runs a source path when provided; no arguments starts the persistent REPL.
+import lexer
+
+sub main(): Int {
+    @argv = args()
+    if @argv.count() == 0 {
+        return lexer::repl()
+    }
+
+    $path = @argv[0]
+    mut $src = ""
+    match read_file($path) {
+        Ok($s) { $src = $s }
+        Err($e) {
+            note("selfhost: { $e }")
+            return 2
+        }
+    }
+
+    match lexer::typecheck_verdict_at($path, $src) {
+        TcRejectParse($m) { note($m) return 1 }
+        TcRejectType($m) { note($m) return 1 }
+        TcAccept { 0 }
+    }
+    # STAGE 2b (grammar / PEG validation). Match compile_driver: reject missing
+    # TOP, unknown refs, invalid regex atoms, and left recursion at load time
+    # (exit 1) before evaluating — same messages as native codegen refusal.
+    match lexer::validate_src_grammars($src) {
+        Err($e) { note($e) return 1 }
+        Ok($u) { $u }
+    }
+
+    match lexer::eval_main_at($path, $src) {
+        Ok($r) {
+            $r.exit_code
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

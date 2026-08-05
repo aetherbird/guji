@@ -1,0 +1,9 @@
+sub main(): Int {
+    $ch: Chan[Str] = channel(0)
+    hatch {
+        $msg = "from" ~ "-task"
+        $ch.send($msg)
+    }
+    print($ch.recv().unwrap())
+    0
+}

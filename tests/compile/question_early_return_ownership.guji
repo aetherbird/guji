@@ -1,0 +1,68 @@
+# RC1.5: `?` early-return branches release owned locals/temps before returning.
+# The Result branch also propagates a Str error, which must survive cleanup.
+sub fail_with($s: Str): Result[Int, Str] {
+    Err($s)
+}
+
+sub none_int(): Option[Int] {
+    None
+}
+
+sub result_early(): Result[Int, Str] {
+    $local = "lo" ~ "cal"
+    @letters = ["A", "B"].reverse()
+    %m = {"k": "v"}.set("q", "r")
+    $held: Option[Str] = Some("held" ~ "!")
+    $n = fail_with("err" ~ "!")?
+    print($local)
+    print(@letters[0])
+    print(%m{"q"})
+    match $held {
+        Some($v) { print($v) }
+        None { print("?") }
+    }
+    Ok($n)
+}
+
+sub option_early(): Option[Int] {
+    $local = "op" ~ "t"
+    @words = ["X", "Y"].reverse()
+    $held: Option[Str] = Some("opt" ~ "!")
+    $n = none_int()?
+    print($local)
+    print(@words[0])
+    match $held {
+        Some($v) { print($v) }
+        None { print("?") }
+    }
+    Some($n)
+}
+
+sub loop_early(): Result[Int, Str] {
+    $outer = "out" ~ "er"
+    mut $i = 0
+    while $i < 1 {
+        $inner = "in" ~ "ner"
+        $n = fail_with("loop" ~ "!")?
+        print($inner)
+        $i = $i + 1
+    }
+    print($outer)
+    Ok(0)
+}
+
+sub main(): Int {
+    match result_early() {
+        Ok($n) { print("ok $n") }
+        Err($e) { print($e) }
+    }
+    match option_early() {
+        Some($n) { print("some $n") }
+        None { print("none") }
+    }
+    match loop_early() {
+        Ok($n) { print("loop ok $n") }
+        Err($e) { print($e) }
+    }
+    0
+}

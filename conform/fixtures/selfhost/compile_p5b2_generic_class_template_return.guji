@@ -1,0 +1,29 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # swapped() returns a spec with no direct construction site in the
+            # source program; the bare-template return pass must materialize it.
+            print(has_text($c, "typedef struct Pair__Str_Int Pair__Str_Int;"))
+            print(has_text($c, "static Pair__Str_Int gf_Pair__Int_Str_swapped(Pair__Int_Str gp0)"))
+            print(has_text($c, 'return (Pair__Str_Int){gt0, gp0.f0};'))
+            # The materialized reverse spec must have its own rewritten methods.
+            print(has_text($c, "static Pair__Int_Str gf_Pair__Str_Int_swapped(Pair__Str_Int gp0)"))
+            print(has_text($c, "static Pair__Str_Int gf_Pair__Str_Int_same(Pair__Str_Int gp0)"))
+            print(has_text($c, "static Pair__Str_Int gf_Pair__Str_Int_rekey(Pair__Str_Int gp0, const char* gp1)"))
+            # NEGATIVE: no bare template `Pair` return signature should leak.
+            print(!has_text($c, "static Pair gf_Pair__"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

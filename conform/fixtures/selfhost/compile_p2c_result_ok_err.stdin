@@ -1,0 +1,17 @@
+sub ok_str(): Result[Str, Str] {
+    Ok("pay" ~ "load")
+}
+
+sub err_str(): Result[Int, Str] {
+    Err("bad" ~ "!")
+}
+
+sub main(): Int {
+    $r: Result[Str, Str] = ok_str()
+    $e: Result[Int, Str] = err_str()
+    $o: Option[Str] = $r.ok()
+    $er: Option[Str] = err($e)
+    match $o { Some($s) { print($s) } None { print("none") } }
+    match $er { Some($s) { print($s) } None { print("none") } }
+    0
+}

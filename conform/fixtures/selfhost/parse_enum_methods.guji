@@ -1,0 +1,19 @@
+# gujiconform parser fixture for selfhost slice 6 P5b-2c: enum-body methods (§9)
+# and associated functions (§7.5). Pins the AST boundary — a `sub` inside an enum
+# body is collected into EnumDecl.subs (an instance method has a `$self` first
+# param; an associated function does not), interleaving freely with variants,
+# while enum-method typecheck/codegen stay out of subset for a later slice.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

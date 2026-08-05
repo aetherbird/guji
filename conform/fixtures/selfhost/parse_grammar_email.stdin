@@ -1,0 +1,5 @@
+grammar Email {
+    rule  TOP    { <user> '@' <domain> }
+    token user   { \w+ }
+    token domain { \w+ '.' \w+ }
+}

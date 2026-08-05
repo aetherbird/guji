@@ -1,0 +1,20 @@
+# §15 higher-order list `.each` (P2b-3b slice): run a one-parameter inline lambda
+# for its side effects over every element, yielding Unit. Covers method-style and
+# data-first calls, Int/Str/Float element lists, and the topic-block form. Because
+# `.each` returns Unit and a lambda cannot capture a `mut` (§7.4), the exit code is
+# a list-independent literal — the side-effecting prints are the observable.
+sub main(): Int {
+    @nums = [1, 2, 3]
+    @nums.each(sub($n: Int) { print("n { $n }") })
+
+    @words = ["go", "ju", "gi"]
+    each(@words, sub($w: Str) { print("w { $w }") })
+
+    @fs = [1.5, 2.5]
+    @fs.each(sub($f: Float) { print("f { $f }") })
+
+    @more = [10, 20]
+    @more.each({ print("t { $_ }") })
+
+    12
+}

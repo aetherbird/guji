@@ -1,0 +1,9 @@
+[alpha
+beta
+]
+reader:[alpha
+beta
+]
+again:alpha
+beta
+cannot open file: io_read_file.missing

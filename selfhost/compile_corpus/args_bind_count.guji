@@ -1,0 +1,7 @@
+# selfhost slice 5 E5d-7c-2: the `args()` prelude bound to a slice-backed
+# List[Str] local; count() in comparison position. The differential harness runs
+# every engine with NO command-line arguments, so count() is 0 in all three.
+sub main(): Int {
+    @av = args()
+    if @av.count() == 0 { 7 } else { 0 }
+}

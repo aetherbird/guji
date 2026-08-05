@@ -1,0 +1,36 @@
+# P8d-2c-3b: `for` over Chan[Str] adopts each detached channel-owned message.
+# Covers multiple iterations with heap-built payloads, a body-local owned Str
+# per iteration, a REUSED loop name across two sequential drains (native's
+# binder-reset case), and an empty drain (zero adoptions, final release is the
+# safe empty-Str no-op).
+sub main(): Int {
+    $words: Chan[Str] = channel(3)
+    $words.send("al" ~ "pha")
+    $words.send("beta")
+    $words.send("ga" ~ "mma")
+    $words.close()
+    mut $joined = ""
+    for $w in $words {
+        $tagged = "<" ~ $w ~ ">"
+        $joined = $joined ~ $tagged
+    }
+
+    $again: Chan[Str] = channel(2)
+    $again.send("re" ~ "use")
+    $again.send("done")
+    $again.close()
+    mut $count = 0
+    for $w in $again {
+        $count = $count + 1
+    }
+
+    $empty: Chan[Str] = channel(1)
+    $empty.close()
+    mut $drained = 0
+    for $e in $empty {
+        $drained = $drained + 1
+    }
+
+    print("$joined|$count|$drained")
+    0
+}

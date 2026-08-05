@@ -1,0 +1,17 @@
+opt_int_eq: true
+opt_int_neq: false
+opt_int_tag: false
+opt_int_none_eq: true
+opt_str_eq: true
+opt_str_neq: true
+opt_list_eq: true
+opt_list_neq: false
+opt_map_eq: true
+opt_map_neq: false
+res_ok_eq: true
+res_ok_vs_err: false
+res_err_eq: true
+res_ok_neq: false
+res_list_ok_eq: true
+res_list_ok_neq: false
+res_list_err_eq: true

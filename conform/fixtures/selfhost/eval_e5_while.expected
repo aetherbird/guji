@@ -1,0 +1,5 @@
+10
+5
+--- guji selfhost env ---
+$i = 5
+$sum = 10

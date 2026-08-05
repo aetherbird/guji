@@ -1,0 +1,16 @@
+# P9-6b-18: mut List[Str] whole-list reassignment may change length.
+# Native reallocates ARR_STR on every rebind; selfhost must too (same-length-only
+# in-place writes falsely declined shorter/longer literals used by
+# enum_field_payload_ownership after a counted Tags store).
+sub main(): Int {
+    mut @xs = ["red", "blue".upper()]
+    @xs = ["green"]
+    print(@xs[0])
+    @xs = ["a", "b", "c"]
+    print(@xs[2])
+    # self-ref swap still snapshot-safe after realloc
+    @xs = [@xs[2], @xs[0]]
+    print(@xs[0])
+    print(@xs[1])
+    0
+}

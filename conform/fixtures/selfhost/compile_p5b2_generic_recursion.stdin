@@ -1,0 +1,36 @@
+# P5b-2b(binop-arg) probe: generic subs whose recursive / transitive calls pass
+# an ARITHMETIC argument (`$n - 1`). Before g5g_binop_kind the selfhost codegen
+# could not infer an EBinary/EUnary argument's kind, so the generic call found no
+# monomorphized spec and declined rc 4 even though native accepts.
+sub rep[T]($x: T, $n: Int): T {
+    if $n <= 1 { $x } else { rep($x, $n - 1) }
+}
+
+sub ping[T]($x: T, $n: Int): T {
+    if $n <= 0 { $x } else { pong($x, $n - 1) }
+}
+
+sub pong[T]($x: T, $n: Int): T {
+    if $n <= 0 { $x } else { ping($x, $n - 1) }
+}
+
+sub choose[T]($a: T, $b: T, $flag: Bool): T {
+    if $flag { $a } else { $b }
+}
+
+sub main(): Int {
+    $ri = rep(5, 4)
+    print("{ $ri }")
+    $rs = rep("z", 3)
+    print($rs)
+    $rf = rep(2.5, 2)
+    print("{ $rf }")
+    $p = ping("bounce", 5)
+    print($p)
+    $q = ping(9, 4)
+    print("{ $q }")
+    $n = 3
+    $c = choose($n - 1, $n + 1, $n > 0)
+    print("{ $c }")
+    $ri + $q + $c
+}

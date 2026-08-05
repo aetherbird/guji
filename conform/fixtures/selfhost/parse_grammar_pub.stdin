@@ -1,0 +1,3 @@
+pub grammar G {
+    token empty { }
+}

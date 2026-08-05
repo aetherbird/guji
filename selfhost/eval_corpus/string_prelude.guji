@@ -1,0 +1,13 @@
+# I5d: §15.3 string unary prelude — trim/upper/lower.
+# Pins both free and method spellings plus chaining. Split/lines/parse_int are
+# deferred to I5d2 (bootstrap codegen overflows when those arms share this
+# apply nest or a fresh eval_args wrapper).
+sub main(): Int {
+    print("  hello  ".trim())
+    print(trim("\tGUJI\n"))
+    print("Ada".upper())
+    print(lower("LoWeR"))
+    print("  chain  ".trim().upper())
+    print("MiXeD".lower().upper())
+    0
+}

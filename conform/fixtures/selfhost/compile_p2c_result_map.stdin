@@ -1,0 +1,14 @@
+sub ok_i($n: Int): Result[Int, Str] { Ok($n) }
+sub err_i($s: Str): Result[Int, Str] { Err($s) }
+
+sub main(): Int {
+    $r: Result[Int, Str] = ok_i(2)
+    $e: Result[Int, Str] = err_i("bad" ~ "err")
+    $a: Result[Int, Str] = $r.map(sub($v: Int): Int { $v + 2 })
+    $b: Result[Int, Str] = map($e, sub($w: Int): Int { $w + 1 })
+    match $b {
+        Ok($x) { print("{ $x }") }
+        Err($m) { print($m) }
+    }
+    $a.unwrap_or(0)
+}

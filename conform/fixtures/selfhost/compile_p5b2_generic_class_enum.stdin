@@ -1,0 +1,31 @@
+# P5b-2b(a) probe: generic subs monomorphized over CONCRETE user class/enum
+# type arguments. T binds to the class/enum tag from the argument value.
+class Point {
+  has $.x: Int
+  has $.y: Int
+}
+
+enum Color {
+  Red
+  Green
+  Blue
+}
+
+sub identity[T]($v: T): T { $v }
+sub describe[T]($v: T): Str { "got it" }
+
+sub main(): Int {
+  $p = identity(Point(x: 3, y: 4))
+  print("{ $p.x }")
+  $p2 = identity(Point(x: 10, y: 20))
+  print("{ $p2.x }")
+  $p3 = identity($p)
+  print("{ $p3.y }")
+  $c = identity(Green)
+  print("{ match $c { Red { 0 } Green { 1 } Blue { 2 } } }")
+  $c2 = identity($c)
+  print("{ match $c2 { Red { 0 } Green { 1 } Blue { 2 } } }")
+  print(describe(Point(x: 1, y: 1)))
+  print(describe(Blue))
+  0
+}

@@ -1,0 +1,5 @@
+# Nested leaf of the I8b transitive graph. Only reachable through graph_a;
+# the entry must not need to import this module itself.
+pub sub base(): Int {
+    41
+}

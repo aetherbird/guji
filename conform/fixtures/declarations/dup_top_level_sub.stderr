@@ -1,0 +1,1 @@
+7:1: duplicate top-level sub greet, already defined at 5:1; guji has no overloading, so each top-level name may be defined once (§16.2)

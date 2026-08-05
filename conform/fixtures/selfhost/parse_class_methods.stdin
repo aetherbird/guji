@@ -1,0 +1,17 @@
+class Point {
+    has $.x: Int
+    has $.y: Int
+
+    sub origin(): Point {
+        Point(x: 0, y: 0)
+    }
+
+    sub shifted($self, $dx: Int): Point {
+        Point(x: $self.x + $dx, y: $self.y)
+    }
+}
+
+sub main(): Int {
+    $p = Point(x: 1, y: 2)
+    $p.x
+}

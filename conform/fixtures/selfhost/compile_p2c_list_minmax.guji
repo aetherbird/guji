@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.1 `min`/`max` numeric-list lowering. Native materializes the receiver,
+# panics on an empty list, seeds the result from element zero, scans from index one
+# with a strict comparison (`<` for min, `>` for max), and releases the owned
+# source slice. This fixture checks those generated-C landmarks rather than temp
+# declarations that may shift as adjacent prelude paths grow.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_panic(\"min of an empty list\")"))
+            print(has_text($c, "for (gi4 = 1; gi4 < gl1.len; gi4 = guji_add(gi4, 1))"))
+            print(has_text($c, "if (((int64_t*)gl1.data)[gi4] < gi3)"))
+            print(has_text($c, "if (((double*)gl7.data)[gi10] > gd9)"))
+            print(has_text($c, "guji_release((const void*)gl1.data);"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

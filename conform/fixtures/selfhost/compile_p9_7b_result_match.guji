@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 6 P9-7b Result[Match] ownership.
+# Pins the counted-pointer carrier ABI and conditional Ok-slot lifetime code.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_res_match_str"))
+            print(has_text($c, "guji_match_t* ok"))
+            print(has_text($c, "\{1LL, NULL,"))
+            print(has_text($c, "guji_retain((const void*)"))
+            print(has_text($c, "guji_release((const void*)"))
+            print(has_text($c, ".ok = NULL;"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

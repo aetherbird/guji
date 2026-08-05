@@ -1,0 +1,32 @@
+# DECLINE-AUDIT (P8f-2a): select over FLAT heap element channels. Bound Str
+# recv arm (owned adopted carrier), unbound List discard, Map send with bound
+# Result — all native-accepted since H4d, selfhost-lowered since P8f-2a. A
+# regression back to the scalar-only select predicate surfaces here as a GAP.
+sub main(): Int {
+    $s: Chan[Str] = channel(1)
+    $s.send("o" ~ "k")
+    select {
+        $got = $s.recv() {
+            match $got {
+                Some($x) { print("s " ~ $x) }
+                None { print("s closed") }
+            }
+        }
+    }
+    $l: Chan[List[Int]] = channel(1)
+    $l.send([2, 3])
+    select {
+        $l.recv() { print("l dropped") }
+    }
+    $m: Chan[Map[Str, Int]] = channel(1)
+    select {
+        $r = $m.send({"k": 5}) {
+            match $r {
+                Ok($u) { print("m sent") }
+                Err($e) { print("m closed") }
+            }
+        }
+    }
+    print($m.recv().unwrap(){"k"})
+    0
+}

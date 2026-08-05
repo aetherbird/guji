@@ -1,0 +1,102 @@
+# Slice 6 P3b-2b-2c-4: UNANNOTATED fresh scalar/Str binds whose RHS is an if-value
+# with a branch-final `?` hoist. Native emits identical C for the annotated (4j) and
+# unannotated forms, so the unannotated bind reuses the retkind-aware branch lowerer
+# after inferring the result kind by cascade (Int -> Float -> Bool -> Str). Covers all
+# four scalar kinds, the Err early-return, the else arm, and an owned-Str payload
+# whose per-branch retain/release stays balanced.
+
+sub tag($s: Str): Result[Str, Str] {
+    if $s == "bad" { Err("bad") } else { Ok($s ~ ":tag") }
+}
+
+sub half($s: Str): Result[Float, Str] {
+    if $s == "bad" { Err("bad float") } else { Ok(3.0) }
+}
+
+sub pick($b: Bool): Result[Bool, Str] {
+    if $b { Ok(true) } else { Err("nope") }
+}
+
+sub if_bind_int($take: Bool, $s: Str): Result[Int, Str] {
+    $x = if $take {
+        parse_int($s)? + 5
+    } else {
+        70
+    }
+    Ok($x)
+}
+
+sub if_bind_str($take: Bool, $s: Str): Result[Str, Str] {
+    $x = if $take {
+        tag($s)? ~ "!"
+    } else {
+        "idle"
+    }
+    Ok($x)
+}
+
+sub if_bind_float($take: Bool, $s: Str): Result[Float, Str] {
+    $x = if $take {
+        half($s)? + 1.5
+    } else {
+        2.0
+    }
+    Ok($x)
+}
+
+sub if_bind_bool($take: Bool, $b: Bool): Result[Bool, Str] {
+    $x = if $take {
+        pick($b)?
+    } else {
+        false
+    }
+    Ok($x)
+}
+
+sub main(): Int {
+    match if_bind_int(true, "4") {
+        Ok($a) { print("int ok { $a }") }
+        Err($e1) { print("int err { $e1 }") }
+    }
+    match if_bind_int(true, "bad") {
+        Ok($b) { print("int bad { $b }") }
+        Err($e2) { print("int err { $e2 }") }
+    }
+    match if_bind_int(false, "bad") {
+        Ok($c) { print("int else { $c }") }
+        Err($e3) { print("int else err { $e3 }") }
+    }
+    match if_bind_str(true, "go") {
+        Ok($d) { print("str ok { $d }") }
+        Err($e4) { print("str err { $e4 }") }
+    }
+    match if_bind_str(true, "bad") {
+        Ok($f) { print("str bad { $f }") }
+        Err($e5) { print("str err { $e5 }") }
+    }
+    match if_bind_str(false, "bad") {
+        Ok($g) { print("str else { $g }") }
+        Err($e6) { print("str else err { $e6 }") }
+    }
+    match if_bind_float(true, "ok") {
+        Ok($h) { print("float ok { $h }") }
+        Err($e7) { print("float err { $e7 }") }
+    }
+    match if_bind_float(true, "bad") {
+        Ok($i) { print("float bad { $i }") }
+        Err($e8) { print("float err { $e8 }") }
+    }
+    match if_bind_bool(true, true) {
+        Ok($j) { print("bool ok { $j }") }
+        Err($e9) { print("bool err { $e9 }") }
+    }
+    match if_bind_bool(true, false) {
+        Ok($k) { print("bool bad { $k }") }
+        Err($e10) { print("bool err { $e10 }") }
+    }
+    match if_bind_bool(false, false) {
+        Ok($l) { print("bool else { $l }") }
+        Err($e11) { print("bool else err { $e11 }") }
+    }
+    66
+}

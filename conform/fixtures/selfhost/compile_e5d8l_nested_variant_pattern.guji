@@ -1,0 +1,26 @@
+# gujiconform - selfhost slice 5 E5d-8l compiler codegen fixture.
+# Pins nested constructor sub-pattern lowering: an outer variant arm can test a
+# nested niladic variant and can bind fields inside a nested constructor pattern.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag == 1LL && (*((IntList*)"))
+            print(has_text($c, ")).tag == 0LL"))
+            print(has_text($c, ")).tag == 1LL"))
+            print(has_text($c, "guji_add(guji_add("))
+            print(has_text($c, ")).f0), 20LL)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,47 @@
+# RC1.5b: explicit `return` is a frame exit and must transfer ownership of the
+# returned value while releasing frame-owned locals. Covers Str (literal and
+# alias), scalar, carrier, and enum explicit returns; the sanitizer gate asserts
+# LSan-clean.
+
+sub str_lit(): Str { return "hello" }
+
+sub str_alias($s: Str): Str { return $s }
+
+sub scalar_release($x: Int): Int {
+    $s = "local"
+    if $x > 0 { return 1 } else { return 0 }
+}
+
+sub carrier_release($x: Int): Option[Int] {
+    $s = "local"
+    return Some($x)
+}
+
+enum Tree {
+    Leaf($v: Int)
+    Node($l: Tree, $r: Tree)
+}
+
+sub enum_release($x: Int): Tree {
+    $s = "local"
+    return Leaf($x)
+}
+
+sub sum_tree($t: Tree): Int {
+    match $t {
+        Leaf($v) { $v }
+        Node($l, $r) { sum_tree($l) + sum_tree($r) }
+    }
+}
+
+sub main() {
+    print(str_lit())
+    print(str_alias("world"))
+    print("{ scalar_release(5) } { scalar_release(-1) }")
+    match carrier_release(7) {
+        Some($v) { print("{ $v }") }
+        None { print("none") }
+    }
+    $t = enum_release(9)
+    print("{ sum_tree($t) }")
+}

@@ -1,0 +1,10 @@
+# Passing a Str binding retains a temporary arg without transferring the binding.
+sub wrap($s: Str): Str {
+    "[" ~ $s ~ "]"
+}
+
+sub main(): Unit {
+    $name = "guji"
+    print(wrap($name))
+    print($name)
+}

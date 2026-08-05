@@ -1,0 +1,19 @@
+# X6d-2b-ii-b: Regex-valued splices use host-provided regex parts in native code.
+sub main(): Int {
+    $r = Regex.compile("ab|cd").unwrap()
+    $atom = match "abab" ~~ /^<{ $r }>+$/ {
+        Some($m) { $m.text }
+        None { "none" }
+    }
+    $replaced = "ab cd ax".replace(/<{ $r }>/, "[$0]")
+    $wrapped = "ab cd".replace_with(/<{ $r }>/, sub($m: Match): Str {
+        "<" ~ $m.text ~ ">"
+    })
+    $caps = Regex.compile("(a)(b)").unwrap()
+    $host = match "ab!" ~~ /(<{ $caps }>)(!)/ {
+        Some($m) { $m[1].unwrap_or("?") ~ "|" ~ $m[2].unwrap_or("?") ~ "|" ~ $m[3].unwrap_or("none") }
+        None { "none" }
+    }
+    print("$atom|$replaced|$wrapped|$host")
+    0
+}

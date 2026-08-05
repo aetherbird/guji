@@ -1,0 +1,38 @@
+# RC1.5b-ii-c: cross-module ownership shapes (fix_plan item 1). Imported subs
+# return owned Str / List[Str] / Map[Str, Int] / Option[Str] into a caller
+# that rebinds (releasing the old value) and keeps using the results — the
+# same contract as local calls, pinned here across the module boundary.
+import vals
+
+sub main(): Int {
+    # Owned Str result; mut rebind through a second cross-module call must
+    # release the first result.
+    mut $s = vals::greet("guji")
+    $s = vals::greet($s)
+    print($s)
+
+    # Owned List[Str] storage transferred across the boundary.
+    @t = vals::tags(7)
+    print(@t.join(","))
+
+    # Owned Map[Str, Int]: both parallel arrays released by main's frame.
+    %m = vals::scores()
+    $a = %m{"a"}
+    $c = %m{"c"}
+    print("{ $a + $c }")
+
+    # Owned Option[Str] carriers, both tags, consumed as unbound scrutinees.
+    match vals::find("x") {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+    match vals::find("y") {
+        Some($v) { print($v) }
+        None { print("none") }
+    }
+
+    # Fresh Str argument borrowed by the callee, which returns that parameter:
+    # the caller owns the temp AND the (retained) alias-shaped result.
+    print(vals::echo("alias" ~ "-return"))
+    0
+}

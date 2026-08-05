@@ -1,0 +1,5 @@
+drain=owned
+after-close=true
+send=closed
+close=closed
+iter=3

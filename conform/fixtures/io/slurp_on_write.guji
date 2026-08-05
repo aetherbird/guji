@@ -1,0 +1,11 @@
+# gujiconform -- Platform slice 2 (write IO): $h.slurp on a WRITE handle is a
+# RUNTIME error (Section 15.4 misuse model), identical in both engines. `stdout`
+# is a write-only Handle (no reader), so slurping it aborts after flushing
+# stdout. The pre-error line is on stdout; the process exits non-zero. Engine
+# error text on stderr differs, so stderr is not pinned. Derived from the spec.
+sub main(): Int {
+    print("before")
+    $s = stdout.slurp()
+    print($s)
+    0
+}

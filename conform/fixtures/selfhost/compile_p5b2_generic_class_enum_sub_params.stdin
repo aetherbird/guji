@@ -1,0 +1,42 @@
+class Box[T] {
+  has $.value: T
+}
+
+enum EBox[T] {
+  Wrap($v: T)
+}
+
+sub wrap[T]($v: T): Box[T] {
+  Box(value: $v)
+}
+
+sub wrap_enum[T]($v: T): EBox[T] {
+  Wrap($v)
+}
+
+sub identity_box[T]($b: Box[T], $v: T): Box[T] {
+  $b
+}
+
+sub identity_ebox[T]($b: EBox[T], $v: T): EBox[T] {
+  $b
+}
+
+sub get_or_default[T]($b: Box[T], $default: T): T {
+  $b.value
+}
+
+sub main(): Int {
+  $bi = wrap(5)
+  $bs = wrap("hello")
+  $ei = wrap_enum(7)
+  $es = wrap_enum("world")
+  $b2 = identity_box($bi, 99)
+  $e2 = identity_ebox($ei, 99)
+  print("{ $b2.value }")
+  print("{ match $e2 { Wrap($v2) { $v2 } } }")
+  print("{ get_or_default($bi, 0) }")
+  print("{ $bs.value }")
+  print("{ match $es { Wrap($vs) { $vs } } }")
+  0
+}

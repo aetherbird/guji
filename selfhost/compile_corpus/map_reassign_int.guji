@@ -1,0 +1,8 @@
+# G7-c-2b-ii-b: whole-map reassignment grows the two-array binding (len 1 -> 2).
+# Native reallocates both heap arrays to the new literal's length; print(%m)
+# observes the reassigned contents (guji_map_str sorts keys at display).
+sub main() {
+    mut %m: Map[Str, Int] = {"a": 1}
+    %m = {"b": 2, "c": 3}
+    print(%m)
+}

@@ -1,0 +1,5 @@
+sub main(): Int {
+  %m: Map[Str, Str] = {"greet": "hi", "bye": "ciao"}
+  print(%m)
+  0
+}

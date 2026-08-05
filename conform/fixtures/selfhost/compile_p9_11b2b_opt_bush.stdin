@@ -1,0 +1,17 @@
+grammar Pair {
+    rule TOP { <left> '-' <right> }
+    token left { \w+ }
+    token right { \w+ }
+}
+
+sub main(): Int {
+    $ch: Chan[Option[Bush]] = channel(2)
+    $b = Pair.parse("aa-bb")
+    $ch.send($b)
+    $got = $ch.recv().unwrap()
+    print(match $got {
+        Some($x) { $x.text }
+        None { "none" }
+    })
+    0
+}

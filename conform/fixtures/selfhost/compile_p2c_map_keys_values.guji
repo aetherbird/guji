@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.2 `keys(%m)` / `%m.values()` lowering. Native snapshots maps in
+# sorted-key order by allocating an order array, calling `guji_map_order`, copying
+# keys or values through that permutation, and retaining counted Str slots.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_map_order("))
+            print(has_text($c, " = (int64_t*)guji_arr_alloc(GUJI_KIND_ARR_SCALAR, sizeof(int64_t),"))
+            print(has_text($c, ".data = guji_arr_alloc(GUJI_KIND_ARR_STR, sizeof(const char*),"))
+            print(has_text($c, " = gv"))
+            print(has_text($c, "_keys[go"))
+            print(has_text($c, "guji_retain(((const char**)"))
+            print(has_text($c, "_vals[go"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

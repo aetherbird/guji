@@ -1,0 +1,43 @@
+# §15.5 Result `expect`, function form `expect($r, $msg)` and method form
+# `$r.expect($msg)`, over bound `Result[T,E]` locals for scalar/Str Ok payloads.
+# Result tag 0 is Ok, so a correct lowering guards on `tag != 0` and then reads
+# `.ok`. The Bool case uses `Ok(false)` so a wrong tag/payload polarity is visible.
+
+sub oki($n: Int): Result[Int, Str] {
+    Ok($n)
+}
+sub okf($n: Int): Result[Float, Str] {
+    if $n > 0 { Ok(2.5) } else { Err("float") }
+}
+sub okb($n: Int): Result[Bool, Str] {
+    if $n > 0 { Ok(false) } else { Err("bool") }
+}
+sub oks($n: Int): Result[Str, Str] {
+    if $n > 0 { Ok("pay" ~ "load" ~ "{ $n }") } else { Err("str") }
+}
+
+sub main(): Int {
+    $ri: Result[Int, Str] = oki(5)
+    $rf: Result[Float, Str] = okf(1)
+    $rb: Result[Bool, Str] = okb(1)
+    $rs: Result[Str, Str] = oks(7)
+    $pi: Result[Int, Str] = parse_int("33")
+
+    mut $code = 0
+
+    if $ri.expect("no int") == 5 { $code = $code + 1 }
+    if expect($ri, "no int") == 5 { $code = $code + 2 }
+    print("{ $ri.expect('x') },{ expect($pi, 'parse') }")
+
+    print("{ $rf.expect('float') }|{ expect($rf, 'float') + 0.25 }")
+
+    if $rb.expect("bool") { $code = $code + 1000 } else { $code = $code + 4 }
+    if expect($rb, "bool") { $code = $code + 2000 } else { $code = $code + 8 }
+
+    print($rs.expect("msg" ~ "!"))
+    print(expect($rs, "msg") ~ "-tail")
+    print("{ $rs.expect('again') }?")
+
+    # Return-arithmetic position closes the code: 15 + 5 + 33 = 53.
+    $code + $ri.expect("return") + expect($pi, "parse")
+}

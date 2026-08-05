@@ -1,0 +1,3 @@
+engines: interp
+normalize: trailing-newline
+description: selfhost exit lowering emits guji_exit in statement and if-value positions

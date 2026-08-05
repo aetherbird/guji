@@ -1,0 +1,2 @@
+# gujiconform bug #1 — the REPL must use the same typecheck path as file-run
+# and reject mut capture before evaluating the illegal binding.

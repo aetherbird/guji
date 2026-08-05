@@ -1,0 +1,37 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4o compiler codegen fixture.
+# Pins a right-operand `?` hoisting even when the LEFT operand of the enclosing
+# `+`/`~` is a non-pure (side-effect-free) subexpression: an Int call (`id2(3)`),
+# a Str `~` heap concat (`$p ~ "!"`), a Float call (`scale(2.0)`), and a multi-`?`
+# chain. The carrier guard is hoisted to the top of the statement and the residual
+# (`guji_add(gf_id2(3), ok)`, `guji_str_cat(left, ok)`, `scale(2.0) + ok`) is
+# emitted afterward, mirroring native — left purity does not gate the hoist.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # calc: Int call left; guard hoisted, id2(3) in the residual after ok.
+            print(has_text($c, "guji_add(gf_id2(3LL), gv4), GUJI_EMPTY_STR};"))
+            print(has_text($c, "gv4 = gr3.ok;"))
+            print(has_text($c, "\{1LL, 0LL, gr3.err};"))
+            # label: Str `~` concat left; guard hoisted first, then the left concat.
+            print(has_text($c, "gv3 = gr2.ok;"))
+            print(has_text($c, "gt6 = guji_str_cat(gt4, gt5);"))
+            print(has_text($c, "gt8 = guji_str_cat(gt6, gt7);"))
+            # fcalc: Float call left; scale(2.0) in the residual after the ok.
+            print(has_text($c, "((gf_scale(2.0)) + (gv3)), GUJI_EMPTY_STR};"))
+            # multi: two `?` guards hoist in order, id2(4) in the double-add residual.
+            print(has_text($c, "guji_add(guji_add(gf_id2(4LL), gv4), gv9), GUJI_EMPTY_STR};"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,10 @@
+class Run {
+    has $.text: Str
+    has $.next: Int
+}
+
+sub main(): Int {
+    $r = Run(text: "abc", next: 7)
+    print($r.text)
+    $r.next
+}

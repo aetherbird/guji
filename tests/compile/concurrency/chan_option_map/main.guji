@@ -1,0 +1,42 @@
+# Chan[Option[Map[Str, scalar|Str]]] must detach the active map payload on send
+# (a guji_map_t owns two counted arrays: keys + vals) and adopt them on recv;
+# buffered Some values left unread exercise the carrier elem_drop under LSan.
+sub main(): Int {
+    $counts: Chan[Option[Map[Str, Int]]] = channel(3)
+    %nums = {"a": 10, "b": 20}
+    $some_nums: Option[Map[Str, Int]] = Some(%nums)
+    $none_nums: Option[Map[Str, Int]] = None
+    $counts.send($some_nums)
+    $counts.send($none_nums)
+    # Third Some is buffered but never recv'd: the channel drop must free its
+    # detached keys + vals arrays (LSan verifies no leak).
+    $counts.send($some_nums)
+
+    $got_nums = $counts.recv().unwrap()
+    print(match $got_nums {
+        Some(%m) { %m{"a"} + %m{"b"} }
+        None { 0 }
+    })
+
+    $got_none = $counts.recv().unwrap()
+    print(match $got_none {
+        Some(%m) { %m{"a"} }
+        None { 99 }
+    })
+
+    $words: Chan[Option[Map[Str, Str]]] = channel(2)
+    %ws = {"first": "gu", "second": "ji"}
+    $some_words: Option[Map[Str, Str]] = Some(%ws)
+    $words.send($some_words)
+    # Second Some buffered + undelivered: its Str-valued map arrays must be freed
+    # by the elem_drop (the vals release cascades through the ARR_STR elements).
+    $words.send($some_words)
+
+    $got_words = $words.recv().unwrap()
+    print(match $got_words {
+        Some(%m) { %m{"first"} ~ %m{"second"} }
+        None { "none" }
+    })
+
+    0
+}

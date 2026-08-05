@@ -1,0 +1,41 @@
+# P8d-2c-3c-12: Str-payload enums cross channels as detached messages. The
+# mixed first slot proves active-variant access uses `.s` only for Text/Pair;
+# bound and fresh sends leave their source values independently live.
+enum Msg {
+    Text($s: Str)
+    Pair($a: Str, $b: Str)
+    Code($n: Int)
+    Done
+}
+
+sub show($m: Msg): Str {
+    match $m {
+        Text($s) { $s }
+        Pair($a, $b) { $a ~ "/" ~ $b }
+        Code($n) { "code:$n" }
+        Done { "done" }
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Msg] = channel(4)
+    $first: Msg = Text("alpha" ~ "-one")
+    $drop: Msg = Pair("left" ~ "-two", "right" ~ "-three")
+    $ch.send($first)
+    $ch.send(Code(7))
+    $ch.send($drop)
+
+    $got = $ch.recv().unwrap()
+    $held = $ch.recv()
+    $got2 = $held.unwrap()
+    print(show($got))
+    print(show($got2))
+    print(show($first))
+
+    # Pair remains buffered so channel destruction exercises guji_chan_drop_Msg.
+    # A fresh rejected send takes the same detach/drop path immediately.
+    $closed: Chan[Msg] = channel(1)
+    $closed.close()
+    $closed.send(Pair("reject" ~ "-left", "reject" ~ "-right"))
+    0
+}

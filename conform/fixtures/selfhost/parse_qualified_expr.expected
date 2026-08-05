@@ -1,0 +1,1 @@
+Program(decls=[Import(path=["lexer"]),Sub(public=false,name="main",params=[],ret=Some(Type(name="Int",args=[])),body=BlockBody(stmts=[Bind(mut=false,name="$a",type=None,value=Qualified(module="lexer",member="typecheck_verdict")),Bind(mut=false,name="$b",type=None,value=Qualified(module="ast",member="Node")),Expr(value=Int(text="0"))]))])

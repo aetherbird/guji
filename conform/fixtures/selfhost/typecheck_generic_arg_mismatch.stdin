@@ -1,0 +1,10 @@
+# §3.3: the first argument binds T=Int, so the second argument checks against
+# the INSTANTIATED param type and rejects.
+sub pair[T]($a: T, $b: T): T {
+  $a
+}
+
+sub main() {
+  $x = pair(1, "x")
+  print("done")
+}

@@ -1,0 +1,1 @@
+Program(decls=[Enum(public=false,name="Tree",tparams=["T"],variants=[Variant(name="Leaf",fields=[Param(name="$value",type=Some(Type(name="T",args=[])))]),Variant(name="Node",fields=[Param(name="$left",type=Some(Type(name="Tree",args=[]))),Param(name="$right",type=Some(Type(name="Tree",args=[])))])],subs=[])])

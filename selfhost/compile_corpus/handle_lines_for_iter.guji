@@ -1,0 +1,31 @@
+# P9-4b-3 — THREE-WAY: `Handle.lines()` as a FRESH `for` iterator (native
+# materializeForChanIter's §15.4 case; the io_for_channel_expr gate shape,
+# file-backed here so compile_diff needs no stdin). g11_chan_owned_value now
+# consults g4_handle_lines_value before channel-builder/user-sub resolution,
+# so a fresh lines() channel TRANSFERS its +1 into the loop temp and is
+# guji_chan_release'd after the drain. Pins all three receiver spellings the
+# shared owned-value hook enables: a bound Handle local, a fresh
+# open(...).unwrap() receiver, and RETURN-position lines via
+# g4_lower_ret_value's RChan arm.
+sub file_lines($path: Str): Chan[Str] {
+    open($path).unwrap().lines()
+}
+
+sub main(): Int {
+    $path = "/tmp/guji_selfhost_p94b3_lines.txt"
+    write_file($path, "alpha\nbeta\ngamma").unwrap()
+    $h = open($path).unwrap()
+    mut $n = 0
+    for $line in $h.lines() {
+        print("line:" ~ $line)
+        $n = $n + 1
+    }
+    for $again in open($path).unwrap().lines() {
+        print("again:" ~ $again)
+    }
+    for $ret in file_lines($path) {
+        print("ret:" ~ $ret)
+    }
+    print("count=" ~ "$n")
+    0
+}

@@ -1,0 +1,32 @@
+# P5b-2b(nested-map-collection) row-ownership guard. Copying collection rows
+# out of an owned source that is then released MUST keep the shared storage alive:
+#   * a same-heap bound collection-valued map retains BOTH arrays;
+#   * a List[Map] binding retains its row array;
+#   * take/drop/reverse retain a copied map row's keys AND vals
+#     (g7_row_retain_slot) — take/drop had NO row retain for collection rows
+#     before this slice and use-after-freed on nested lists too (pre-existing
+#     hole, no corpus coverage). This fixture pins the retain emission.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # [%ml]: the bound map shares and retains BOTH arrays
+            print(has_text($c, "guji_retain((const void*)gmv4.keys);"))
+            print(has_text($c, "guji_retain(gmv4.vals);"))
+            # take/drop/reverse: each copied map row retains keys AND vals
+            print(has_text($c, ".keys));"))
+            print(has_text($c, ".vals));"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

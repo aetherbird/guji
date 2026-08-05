@@ -1,0 +1,29 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # P5b-2f: generic List[T] class fields monomorphize with native's
+            # field-flattened spec keys (Bag__List_Int) and a guji_slice_t slot;
+            # generic List[T] enum payloads keep type-arg keys (Shelf__Int).
+            print(has_text($c, "static int64_t gf_Bag__List_Int_count(Bag__List_Int gp0)"))
+            print(has_text($c, "static int64_t gf_Bag__List_Int_first(Bag__List_Int gp0)"))
+            print(has_text($c, "static const char* gf_Bag__List_Str_first(Bag__List_Str gp0)"))
+            print(has_text($c, "static int64_t gf_Shelf__Int_count(Shelf__Int gp0)"))
+            print(has_text($c, "static int64_t gf_Shelf__Float_count(Shelf__Float gp0)"))
+            # The list field/payload participates in the class/enum RC helpers.
+            print(has_text($c, "static void guji_release_Bag__List_Int_fields(const Bag__List_Int* p)"))
+            print(has_text($c, "static void guji_release_Shelf__Str_fields(const Shelf__Str* p)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

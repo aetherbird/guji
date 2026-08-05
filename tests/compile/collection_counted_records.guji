@@ -1,0 +1,39 @@
+# A-collection-elements-rest (class with counted fields slice): a flat List of
+# class values whose fields are reference-counted (here a Str field) is now a
+# counted heap array (GUJI_KIND_<Class>_ARR) whose drop releases each element's
+# fields. Proves construction (fresh constructor temps AND a non-fresh alias
+# element), .count(), indexed field reads, for-loop iteration, and clean release
+# under LeakSanitizer. The Str fields are HEAP-allocated at runtime (`~` concat),
+# NOT immortal literals, so the per-element retain/release must balance exactly —
+# an immortal literal would make leaks/double-frees invisible to the sanitizer.
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub main(): Int {
+    @people = [Person(name: "A" ~ "da", age: 36), Person(name: "B" ~ "ob", age: 28)]
+    print(@people.count())
+    print(@people[0].name)
+    print(@people[1].name)
+    print(@people[1].age)
+
+    # for-loop borrows each row; field reads accumulate without retaining.
+    mut $total = 0
+    for $p in @people {
+        $total = $total + $p.age
+    }
+    print($total)
+
+    # Non-fresh (alias) element: an existing instance reused inside a literal.
+    # The array copies the struct by value, so it must retain its OWN +1 on the
+    # Str field; the array drop and $c's own end-of-scope release balance it.
+    $c = Person(name: "C" ~ "y", age: 5)
+    @more = [$c, Person(name: "D" ~ "i", age: 7)]
+    print(@more[0].name)
+    print(@more[1].name)
+    print(@more.count())
+    print($c.name)
+    0
+}

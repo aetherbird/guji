@@ -1,0 +1,30 @@
+# Section 17 channel copy-on-send for List[Str] values.
+#
+# A List[Str] crossing a channel boundary must be a fully detached message graph:
+# not only the backing array but each counted string element must be copied into a
+# fresh ARR_STR so the sender's per-task heap shares no pointers with the receiver's.
+# The buffered `drop` send is intentionally left undrained so the channel elem_drop
+# path (guji_chan_drop_list -> guji_drop_arr_str) also releases an undelivered copied
+# List[Str] under the sanitizer gate.
+
+sub main(): Unit {
+    $names: Chan[List[Str]] = channel(2)
+    @xs = ["al", "pha", "bet"]
+    @drop = ["never", "drained"]
+    $names.send(@xs)
+    $names.send(@drop)
+
+    @ys = $names.recv().unwrap()
+    print(@ys[0] ~ @ys[1] ~ @ys[2])
+
+    $words: Chan[List[Str]] = channel(1)
+    @parts = ["a", "bb", "ccc", "dddd"]
+    $words.send(@parts)
+    @got = $words.recv().unwrap()
+
+    mut $joined = ""
+    for $w in @got {
+        $joined = $joined ~ $w
+    }
+    print($joined)
+}

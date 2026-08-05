@@ -1,0 +1,27 @@
+# I8c2b: §15.4 stdin.lines() → closed Chan[Str], drained by for.
+# .stdin pins LF, a blank interior line, CRLF (real U+000D; no `\r` escape),
+# and a final terminator that must not yield an extra empty line. Method form
+# drains with outer-mut threading and early return; free-form lines(stdin) on
+# the then-empty stream pins the empty closed channel. Do not fake a List.
+sub take_until_stop(): Int {
+    mut $n = 0
+    for $line in stdin.lines() {
+        $n = $n + 1
+        print("[" ~ $line ~ "]")
+        if $line == "stop" {
+            return $n
+        }
+    }
+    $n
+}
+
+sub main(): Int {
+    print("n={ take_until_stop() }")
+    mut $extra = 0
+    for $line in lines(stdin) {
+        print("extra:[" ~ $line ~ "]")
+        $extra = $extra + 1
+    }
+    print("extra=$extra")
+    0
+}

@@ -1,0 +1,4 @@
+sub main(): Int {
+    @count: Int = 2
+    0
+}

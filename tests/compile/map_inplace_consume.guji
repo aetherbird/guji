@@ -1,0 +1,66 @@
+# RC2.1c: uniqueness-based in-place map update for the CONSUME shape
+# `%n = %m.set(...)` / `%n = %m.remove(...)` where the receiver binding %m is
+# dead after the statement. When the storage is uniquely owned (rc == 1) it is
+# mutated in place and transferred to %n; when an alias exists (rc > 1) the
+# copy path runs, so an aliased map is never observably mutated. The
+# interpreter is the oracle: this program must print identically whether the
+# compiler reuses or copies.
+sub chain(): Map[Str, Int] {
+    # Seed via set() so the storage is runtime-sized (a bare literal binds
+    # fixed-capacity storage the fast path does not apply to).
+    mut %a = {"seed": 0}.set("seed", 0)
+    # Each step consumes the previous binding: in-place append/remove.
+    %b = %a.set("one", 1)
+    %c = %b.set("two", 2)
+    %d = %c.remove("seed")
+    %e = %d.remove("absent")
+    %e
+}
+
+sub main(): Unit {
+    %m = chain()
+    print(%m.has_key("seed"))
+    print(%m{"one"})
+    print(%m{"two"})
+    @ks = %m.keys()
+    print(@ks.join(","))
+
+    # Aliased receiver: %t aliases %s (rc > 1), so the consume binding MUST
+    # copy at runtime, leaving %t's view of the original intact.
+    mut %s = {"x": "1"}.set("y", "2")
+    %t = %s
+    %u = %s.set("x", "9")
+    print(%t{"x"})
+    print(%u{"x"})
+    print(%t.has_key("y"))
+
+    # Receiver still used after the binding: liveness keeps the copy path and
+    # both values stay independent.
+    mut %p = {"k": 1}.set("k", 1)
+    %q = %p.set("k", 5)
+    print(%p{"k"})
+    print(%q{"k"})
+
+    # Nested list values: consume on a Map[Str, List[Int]].
+    mut %l = {"a": [1]}.set("a", [1])
+    %l2 = %l.set("b", [2, 3])
+    print(%l2{"b"}.sum())
+    print(%l2{"a"}.sum())
+
+    # Str-valued consume remove.
+    mut %g = {"keep": "yes"}.set("drop", "no")
+    %h = %g.remove("drop")
+    print(%h{"keep"})
+    print(%h.has_key("drop"))
+
+    # Consume inside one branch only: the receiver's frame-exit release must
+    # be a no-op on the consumed path and normal on the other.
+    mut %w = {"q": 7}.set("q", 7)
+    $qv = %w{"q"}
+    if $qv > 0 {
+        %x = %w.remove("q")
+        print(%x.has_key("q"))
+    } else {
+        print("neg")
+    }
+}

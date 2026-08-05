@@ -1,0 +1,58 @@
+# Slice 6 P3b-2b-1: `unwrap_or` over a CALL-produced Option carrier receiver (not a
+# bound local) — the §11.1 feat_question observation shape `chained(5).unwrap_or(-1)`.
+# Native materializes the call result into a carrier temp and applies the same pure
+# ternary as the bound-local path (cc-captured); the selfhost port mirrors that via
+# a materialized `goN` carrier temp. Scalar payloads borrow; an Option[Str] carrier
+# OWNS its Some payload, so the Str shape retains the pick, releases the eager
+# default temp, and releases the carrier's own payload slot (ASan/LSan-verified).
+# Covers method + function spellings for every scalar/Str payload kind, both the
+# Some and None arms, and a `?`-propagating callee (the feat_question chain).
+
+sub lookup($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+
+sub chained($n: Int): Option[Int] {
+    $v = lookup($n)?
+    Some($v + 100)
+}
+
+sub mkf($n: Int): Option[Float] {
+    if $n > 0 { Some(2.5) } else { None }
+}
+
+sub mkb($n: Int): Option[Bool] {
+    # Some(false): a tag-polarity bug would pick the default instead of the payload.
+    if $n > 0 { Some(false) } else { None }
+}
+
+sub mks($n: Int): Option[Str] {
+    # A heap-built Some payload: a wrong retain/release shows under ASan/LSan.
+    if $n > 0 { Some("pay" ~ "load" ~ "{ $n }") } else { None }
+}
+
+sub main(): Int {
+    # Int: the exact feat_question shape — `?`-chained callee, interpolation slot,
+    # method form, Some and None arms.
+    print("{ chained(5).unwrap_or(-1) }")
+    print("{ chained(-2).unwrap_or(-1) }")
+    # Int function form on a call receiver, arithmetic value position.
+    print("{ unwrap_or(lookup(3), 9) + unwrap_or(lookup(-3), 9) }")
+
+    # Float: method + function forms, interpolation and arithmetic slots.
+    print("{ mkf(1).unwrap_or(9.5) }|{ unwrap_or(mkf(-1), 0.75) + 0.25 }")
+
+    mut $code = 0
+    # Bool: condition positions. Some(false) must pick the PAYLOAD (false).
+    if mkb(1).unwrap_or(true) { $code = $code + 1000 }
+    if unwrap_or(mkb(-1), true) { $code = $code + 1 }
+
+    # Str: heap Some payload with a heap default (the owned default temp must be
+    # released on BOTH arms), method + function forms, sink and interp slots.
+    $dflt = "de" ~ "fault"
+    print(mks(7).unwrap_or($dflt))
+    print(unwrap_or(mks(-1), $dflt))
+    print("{ mks(-2).unwrap_or('lit') }!")
+
+    $code + 41
+}

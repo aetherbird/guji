@@ -1,0 +1,21 @@
+class Tok {
+    has $.kind: Str
+    has $.next: Int
+}
+
+enum Step {
+    SEmit($tok: Tok)
+    SNumber($n: Int)
+}
+
+sub label($s: Step): Str {
+    match $s {
+        SEmit($tok) { $tok.kind }
+        SNumber($n) { "num" }
+    }
+}
+
+sub main(): Int {
+    print(label(SEmit(Tok(kind: "x", next: 1))))
+    0
+}

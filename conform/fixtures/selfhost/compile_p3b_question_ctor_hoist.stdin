@@ -1,0 +1,11 @@
+sub bump($o: Option[Int]): Option[Int] {
+    Some($o? + 1)
+}
+
+sub parse_plus($s: Str): Result[Int, Str] {
+    Ok(parse_int($s)? + 1)
+}
+
+sub main(): Int {
+    0
+}

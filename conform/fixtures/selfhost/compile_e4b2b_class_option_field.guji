@@ -1,0 +1,28 @@
+# gujiconform - selfhost slice 5 E4b-2b compiler codegen fixture.
+# Option class fields are NATIVE-REJECTED, so this is interp-oracle work. The
+# bounded generator covers Option[Int]; this fixture pins Option[Str] ownership:
+# the class struct stores a guji_opt_str by value and class retain/release helpers
+# retain/release the active Some payload.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_str f0;"))
+            print(has_text($c, "guji_release_Rec_fields"))
+            print(has_text($c, "guji_release(p->f0.val)"))
+            print(has_text($c, "guji_retain(p->f0.val)"))
+            print(has_text($c, ".f0.val"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

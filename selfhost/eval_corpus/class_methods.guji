@@ -1,0 +1,28 @@
+# §8.2/§8.3/§7.5 (feat_method-shaped): class construction, an associated
+# constructor, chained instance-method calls, private-field shorthand `$!pin`
+# inside methods, instance display + equality, and the data-first UFCS fallback
+# for a non-method name on an instance receiver.
+class Account {
+    has $!pin: Str
+    # Declared out of display-name order so the exact row pins canonical sorting.
+    has $.balance: Int
+
+    sub opened($bal: Int): Account { Account(balance: $bal, pin: "0000") }
+    sub deposit($self, $amount: Int): Account {
+        Account(balance: $self.balance + $amount, pin: $!pin)
+    }
+    sub check_pin($self, $guess: Str): Bool { $!pin == $guess }
+}
+sub doubled($a: Account): Int { $a.balance * 2 }
+sub main(): Int {
+    $a = Account.opened(40)
+    $b = $a.deposit(2)
+    print($b.balance)
+    print($b.check_pin("0000"))
+    print($b.check_pin("9999"))
+    print($b)
+    print($b.doubled())
+    print($a == Account.opened(40))
+    print($a == $b)
+    0
+}

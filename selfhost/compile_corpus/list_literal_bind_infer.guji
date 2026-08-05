@@ -1,0 +1,20 @@
+# selfhost slice 6 P2-a: UNANNOTATED list-literal bindings. Native and the
+# interpreter accept a bare `@xs = [..]` and infer List[T] from the elements. The
+# selfhost codegen now infers the element kind from the first literal
+# (g7_scalar_elem_kind, mirroring the scalar-bind Int->Float->Bool->Str try-order)
+# and lowers through the SAME list-literal path an annotated binding already used.
+# Exercises all four scalar element kinds (Int/Str/Bool/Float), indexing, count(),
+# and an expression-position if returning the exit code.
+sub main(): Int {
+    @ns = [10, 20, 30, 40]
+    @ss = ["ab", "cd", "ef"]
+    @bs = [true, false, true]
+    @fs = [1.5, 2.5]
+    print("{ @ns[0] }")
+    print("{ @ns[3] }")
+    print("{ @ns.count() }")
+    print("{ @ss[1] }")
+    print("{ @bs[2] }")
+    print("{ @fs[0] }")
+    if @bs[0] && !@bs[1] && @ss.count() == 3 { 42 } else { 7 }
+}

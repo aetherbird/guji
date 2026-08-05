@@ -1,0 +1,15 @@
+# §17.4 native channel `for`: drain a buffered channel that is closed before the
+# loop runs. Fully sequential (no hatch), so the output is scheduler-independent.
+sub main(): Int {
+    $jobs: Chan[Int] = channel(3)
+    $jobs.send(10)
+    $jobs.send(20)
+    $jobs.send(30)
+    $jobs.close()
+    mut $sum = 0
+    for $job in $jobs {
+        $sum = $sum + $job
+    }
+    print("{ $sum }")
+    0
+}

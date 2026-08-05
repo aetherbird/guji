@@ -1,0 +1,30 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # Scalar / Unit C heads (Bool and Unit share int64_t with Int).
+            print(has_text($c, "static const char* gf_greet(const char* gp0)"))
+            print(has_text($c, "static double gf_half(double gp0)"))
+            print(has_text($c, "static int64_t gf_shout(const char* gp0)"))
+            print(has_text($c, "static int64_t gf_twice(int64_t gp0)"))
+            print(has_text($c, "static int64_t gf_is_big(int64_t gp0)"))
+            # Class / enum method heads.
+            print(has_text($c, "static int64_t gf_Counter_positive(Counter gp0)"))
+            print(has_text($c, "static const char* gf_Counter_label(Counter gp0)"))
+            print(has_text($c, "static int64_t gf_Direction_flag(Direction gp0)"))
+            # Bool display path (RBool, not bare Int).
+            print(has_text($c, "guji_bool_str("))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

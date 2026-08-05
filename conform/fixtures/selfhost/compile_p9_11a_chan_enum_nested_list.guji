@@ -1,0 +1,25 @@
+# P9-11a: pin nested List-payload enum channel ABI — make-site drop hook,
+# per-send active-variant List detach (guji_copy_arr on nested rows), and
+# recv unwrap. Nested List[List]/List[Map] share the flat List detach
+# spelling; the cascade is KIND-tagged.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "sizeof(Msg), guji_chan_drop_Msg") == 1)
+            print(count_of($c, "static void guji_chan_drop_Msg") == 1)
+            print(count_of($c, ".tag = guji_chan_send(") == 3)
+            print(count_of($c, ".tag = guji_chan_recv(") == 2)
+            print(count_of($c, ".data = guji_copy_arr(") >= 3)
+            print(count_of($c, "guji_release_Msg_fields(&") >= 2)
+            print(count_of($c, "guji_panic(\"unwrap on None\")") == 2)
+            0
+        }
+    }
+}

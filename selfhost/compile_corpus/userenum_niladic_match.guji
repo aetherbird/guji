@@ -1,0 +1,13 @@
+# F2b: a match scrutinee that is a NILADIC value (`match Green`, a bare
+# ETypeName) lowers through the generic enum value path — the niladic variant is
+# resolved via the registry metadata and materialised into a fresh temp, then
+# dispatched by tag. Observed via the exit code.
+enum Color { Red, Green, Blue }
+
+sub main(): Int {
+    match Green {
+        Red { 1 }
+        Green { 2 }
+        Blue { 3 }
+    }
+}

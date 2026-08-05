@@ -1,0 +1,8 @@
+# I8c: slurping a write-only Handle is a runtime panic. stdout is writable
+# only; C and D must agree on stdout "before", stderr panic text, and exit 1.
+sub main(): Int {
+    print("before")
+    $s = stdout.slurp()
+    print($s)
+    0
+}

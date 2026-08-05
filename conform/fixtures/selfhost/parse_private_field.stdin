@@ -1,0 +1,5 @@
+class Vault {
+    has $!code: Int
+
+    sub peek($self): Int { $!code + 1 }
+}

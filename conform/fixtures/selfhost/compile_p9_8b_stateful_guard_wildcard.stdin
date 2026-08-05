@@ -1,0 +1,24 @@
+enum Box {
+    Full($s: Str)
+    Empty
+}
+
+sub choose($o: Option[Str]): Option[Str] {
+    $chosen: Option[Str] = match $o {
+        Some($v) if $v == "skip" { Some($v ~ "!") }
+        _ { Some("fall" ~ "back") }
+    }
+    $chosen
+}
+
+sub main(): Int {
+    match Full("ok") {
+        Full($s) { print($s) }
+        _ { print("empty") }
+    }
+    match choose(None) {
+        Some($s) { print($s) }
+        None { print("none") }
+    }
+    0
+}

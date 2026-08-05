@@ -1,0 +1,22 @@
+# P07: ordinary/uniform calls, chaining, associated calls, and recursion.
+class Counter {
+    has $.value: Int
+
+    sub from($value: Int): Counter { Counter(value: $value) }
+}
+
+sub increment($number: Int): Int { $number + 1 }
+sub double($number: Int): Int { $number * 2 }
+
+sub factorial($number: Int): Int {
+    if $number <= 1 { 1 } else { $number * factorial($number - 1) }
+}
+
+sub main(): Int {
+    print(increment(4))
+    print(4.increment())
+    print(4.increment().double().increment())
+    print(Counter.from(9).value)
+    print(factorial(5))
+    0
+}

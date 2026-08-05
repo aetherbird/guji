@@ -1,0 +1,16 @@
+# gujiconform — selfhost slice 5 E5d-1. Pins regex literals as primary
+# expressions under the existing `~~` binary operator precedence (§5.5, §13.2).
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

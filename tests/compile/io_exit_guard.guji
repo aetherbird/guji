@@ -1,0 +1,18 @@
+# exit is Never-typed, so it may stand in for any branch result without
+# constraining the if/match type (like panic). Here the then-branch exits while
+# the else-branch yields an Int; the function still type-checks because Never
+# unifies with Int. The guard takes the exit path, so the program terminates
+# with code 2 after printing the pre-check line; "checked" never prints.
+sub check($n: Int): Int {
+    if $n < 0 {
+        exit(2)
+    } else {
+        $n
+    }
+}
+
+sub main(): Unit {
+    print("checking")
+    $r = check(-1)
+    print("checked: ${$r}")
+}

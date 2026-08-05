@@ -1,0 +1,19 @@
+enum Msg {
+  Text($s: Str)
+  Other($s: Str)
+}
+
+sub main(): Int {
+  mut $m: Msg = Text("old" ~ "!")
+  $m = Other("new" ~ "?")
+  match $m {
+    Text($x) {
+      print($x)
+      1
+    }
+    Other($x) {
+      print($x)
+      0
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# gujiconform — selfhost slice 5 E5a `while` type checker (§6.3).
+# Pins the canonical typecheck verdict for `while` loops: the condition must be
+# Bool and the body is checked in a child scope. The stdin source is run through
+# the guji-written front end (lex -> parse -> type-check).
+import lexer
+
+sub main(): Int {
+    match lexer::typecheck_verdict(stdin.slurp()) {
+        TcAccept {
+            print(lexer::typecheck_accept_token())
+            0
+        }
+        TcRejectType($msg) {
+            print($msg)
+            1
+        }
+        TcRejectParse($msg) {
+            print($msg)
+            2
+        }
+    }
+}

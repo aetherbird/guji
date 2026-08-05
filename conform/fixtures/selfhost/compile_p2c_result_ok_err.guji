@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Result `ok`/`err` carrier-producing lowering over bound Result
+# locals. Result.ok fills Some from `.ok` only when tag == 0; Result.err fills
+# Some from `.err` only when tag != 0. Str payloads are retained into the fresh
+# Option carrier so the source Result binding remains the sole owner of its slot.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, ".tag == 0LL) \{ go"))
+            print(has_text($c, ".val = gv"))
+            print(has_text($c, ".ok; }"))
+            print(has_text($c, ".tag != 0LL) \{ go"))
+            print(has_text($c, ".err; }"))
+            print(has_text($c, "guji_retain(go"))
+            print(has_text($c, ".tag != 0LL) \{ guji_release"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

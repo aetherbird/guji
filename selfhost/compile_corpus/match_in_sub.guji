@@ -1,0 +1,9 @@
+sub classify($n: Int): Int {
+    match $n {
+        0 { 0 }
+        _ { 1 }
+    }
+}
+sub main(): Int {
+    classify(7) + classify(0)
+}

@@ -1,0 +1,21 @@
+class Box[T] {
+    has $.value: T
+}
+
+class Pair[A, B] {
+    has $.first: A
+    has $.second: B
+}
+
+sub main(): Int {
+    $bi = Box(value: 42)
+    $bs = Box(value: "hello")
+    print("{ $bi.value }")
+    print("{ $bs.value }")
+
+    $p = Pair(first: 1, second: "one")
+    print("{ $p.first }")
+    print("{ $p.second }")
+
+    0
+}

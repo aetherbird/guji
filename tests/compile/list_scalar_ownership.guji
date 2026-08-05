@@ -1,0 +1,24 @@
+# RC1.2-ownership-a: heap-backed List[scalar] storage is released when its
+# owning local dies. Exercises dynamic lists from transforms, sub-call results,
+# and loop-bound locals; scalar elements need no element retains.
+sub make_list(): List[Int] {
+    [1, 2, 3].reverse()
+}
+
+sub main(): Unit {
+    # Direct dynamic local released at scope exit.
+    @a = [10, 20, 30].take(2)
+    print("a sum: { @a.sum() }")
+
+    # Sub-call result (heap-owned slice transferred to caller) released after use.
+    @b = make_list()
+    print("b sum: { @b.sum() }")
+
+    # Loop-bound dynamic locals released each iteration.
+    mut $total = 0
+    for $i in [1, 2, 3] {
+        @c = [$i, $i + 1].map({ $_ * 2 })
+        $total = $total + @c.sum()
+    }
+    print("total: { $total }")
+}

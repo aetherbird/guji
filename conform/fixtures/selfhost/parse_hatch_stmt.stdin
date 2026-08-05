@@ -1,0 +1,9 @@
+# §17.1: hatch owns a statement block and may nest; parsing must resume at the
+# enclosing statement after both closing braces.
+sub launch($msg: Str): Unit {
+    hatch {
+        print($msg)
+        hatch { note("nested") }
+    }
+    ()
+}

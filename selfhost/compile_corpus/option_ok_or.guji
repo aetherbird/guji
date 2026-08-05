@@ -1,0 +1,63 @@
+# §15.5 Option `ok_or`, function form `ok_or($o, $err)` and method form
+# `$o.ok_or($err)`, over bound `Option[T]` locals producing a fresh `Result[T, E]`.
+# `Some(v)` -> `Ok(v)`, `None` -> `Err($err)`. Native fills a zeroed Result temp per
+# the source Option tag (`if (opt.tag != 0) { r.ok = opt.val; } else { r.err = <err>; }`),
+# retaining a Str Ok slot on the Some path. A Str err is lowered to an owned tmp,
+# retained into the Err slot on the None path, and released unconditionally — the
+# refcounts balance on BOTH arms (freed when discarded on Some, co-owned by the
+# Result on None; verified under ASan/LSan). Native `guji build` supports all of it,
+# so this is a THREE-WAY case (interp == native == selfhost). Exit 255 (code 1023)
+# iff every polarity/ownership assertion holds.
+
+sub mki($n: Int): Option[Int] {
+    if $n > 0 { Some($n) } else { None }
+}
+sub mks($n: Int): Option[Str] {
+    # A heap-built Some payload: a wrong retain/release shows under ASan.
+    if $n > 0 { Some("v" ~ "al{ $n }") } else { None }
+}
+
+sub main(): Int {
+    $si: Option[Int] = mki(5)
+    $ni: Option[Int] = mki(-1)
+    $ss: Option[Str] = mks(9)
+    $ns: Option[Str] = mks(-1)
+
+    mut $code = 0
+
+    # Int ok + scalar Str err: Some -> Ok(payload), None -> Err(msg). Both spellings.
+    $a: Result[Int, Str] = $si.ok_or("missing")
+    $b: Result[Int, Str] = ok_or($ni, "missing")
+    if $a.is_ok() { $code = $code + 1 }
+    if $b.is_err() { $code = $code + 2 }
+    if $a.unwrap_or(0) == 5 { $code = $code + 4 }
+    if $b.unwrap_or(41) == 41 { $code = $code + 8 }
+
+    # Int ok + scalar errs: Int/Float/Bool err slots (no retain, pure move).
+    $c: Result[Int, Int] = $ni.ok_or(99)
+    $d: Result[Int, Float] = ok_or($ni, 1.5)
+    $e: Result[Int, Bool] = $ni.ok_or(true)
+    if $c.is_err() { $code = $code + 16 }
+    if $d.is_err() { $code = $code + 32 }
+    if $e.is_err() { $code = $code + 64 }
+    # a Some source keeps the Ok payload regardless of the scalar err kind.
+    $f: Result[Int, Int] = $si.ok_or(99)
+    if $f.unwrap_or(0) == 5 { $code = $code + 512 }
+
+    # Str ok payload: the Some path must RETAIN the heap payload (owned by $ss too).
+    $g: Result[Str, Str] = $ss.ok_or("fallback")
+    $h: Result[Str, Str] = ok_or($ns, "fallback")
+    print($g.unwrap_or("x"))
+    print($h.unwrap_or("y"))
+
+    # Str err lowered from a heap-built bound var: released on Some (discarded),
+    # co-owned on None (drives the Err payload).
+    $he = "er" ~ "ror{ 7 }"
+    $i: Result[Int, Str] = $si.ok_or($he)
+    $j: Result[Int, Str] = ok_or($ni, $he)
+    if $i.is_ok() { $code = $code + 128 }
+    if $j.is_err() { $code = $code + 256 }
+
+    print("{ $code }")
+    $code
+}

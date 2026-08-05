@@ -1,0 +1,21 @@
+# I10f1 compiler precursor: the evaluator's runtime-sized select poller needs
+# the same scheduler snapshot/wait pair that ordinary statically-shaped select
+# lowering already emits. Pin the private bridge without exposing it as a guji
+# language feature.
+import lexer
+
+sub count_of($s: Str, $needle: Str): Int {
+    split($s, $needle).count() - 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Err($e) { note($e) 1 }
+        Ok($c) {
+            print(count_of($c, "(int64_t)guji_progress_snapshot()") == 1)
+            print(count_of($c, "guji_select_wait((uint64_t)") == 1)
+            print(count_of($c, "guji_chan_recv(") == 1)
+            0
+        }
+    }
+}

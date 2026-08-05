@@ -1,0 +1,19 @@
+# P8e-2: heap-built direct captures plus interpolation-only captures.
+sub main(): Int {
+    $ch: Chan[Str] = channel(0)
+    $base = "cap" ~ "tured"
+    $suffix = "-" ~ "str"
+    hatch {
+        $msg = $base ~ $suffix
+        $ch.send($msg)
+    }
+    print($ch.recv().unwrap())
+
+    $who = "wor" ~ "ld"
+    $tag = "GU" ~ "JI"
+    hatch {
+        $ch.send("hello $who [{ $tag.lower() }]")
+    }
+    print($ch.recv().unwrap())
+    0
+}

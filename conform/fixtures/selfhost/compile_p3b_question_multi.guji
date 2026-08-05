@@ -1,0 +1,32 @@
+# gujiconform - selfhost slice 6 P3b-2b-2c-4 compiler codegen fixture.
+# Pins MULTIPLE `?` in one expression: `g5_question_hoist_all` iterates the
+# single-`?` hoist to a fixpoint, so `Some(add($o?, $p?))` emits BOTH carrier
+# guards in native's left-to-right order before the rebuilt constructor, and
+# `Ok(parse_int($s)? - parse_int($t)?)` early-returns the LEFT Err before the
+# right operand ever evaluates.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "gv1 = go0.val;"))
+            print(has_text($c, "gv3 = go2.val;"))
+            print(has_text($c, "(guji_opt_int)\{1LL, gf_add(gv1, gv3)"))
+            print(has_text($c, "gv4 = gr3.ok;"))
+            print(has_text($c, "gv9 = gr8.ok;"))
+            print(has_text($c, "(guji_res_int_str)\{1LL, 0LL, gr3.err"))
+            print(has_text($c, "(guji_res_int_str)\{1LL, 0LL, gr8.err"))
+            print(has_text($c, "(guji_res_int_str)\{0LL, guji_sub(gv4, gv9)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

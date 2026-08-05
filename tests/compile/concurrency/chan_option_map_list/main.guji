@@ -1,0 +1,52 @@
+# Chan[Option[Map[Str, List[T]]]] must detach the active Map[Str,List] payload
+# on send and adopt it on recv. A Map[Str,List] carrier owns the SAME two counted
+# arrays as a flat map carrier (.val.keys + .val.vals); the values array is an
+# ARR_SLICE, so the channel elem_drop's single vals release cascades into each
+# value list's storage (and a Str-valued list cascades into its elements). Each
+# channel buffers one Some that is never recv'd, so channel release exercises the
+# carrier elem_drop under LSan. recv must preserve map value-list metadata so the
+# bound %m can index and sum its per-key lists.
+
+sub sum_map(%m: Map[Str, List[Int]]): Int {
+    %m{"a"}.sum() + %m{"b"}.sum()
+}
+
+sub join_map(%m: Map[Str, List[Str]]): Str {
+    %m{"x"}[0] ~ %m{"x"}[1] ~ %m{"y"}[0]
+}
+
+sub main(): Int {
+    $ints: Chan[Option[Map[Str, List[Int]]]] = channel(3)
+    %grid = {"a": [1, 2], "b": [3, 4, 5]}
+    $some: Option[Map[Str, List[Int]]] = Some(%grid)
+    $none: Option[Map[Str, List[Int]]] = None
+    $ints.send($some)
+    $ints.send($none)
+    $ints.send($some)
+
+    $got = $ints.recv().unwrap()
+    print(match $got {
+        Some(%m) { sum_map(%m) }
+        None { 0 }
+    })
+
+    $got_none = $ints.recv().unwrap()
+    print(match $got_none {
+        Some(%m) { %m{"a"}[0] }
+        None { 99 }
+    })
+
+    $words: Chan[Option[Map[Str, List[Str]]]] = channel(2)
+    %parts = {"x": ["gu", "ji"], "y": ["!"]}
+    $some_words: Option[Map[Str, List[Str]]] = Some(%parts)
+    $words.send($some_words)
+    $words.send($some_words)
+
+    $got_words = $words.recv().unwrap()
+    print(match $got_words {
+        Some(%m) { join_map(%m) }
+        None { "none" }
+    })
+
+    0
+}

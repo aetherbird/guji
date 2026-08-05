@@ -1,0 +1,15 @@
+# A final-position match whose arms are Unit side-effect blocks must lower as a
+# statement match and return 0 from main, not as a value match.
+sub wrap_opt[A]($v: A): Option[A] { Some($v) }
+
+sub announce($s: Str): Unit {
+  print($s)
+}
+
+sub main() {
+  $o = wrap_opt(21)
+  match $o {
+    Some($v) { print("{ $v * 2 }") }
+    None { announce("none") }
+  }
+}

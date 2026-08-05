@@ -1,0 +1,30 @@
+# §17.5 native `select` recv arm over a CARRIER element channel
+# (Chan[Option[Int]]). recv yields Option[Option[Int]]; the arm binds that
+# wrapper, $v.unwrap() peels the presence wrapper, and the inner Option[Int] is
+# matched. A scalar carrier owns no heap, so the arm needs no release — this is
+# the carrier baseline that proves the recv-wrapper type is emitted and the arm
+# binds correctly. Deterministic: a single buffered Some(7) is the only ready arm.
+sub main(): Int {
+    $a: Chan[Option[Int]] = channel(1)
+    $b: Chan[Option[Int]] = channel(1)
+    $some: Option[Int] = Some(7)
+    $a.send($some)
+    select {
+        $v = $a.recv() {
+            $inner = $v.unwrap()
+            print(match $inner {
+                Some($n) { $n }
+                None { 0 }
+            })
+        }
+        $w = $b.recv() {
+            $inner = $w.unwrap()
+            print(match $inner {
+                Some($n) { $n }
+                None { 0 }
+            })
+        }
+        else { print(99) }
+    }
+    0
+}

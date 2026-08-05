@@ -1,0 +1,30 @@
+# gujiconform - selfhost slice 5 E5d-8d compiler codegen fixture.
+# Pins value-position `match` over the Option[Str] returned by the `get` prelude
+# over a `split(...)`-produced List[Str] -- the real-source `first_char` blocker.
+# Checks the generated C carries: the `guji_split` prelude call, the in-range Some
+# carrier fill (`.tag = 1LL` + the cast element read), the out-of-range None fill
+# (`.tag = 0LL` + the empty-Str zero payload), and the bounds guard.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, " = (void*)guji_split("))
+            print(has_text($c, ".tag = 1LL; "))
+            print(has_text($c, ".val = ((const char**)"))
+            print(has_text($c, ".tag = 0LL; "))
+            print(has_text($c, ".val = GUJI_EMPTY_STR;"))
+            print(has_text($c, " >= 0LL && "))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

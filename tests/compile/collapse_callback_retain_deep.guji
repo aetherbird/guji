@@ -1,0 +1,47 @@
+# A-collapse-callback-prelude: map / filter / sort_by all funnel their result-copy
+# retain through ONE element-kind-driven helper (retainCountedSlot) instead of a
+# per-category `switch t`. Each per-kind retain helper self-guards on the result
+# element kind, so a callback that PRODUCES or KEEPS a deep collection row retains
+# the row's counted storage handle generically — no per-shape code. This fixture
+# goes deeper than map_nested_output (which only emitted depth-2 list rows and
+# depth-1 map rows): here the rows that flow back through the retained slot are
+# themselves List[List[Int]] and Map[Str, List[Int]] values, and the same deep
+# shapes are exercised across map, filter, and sort_by so every caller of the
+# unified helper is covered. Leak/UAF would surface under ASan/LSan in the gate.
+sub main(): Int {
+    # map identity over List[List[List[Int]]] -> each retained row is a
+    # List[List[Int]] (one level deeper than map_nested_output's list rows).
+    @cube = [[[1, 2], [3]], [[4]], [[5, 6], [7, 8], [9]]]
+    @same_cube = @cube.map(sub(@plane) { @plane })
+    print(@same_cube)
+
+    # map building a fresh List[List[Int]] row per element — the body returns a
+    # nested list literal, exercising the retained collection slot with a fresh row.
+    @nums = [1, 2, 3]
+    @grids = @nums.map(sub($n) { [[$n], [$n, $n]] })
+    print(@grids)
+
+    # map identity over List[Map[Str, List[Int]]] -> retained Map rows whose
+    # values are themselves lists.
+    @recs = [{"a": [1, 2], "b": [3]}, {"c": [4]}]
+    @same_recs = @recs.map(sub(%m) { %m })
+    print(@same_recs)
+
+    # filter keeping whole deep rows: keep planes with more than one row.
+    @big = @cube.filter(sub(@plane) { @plane.count() > 1 })
+    print(@big)
+
+    # filter over List[Map[Str, List[Int]]] keeping maps with >=2 keys.
+    @multi = @recs.filter(sub(%m) { %m.keys().count() >= 2 })
+    print(@multi)
+
+    # sort_by over the deep list-of-lists by row count: stable ordered copy with
+    # each retained row a List[List[Int]].
+    @by_rows = @cube.sort_by(sub(@plane) { @plane.count() })
+    print(@by_rows)
+
+    # sort_by over List[Map[Str, List[Int]]] by key count.
+    @by_keys = @recs.sort_by(sub(%m) { %m.keys().count() })
+    print(@by_keys)
+    0
+}

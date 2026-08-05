@@ -1,0 +1,21 @@
+# I8c2 bootstrap boundary: mixed enum storage owns a real Chan[Str].
+enum StreamValue {
+    Idle
+    Text($text: Str)
+    Active($ch: Chan[Str])
+}
+
+sub wrap($ch: Chan[Str]): StreamValue {
+    Active($ch)
+}
+
+sub main(): Int {
+    $ch: Chan[Str] = channel(1)
+    $value = wrap($ch)
+    match $value {
+        Idle { print("idle") }
+        Text($text) { print($text) }
+        Active($inner) { $inner.close() }
+    }
+    0
+}

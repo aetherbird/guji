@@ -1,0 +1,5 @@
+sub main(): Int {
+    $h = open("/dev/null").unwrap()
+    print("[" ~ $h.slurp() ~ "]")
+    0
+}

@@ -1,0 +1,29 @@
+# gujiconform - selfhost slice 6 P2c compiler codegen fixture.
+# Pins §15.5 Result `expect` lowering over a bound `Result[T,E]` local. The guard
+# uses Result polarity (`tag != 0` panics), scalar Ok payloads read `.ok`, Str Ok
+# payloads are retained into an owned temp, and the eagerly-lowered message temp
+# is released on the success path.
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "tag != 0) \{ guji_panic(gt"))
+            print(has_text($c, ".ok"))
+            print(has_text($c, "guji_release(gt"))
+            print(has_text($c, "guji_retain(gv"))
+            print(has_text($c, ".ok);"))
+            print(has_text($c, ".tag == 0LL) \{ guji_release"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

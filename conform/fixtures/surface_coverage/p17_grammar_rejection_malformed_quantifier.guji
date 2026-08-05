@@ -1,0 +1,5 @@
+# Spec 14.1 grammar regex atoms reject malformed quantifier bounds.
+grammar BadRepeat {
+    token TOP { a{3,2} }
+}
+sub main(): Int { 0 }

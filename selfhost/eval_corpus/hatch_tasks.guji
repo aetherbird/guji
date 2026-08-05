@@ -1,0 +1,48 @@
+# I10d2: §17.1 hatch execution. Unbuffered rendezvous pins completion order;
+# immutable Int/Bool/Float/Str captures cross the task boundary; two hatches
+# preserve spawn order; hatch-inside-sub reuses the same private Func path.
+sub spawn_add($ch: Chan[Int], $a: Int, $b: Int): Unit {
+    hatch {
+        $ch.send($a + $b)
+    }
+}
+
+sub main(): Int {
+    $ch: Chan[Int] = channel(0)
+    $x = 42
+    hatch {
+        $ch.send($x)
+    }
+    print($ch.recv().unwrap())
+
+    $ch1: Chan[Int] = channel(0)
+    $ch2: Chan[Int] = channel(0)
+    hatch { $ch1.send(10) }
+    hatch { $ch2.send(20) }
+    print($ch1.recv().unwrap())
+    print($ch2.recv().unwrap())
+
+    $chInt: Chan[Int] = channel(0)
+    $chFloat: Chan[Float] = channel(0)
+    $chBool: Chan[Bool] = channel(0)
+    $chStr: Chan[Str] = channel(0)
+    $a = 123
+    $b = true
+    $c = 2.5
+    $s = "he" ~ "llo"
+    hatch {
+        $chInt.send($a)
+        $chFloat.send($c)
+        $chBool.send($b)
+        $chStr.send($s)
+    }
+    print($chInt.recv().unwrap())
+    print($chFloat.recv().unwrap())
+    print($chBool.recv().unwrap())
+    print($chStr.recv().unwrap())
+
+    $out: Chan[Int] = channel(0)
+    spawn_add($out, 7, 35)
+    print($out.recv().unwrap())
+    0
+}

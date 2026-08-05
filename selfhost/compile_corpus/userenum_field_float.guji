@@ -1,0 +1,12 @@
+enum Measure {
+    Exact($value: Float)
+    Missing
+}
+
+sub main(): Int {
+    $m: Measure = Exact(2.5)
+    match $m {
+        Exact($v) { if $v > 2.0 { 9 } else { 1 } }
+        Missing { 0 }
+    }
+}

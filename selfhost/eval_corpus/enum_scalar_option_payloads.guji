@@ -1,0 +1,60 @@
+# Homogeneous scalar Option payloads are stored by-value in user enums. Cover
+# Int/Bool/Float construction and nested matching, plus hatch capture of the
+# scalar-only enum carrier.
+enum IntSlot {
+    HoldingInt($value: Option[Int])
+    IntFree
+}
+
+enum BoolSlot {
+    HoldingBool($value: Option[Bool])
+    BoolFree
+}
+
+enum FloatSlot {
+    HoldingFloat($value: Option[Float])
+    FloatFree
+}
+
+sub int_value($slot: IntSlot): Int {
+    match $slot {
+        HoldingInt(Some($value)) { $value }
+        HoldingInt(None) { 0 - 1 }
+        IntFree { 0 }
+    }
+}
+
+sub bool_value($slot: BoolSlot): Bool {
+    match $slot {
+        HoldingBool(Some($value)) { $value }
+        HoldingBool(None) { false }
+        BoolFree { false }
+    }
+}
+
+sub float_value($slot: FloatSlot): Float {
+    match $slot {
+        HoldingFloat(Some($value)) { $value }
+        HoldingFloat(None) { 0.0 }
+        FloatFree { 0.0 }
+    }
+}
+
+sub main(): Int {
+    print(HoldingInt(Some(4)))
+    print(HoldingInt(None))
+    print(HoldingBool(Some(true)))
+    print(HoldingFloat(Some(2.5)))
+    print(int_value(HoldingInt(Some(4))))
+    print(int_value(HoldingInt(None)))
+    print(bool_value(HoldingBool(Some(true))))
+    print(float_value(HoldingFloat(Some(2.5))))
+
+    $done: Chan[Int] = channel()
+    $captured: IntSlot = HoldingInt(Some(7))
+    hatch {
+        $done.send(int_value($captured))
+    }
+    print($done.recv().unwrap())
+    0
+}

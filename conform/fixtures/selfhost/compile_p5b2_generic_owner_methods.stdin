@@ -1,0 +1,33 @@
+class GBox[T] {
+    has $.value: T
+
+    sub identity[U]($self, $v: U): U { $v }
+
+    sub get_with[U]($self, $unused: U): T { $self.value }
+}
+
+enum EBox[T] {
+    Full($value: T)
+
+    sub identity[U]($self, $v: U): U { $v }
+
+    sub get_with[U]($self, $unused: U): T {
+        match $self {
+            Full($v) { $v }
+        }
+    }
+}
+
+sub main(): Unit {
+    $gi = GBox(value: 40)
+    print("{ $gi.get_with(true) }")
+    print("{ $gi.identity(2) }")
+    print($gi.identity("cls"))
+
+    $gs = GBox(value: "owner")
+    print($gs.get_with(3.5))
+
+    $ef = Full(1.25)
+    print("{ $ef.get_with(false) }")
+    print("{ $ef.identity(7) }")
+}

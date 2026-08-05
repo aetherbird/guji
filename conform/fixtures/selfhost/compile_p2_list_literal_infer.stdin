@@ -1,0 +1,6 @@
+sub main(): Int {
+    @xs = [10, 20, 30]
+    @ss = ["hi", "yo"]
+    print(@ss[0])
+    @xs[1]
+}

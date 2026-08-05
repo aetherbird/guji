@@ -1,0 +1,16 @@
+some.is_some: true
+some.is_none: false
+none.is_some: false
+none.is_none: true
+some.unwrap_or: 5
+none.unwrap_or: 99
+some.unwrap: 5
+some.expect: 5
+ok.is_ok: true
+ok.is_err: false
+err.is_ok: false
+err.is_err: true
+ok.unwrap_or: 7
+err.unwrap_or: 42
+ok.unwrap: 7
+ok.expect: 7

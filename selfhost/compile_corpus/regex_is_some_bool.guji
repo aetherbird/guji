@@ -1,0 +1,17 @@
+# E5d-8a: literal regex match used only as a Bool via `.is_some()`.
+# This is the exact shape used by the selfhost lexer's character predicates.
+sub is_digit($c: Str): Bool {
+    ($c ~~ /(?a)[0-9]/).is_some()
+}
+
+sub is_hex($c: Str): Bool {
+    ($c ~~ /(?a)[0-9A-Fa-f]/).is_some()
+}
+
+sub main(): Int {
+    if is_digit("7") && !is_digit("x") && is_hex("F") && !is_hex("z") {
+        0
+    } else {
+        8
+    }
+}

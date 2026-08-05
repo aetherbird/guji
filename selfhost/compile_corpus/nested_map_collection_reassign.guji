@@ -1,0 +1,38 @@
+# P5b-2b: whole-map reassignment (`%m = {...}`) of a `mut` map whose VALUES are
+# collections. The scalar reassign copy loop only understood scalar/Str slots;
+# collection values now materialise each new row into an owned by-value temp,
+# release the old two arrays, reallocate to the new length, then MOVE the rows in
+# (snapshot-safe: every read of the old binding completes before it is released,
+# mirroring native's save-old / alloc-fresh / release-old-last order). Exercises
+# List[Int]/List[Str] values, nested Map values, deep mixed nesting, and several
+# reassigns of varying length in one scope (balanced allocs/releases).
+
+sub main(): Int {
+    # List[Int] values — reassign to shorter then longer literals.
+    mut %li: Map[Str, List[Int]] = {"a": [1, 2], "b": [3]}
+    print(%li)
+    %li = {"c": [4, 5, 6]}
+    print(%li)
+    %li = {"d": [7], "e": [8, 9]}
+    print(%li)
+
+    # List[Str] values — retained string rows must not double-free on reassign.
+    mut %ls: Map[Str, List[Str]] = {"x": ["hi", "yo"]}
+    print(%ls)
+    %ls = {"p": ["one"], "q": ["two", "three"]}
+    print(%ls)
+
+    # Nested map values.
+    mut %mm: Map[Str, Map[Str, Bool]] = {"o": {"yes": true}}
+    print(%mm)
+    %mm = {"n": {"no": false, "maybe": true}}
+    print(%mm)
+
+    # Deeply mixed: Map[Str, List[Map[Str, List[Str]]]].
+    mut %deep: Map[Str, List[Map[Str, List[Str]]]] = {"r": [{"a": ["x"]}]}
+    print(%deep)
+    %deep = {"s": [{"b": ["y", "z"]}, {"c": ["w"]}]}
+    print(%deep)
+
+    77
+}

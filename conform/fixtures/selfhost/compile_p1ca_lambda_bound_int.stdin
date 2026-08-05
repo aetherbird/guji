@@ -1,0 +1,8 @@
+# gujiconform — selfhost slice 6 P1c-a lambda codegen fixture (§7.4).
+# Native accepts this bound, non-capturing function value shape; selfhost C now
+# lowers it by lifting a NULL-env `guji_fn_t` lambda and calling through the
+# function-valued local.
+sub main(): Int {
+    $add = sub($n: Int): Int { $n + 10 }
+    $add(5)
+}

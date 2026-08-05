@@ -1,0 +1,5 @@
+# Int arithmetic panics instead of wrapping at the signed 64-bit boundary.
+sub main(): Int {
+    print(9223372036854775807 + 1)
+    0
+}

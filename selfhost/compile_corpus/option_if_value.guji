@@ -1,0 +1,7 @@
+sub main(): Int {
+    $o: Option[Int] = if true { Some(8) } else { None }
+    match $o {
+        Some($v) { $v }
+        None { 1 }
+    }
+}

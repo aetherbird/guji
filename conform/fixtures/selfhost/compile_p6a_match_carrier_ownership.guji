@@ -1,0 +1,28 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+# P6a: Option[Match] from `~~` + Match accessors + ownership (§13 / RC1.4b).
+# Pins the native-shaped C: guji_opt_match typedef/temps, regex match engine,
+# Match.text retain, positional/named capture Option[Str], and the fresh-temp
+# return path that keeps a returned Option[Match] payload alive past frame
+# cleanup (find_local).
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            print(has_text($c, "guji_opt_match"))
+            print(has_text($c, "guji_regex_match_pattern_engine"))
+            print(has_text($c, "->text"))
+            print(has_text($c, "guji_match_cap"))
+            print(has_text($c, "guji_retain((const void*)"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

@@ -1,0 +1,38 @@
+# Map[Str, Map[Str, V]] storage: map values are immutable copied guji_map_t
+# values; chained indexing, key-sorted iteration (outer and inner row),
+# values(), and set/remove all preserve the inner map contents.
+sub main(): Int {
+    mut %inner = {"x": 1, "y": 2}
+    %m = {"b": {"z": 3}, "a": %inner}
+    %inner = {"x": 9}
+
+    print(%m{"a"}{"y"})
+    print(%m{"b"}{"z"})
+
+    mut $out = ""
+    for $k, %row in %m {
+        @ks = %row.keys()
+        $out = $out ~ $k ~ ":" ~ @ks.join(",") ~ " "
+    }
+    print($out)
+
+    %row2 = %m{"a"}
+    mut $sum = 0
+    for $ik, $iv in %row2 {
+        $sum = $sum + $iv
+    }
+    print($sum)
+
+    @rows = %m.values()
+    print(@rows.count())
+    print(@rows[1]{"z"})
+
+    %m2 = %m.set("c", {"w": 4}).remove("b")
+    print(%m2{"c"}{"w"})
+    print(%m2.has_key("b"))
+    print(%m{"b"}{"z"})
+
+    %names = {"greet": {"en": "hello", "fr": "salut"}}
+    print(%names{"greet"}{"fr"})
+    0
+}

@@ -1,0 +1,8 @@
+# Spec 13.4: a missing named capture on a literal-known Match is a static error.
+sub main(): Int {
+    match "x" ~~ /^(?<known>x)$/ {
+        Some($m) { print($m<missing>.unwrap_or("none")) }
+        None { print("no-match") }
+    }
+    0
+}

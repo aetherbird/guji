@@ -1,0 +1,8 @@
+sub main(): Int {
+    @xs = [10, 20, 30]
+    print(@xs)
+    print(@xs[1])
+    %m = {"z": 1, "a": 2, "m": 3}
+    print(%m)
+    @xs[2]
+}

@@ -1,0 +1,10 @@
+# gujiconform -- Phase 2 (Platform IO pass): exit($code: Int): Never terminates
+# the program with the given code, flushing stdout first (Section 15.4, like
+# panic). The pre-exit line is flushed and appears on stdout; the post-exit line
+# is unreachable. The code (7) becomes the process exit status. Both engines
+# must agree on stdout AND exit code. Derived from the spec, not captured.
+sub main() {
+    print("before")
+    exit(7)
+    print("unreachable")
+}

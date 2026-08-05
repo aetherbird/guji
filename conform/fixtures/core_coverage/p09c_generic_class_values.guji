@@ -1,0 +1,17 @@
+# P09c supported slice: concrete generic fields, nested ownership, and equality.
+class Box[T] {
+    has $.value: T
+}
+
+sub relay($box: Box[Str]): Box[Str] { $box }
+
+sub main(): Int {
+    $left: Box[Str] = Box(value: "al" ~ "pha")
+    $same: Box[Str] = Box(value: "alpha")
+    $different: Box[Str] = Box(value: "gamma")
+    print($left == $same)
+    print($left != $different)
+    print($left)
+    print($left.value)
+    0
+}

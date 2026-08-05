@@ -1,0 +1,34 @@
+import lexer
+
+sub has_text($s: Str, $needle: Str): Bool {
+    split($s, $needle).count() > 1
+}
+
+sub main(): Int {
+    match lexer::compile_program_c(stdin.slurp()) {
+        Ok($c) {
+            print("codegen-ok")
+            # The bare-template return `: Box` on the assoc fn rewrote to each
+            # concrete spec (native resolveBareTemplateEnumMethodReturns) …
+            print(has_text($c, "static Box__Int gf_Box__Int_make(int64_t gp0)"))
+            print(has_text($c, "static Box__Str gf_Box__Str_make(const char* gp0)"))
+            # … a two-type-param assoc binds BOTH params from its arguments,
+            # each instantiation discovered PURELY from the assoc call …
+            print(has_text($c, "static Pair2__Int_Str gf_Pair2__Int_Str_of(int64_t gp0, const char* gp1)"))
+            print(has_text($c, "static Pair2__Str_Bool gf_Pair2__Str_Bool_of(const char* gp0, int64_t gp1)"))
+            # … `Box.make(7)` dispatches to the Int spec by argument kind and
+            # chains into a method on the result …
+            print(has_text($c, "gf_Box__Int_make(7LL)"))
+            print(has_text($c, "gf_Box__Int_describe("))
+            print(has_text($c, "gf_Pair2__Str_Bool_show("))
+            # … and no raw template name leaks into the emitted C.
+            print(!has_text($c, "struct Box "))
+            print(!has_text($c, "gf_Box_make"))
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

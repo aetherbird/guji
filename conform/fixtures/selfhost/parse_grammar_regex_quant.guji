@@ -1,0 +1,17 @@
+# gujiconform — P7b. Grammar declaration AST + parser (§14.1).
+# Thin dogfood wrapper: selfhost parse_to_string over stdin; expected is
+# human-authored from guji-spec.md §14.1 / native ast.GrammarDecl.String shape.
+import lexer
+
+sub main(): Int {
+    match lexer::parse_to_string(stdin.slurp()) {
+        Ok($ast) {
+            print($ast)
+            0
+        }
+        Err($e) {
+            note($e)
+            1
+        }
+    }
+}

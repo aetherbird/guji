@@ -1,0 +1,147 @@
+# I10g3b: compiler-accepted multi-field and SELF-boxed recursive enum channel
+# payloads. D encodes them as WEFields spines (scalars/collections/nested guest
+# variants); C already deep-clones via guji_clone_<E>_value. Covers recv, for,
+# select, source alias safety after send, and counted Str teardown.
+enum Row {
+    Named($name: Str, @vals: List[Int])
+    Anon($tag: Int, @vals: List[Float])
+}
+
+enum Tree {
+    Leaf($name: Str, $value: Int)
+    Node($left: Tree, $right: Tree)
+}
+
+enum Chain {
+    End
+    Link(@vals: List[Int], %tags: Map[Str, Str], $next: Chain)
+}
+
+sub tree_sum($t: Tree): Int {
+    match $t {
+        Leaf(_, $v) { $v }
+        Node($l, $r) { tree_sum($l) + tree_sum($r) }
+    }
+}
+
+sub tree_names($t: Tree): Str {
+    match $t {
+        Leaf($n, _) { $n }
+        Node($l, $r) { tree_names($l) ~ tree_names($r) }
+    }
+}
+
+sub chain_total($c: Chain): Int {
+    match $c {
+        End { 0 }
+        Link(@v, _, $n) {
+            mut $s = 0
+            for $x in @v {
+                $s = $s + $x
+            }
+            $s + chain_total($n)
+        }
+    }
+}
+
+sub chain_tags($c: Chain): Str {
+    match $c {
+        End { "" }
+        Link(_, %t, $n) {
+            %t{"k"} ~ chain_tags($n)
+        }
+    }
+}
+
+sub main(): Int {
+    # Multi-field Str+List and Int+List[Float] across recv/for/select.
+    $rows: Chan[Row] = channel(3)
+    $src: Row = Named("row" ~ "-one", [1, 2, 3])
+    $rows.send($src)
+    $rows.send(Anon(4, [1.5, 2.5]))
+    $rows.send(Named("z", [9]))
+    $rows.close()
+    $first = $rows.recv().unwrap()
+    match $first {
+        Named($name, @vals) {
+            $v = @vals[1]
+            print($name ~ "/" ~ "$v")
+        }
+        Anon($tag, @vals) { print("anon:$tag") }
+    }
+    # Source stays live after deep-copy send.
+    match $src {
+        Named($name, @vals) {
+            $v0 = @vals[0]
+            print($name ~ "/" ~ "$v0")
+        }
+        Anon($tag, @vals) { print("src-gone") }
+    }
+    mut $seen = ""
+    for $r in $rows {
+        $seen = $seen ~ (match $r {
+            Named($name, @vals) {
+                $v = @vals[0]
+                "<N:$name:$v>"
+            }
+            Anon($tag, @vals) { "<A:$tag>" }
+        })
+    }
+    print($seen)
+
+    $pick: Chan[Row] = channel(1)
+    $pick.send(Named("sel" ~ "-x", [7, 8]))
+    select {
+        $got = $pick.recv() {
+            match $got.unwrap() {
+                Named($name, @vals) {
+                    $v = @vals[1]
+                    print($name ~ "/" ~ "$v")
+                }
+                Anon($tag, @vals) { print("sel-anon") }
+            }
+        }
+        else { print("wrong row else") }
+    }
+
+    # Recursive Tree: multi-field Leaf + two SELF-boxed Node children.
+    $trees: Chan[Tree] = channel(2)
+    mut $t = Node(Leaf("a" ~ "-x", 1), Node(Leaf("b" ~ "-y", 2), Leaf("c" ~ "-z", 3)))
+    $trees.send($t)
+    $t = Leaf("z" ~ "-w", 99)
+    $got_tree = $trees.recv().unwrap()
+    print(tree_sum($got_tree))
+    print(tree_names($got_tree))
+    print(tree_sum($t))
+    print(tree_names($t))
+
+    $trees.send(Node(Leaf("d", 4), Leaf("e", 5)))
+    $trees.close()
+    for $n in $trees {
+        print(tree_sum($n))
+        print(tree_names($n))
+    }
+
+    # Recursive Chain with List+Map+SELF fields.
+    $links: Chan[Chain] = channel(2)
+    mut $c = Link([1, 2], {"k": "x" ~ "-a"}, Link([3, 4], {"k": "y" ~ "-b"}, End))
+    $links.send($c)
+    $c = End
+    $cgot = $links.recv().unwrap()
+    print(chain_total($cgot))
+    print(chain_tags($cgot))
+    print(chain_total($c))
+    select {
+        $sent = $links.send(Link([9], {"k": "z"}, End)) { print($sent.is_ok()) }
+        else { print("wrong chain else") }
+    }
+    $links.close()
+    for $link in $links {
+        print(chain_tags($link))
+    }
+
+    # Buffered heap payloads prove channel teardown drops detached copies.
+    $drop: Chan[Tree] = channel(1)
+    $drop.send(Node(Leaf("lea" ~ "k-check", 1), Leaf("x", 2)))
+    0
+}

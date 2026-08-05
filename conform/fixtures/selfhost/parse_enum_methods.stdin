@@ -1,0 +1,21 @@
+enum Box[T] {
+    Wrap($value: T)
+    Empty
+
+    sub describe($self): Str {
+        match $self {
+            Wrap($v) { "wrap" }
+            Empty { "empty" }
+        }
+    }
+
+    sub make($v: T): Box {
+        Wrap($v)
+    }
+}
+
+sub main(): Int {
+    $b = Wrap(42)
+    print($b.describe())
+    0
+}

@@ -1,0 +1,6 @@
+sub main(): Int {
+  $p = true
+  $q = false
+  $r = $p && $q
+  if $r { 1 } else { 0 }
+}

@@ -1,0 +1,71 @@
+# A-collection-elements-rest (List[Map[Str, class/enum value]] row VALUE reads):
+# construction and key-count of a List[Map[Str, Enum/Class]] already worked, but
+# reading a VALUE out of a row map — `%row = @rows[0]; $v = %row{"k"}` — used to
+# fail in codegen with "Red is not a variant of enum " because the row mapRef
+# only carried `mapValT == tyEnum`, not the concrete value enum/class. The
+# listRef now threads `mapValClass`/`mapValEnum` so the row view materializes a
+# typed class/enum value. This proves index-then-read, iteration-then-read, and
+# both enum (match) and class (field access) values. Every Str payload/field is
+# HEAP-built at runtime (`~` concat), NOT an immortal literal, so the per-value
+# retain/release must balance exactly under the sanitizer.
+
+enum Tag {
+    Named($label: Str)
+    Anon($code: Int)
+}
+
+class Person {
+    has $.name: Str
+    has $.age: Int
+}
+
+sub describe($t: Tag): Str {
+    match $t {
+        Named($s) { $s }
+        Anon($c) { "anon" }
+    }
+}
+
+sub main(): Int {
+    # List[Map[Str, Enum]] with heap-built (counted) enum payloads.
+    @rows = [{"k": Named("a" ~ "b")}, {"n": Anon(7)}]
+    print(@rows.count())
+
+    # Index a row, then read a value out of it (the previously-broken path).
+    %row = @rows[0]
+    $v = %row{"k"}
+    print(describe($v))
+
+    # Iterate the rows, reading each value through the row binder.
+    for %m in @rows {
+        for $kk, $vv in %m {
+            print($kk)
+            print(describe($vv))
+        }
+    }
+
+    # Non-fresh (alias) enum value placed into a row map; the row read still
+    # materializes the concrete enum and matches it.
+    $g = Named("G" ~ "amma")
+    @ar = [{"x": $g}]
+    %xr = @ar[0]
+    $xv = %xr{"x"}
+    print(describe($xv))
+    print(describe($g))
+
+    # List[Map[Str, Class]] with heap-built Str field: row index then field read.
+    @ppl = [{"lead": Person(name: "A" ~ "da", age: 36)}]
+    %pr = @ppl[0]
+    $p = %pr{"lead"}
+    print($p.name)
+    print($p.age)
+
+    # Class row value read through iteration too.
+    for %pm in @ppl {
+        for $pk, $pv in %pm {
+            print($pk)
+            print($pv.name)
+        }
+    }
+    0
+}

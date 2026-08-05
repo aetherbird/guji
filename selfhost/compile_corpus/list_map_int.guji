@@ -1,0 +1,10 @@
+# §15.1 higher-order list map, first P2b slice: inline lambda over an Int list.
+# This isolates `.map` from the still-unported `.filter`/`.reduce`/`.each` paths.
+sub main(): Int {
+    @xs = [1, 2, 3, 4]
+    @ys = @xs.map(sub($n: Int): Int { $n * $n })
+    @zs = map(@ys, sub($n: Int): Int { $n + 1 })
+    print("{ @ys[0] },{ @ys[1] },{ @ys[2] },{ @ys[3] }")
+    print("{ @zs[0] },{ @zs[3] }")
+    @zs[3]
+}

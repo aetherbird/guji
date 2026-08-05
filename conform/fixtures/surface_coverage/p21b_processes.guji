@@ -1,0 +1,46 @@
+# Spec 15.6: shell-free argv (including empty), exact stream capture, NUL-safe
+# text, normal/signal status, not-found, and permission-denied spawn failure.
+import p21b_processes_deps::not_executable
+
+sub main(): Int {
+    print("module={ not_executable::marker() }")
+    @child = [
+        "-c",
+        "printf '<\%s><\%s>' \"\$1\" \"\$2\"; printf 'warn' >&2; exit 7",
+        "guji-child",
+        "",
+        "a b"
+    ]
+    match run("sh", @child) {
+        Ok($p) {
+            $argv_ok = $p.stdout == "<><a b>"
+            $stderr_ok = $p.stderr == "warn"
+            print("exit={ $p.exit_code }")
+            print("argv-ok=$argv_ok")
+            print("stderr-ok=$stderr_ok")
+        }
+        Err($e) { print("child-error=$e") }
+    }
+    match run("printf", ["a\0b"]) {
+        Ok($p) {
+            $nul_count = $p.stdout.split("").count()
+            $nul_not_truncated = $p.stdout != "ab"
+            print("nul-count=$nul_count")
+            print("nul-not-truncated=$nul_not_truncated")
+        }
+        Err($e) { print("nul-error=$e") }
+    }
+    match run("sh", ["-c", "kill -TERM \$\$"]) {
+        Ok($p) { print("signal={ $p.exit_code }") }
+        Err($e) { print("signal-error=$e") }
+    }
+    match run("guji-process-definitely-missing-0000021", []) {
+        Ok($p) { print("missing-ok") }
+        Err($e) { print($e) }
+    }
+    match run("conform/fixtures/surface_coverage/p21b_processes_deps/not_executable.guji", []) {
+        Ok($p) { print("permission-ok") }
+        Err($e) { print($e) }
+    }
+    0
+}

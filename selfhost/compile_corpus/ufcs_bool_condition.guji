@@ -1,0 +1,8 @@
+# Bool-returning UFCS calls feed conditions through the stateful call path.
+sub is_target($s: Str): Bool {
+    $s == "target"
+}
+
+sub main(): Int {
+    if "target".is_target() { 7 } else { 1 }
+}
