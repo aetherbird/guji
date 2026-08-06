@@ -1,5 +1,7 @@
 # Guji
 
+https://guji.dev/
+
 Guji is a statically typed, compiled, functional-first language with first-class
 text processing. Regex literals and PEG grammars are language features rather
 than library additions.
